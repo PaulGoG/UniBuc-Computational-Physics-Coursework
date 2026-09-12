@@ -60,6 +60,3 @@ JINR Dubna in 2019.
 import: the original 1001-frame animation was 14.6 MB, and it was re-encoded to
 640×450 at every fourth frame to keep the repository a reasonable size. The
 script that produces it is unchanged and will regenerate the original.
-
-The MSc thesis and its code are deliberately absent; they belong to a separate
-repository.
