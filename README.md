@@ -102,9 +102,6 @@ came from are not carried over.
 [Alexandru Crăciun](https://github.com/Craciun-Alexandru), presented together at
 JINR Dubna in 2019.
 
-The BSc thesis and its code live in their own repository. The MSc thesis is not
-here.
-
 ## Licence
 
 MIT, see `LICENSE`.
