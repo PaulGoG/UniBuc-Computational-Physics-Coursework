@@ -1,0 +1,10 @@
+Manifest.toml
+
+# Build products of the C/C++ sources
+*.o
+*.out
+a.out
+
+# Generated figures and animations, except those referenced from a README
+plots/
+output/

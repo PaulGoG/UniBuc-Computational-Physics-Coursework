@@ -1,0 +1,9 @@
+* text=auto
+
+*.gif binary
+*.png binary
+*.pdf binary
+*.STR binary
+*.ANA binary
+*.GC binary
+*.DAT binary
