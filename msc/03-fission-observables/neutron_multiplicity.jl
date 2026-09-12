@@ -1,15 +1,20 @@
 # Prompt-neutron multiplicity per fragment, ν(A), from the total excitation
 # energy, compared against four measured datasets.
 #
-# The simplest energy-balance estimate divides the excitation energy available
-# to a fragment by the cost of evaporating one neutron:
+# The energy balance is the one `Fisiune_3.jl` used:
 #
-#   ν(A) ≈ E*(A) / (⟨S_n⟩ + ⟨ε⟩),        ⟨ε⟩ = 4T/3,  T = √(E*/a)
+#   ν_pair = (TXE − q) / (⟨ε⟩ + ⟨S_n⟩ + p),     ⟨ε⟩ = 4T_m/3,  T_m = √(TXE/a_tot)
+#   p = 6.71 − Z²·0.156/A       q = 0.75 + Z²·0.088/A
 #
-# with the level-density parameter from the Gilbert–Cameron systematics
-# a = A[0.00917(S_Z + S_N) + 0.142]. The excitation energy is partitioned
-# between the fragments in the ratio of their level-density parameters, which is
-# the limit of statistical equilibrium at scission.
+# with p and q the systematics terms of the compound system and a_tot = a_L + a_H
+# the summed Gilbert–Cameron level-density parameters,
+# a = A[0.00917(S_Z + S_N) + 0.142].
+#
+# The pair multiplicity is split between the fragments by the ratio of their
+# level-density parameters. The original obtained that ratio from its
+# scission-point deformation energies instead; that model is not reproduced here
+# (see below), and the level-density ratio is the statistical-equilibrium limit
+# of the same quantity.
 #
 # Ported from the tractable part of Fisiune_3.jl, whose scission-point
 # deformation-energy model is not reproduced — it hardcodes six undocumented
@@ -42,6 +47,10 @@ function level_density(A, Z, gc)
     return A * (0.00917 * (S_Z + S_N) + 0.142)
 end
 
+"Systematics terms of the compound system, as in Fisiune_3.jl."
+p_term(A, Z) = 6.71 - Z^2 * 0.156 / A
+q_term(A, Z) = 0.75 + Z^2 * 0.088 / A
+
 function main()
     y = load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR"))
     masses = load_masses(joinpath(DATA, "Defecte_masa", "AUDI2021.csv"))
@@ -71,28 +80,32 @@ function main()
         (aH_ld === nothing || aL_ld === nothing) && continue
         (aH_ld > 0 && aL_ld > 0) || continue
 
-        E_H = TXE * aH_ld / (aH_ld + aL_ld)
-        E_L = TXE * aL_ld / (aH_ld + aL_ld)
-        function multiplicity(E, ald, Z, A)
-            S = separation_cost(masses, Z, A)
-            S === nothing && return nothing
-            T = sqrt(E / ald)
-            return E / (S + 4T/3)
-        end
-        nH = multiplicity(E_H, aH_ld, Zp, a)
-        nL = multiplicity(E_L, aL_ld, ZL, aL)
-        (nH === nothing || nL === nothing) && continue
-        push!(A_list, a); push!(ν_H, nH); push!(ν_L, nL); push!(ν_tot, nH + nL)
+        # pair multiplicity, exactly the Fisiune_3.jl energy balance
+        a_tot = aH_ld + aL_ld
+        T_m = sqrt(TXE / a_tot)
+        ε_mean = 4 * T_m / 3
+        S_H = separation_cost(masses, Zp, a); S_L = separation_cost(masses, ZL, aL)
+        (S_H === nothing || S_L === nothing) && continue
+        S_mean = (S_H + S_L) / 2
+        pp = p_term(A₀, Z₀); qq = q_term(A₀, Z₀)
+        TXE > qq || continue
+        ν_pair = (TXE - qq) / (ε_mean + S_mean + pp)
+
+        # split by the level-density ratio, the statistical-equilibrium limit
+        R = aH_ld / a_tot
+        push!(A_list, a); push!(ν_H, ν_pair * R); push!(ν_L, ν_pair * (1 - R))
+        push!(ν_tot, ν_pair)
     end
 
     @printf("ν computed for %d mass splits\n", length(A_list))
+    @printf("systematics terms for ²³⁶U: p = %.3f MeV, q = %.3f MeV\n",
+            p_term(A₀, Z₀), q_term(A₀, Z₀))
     @printf("mean total multiplicity <nu_pair> = %.3f\n", mean(ν_tot))
-    @printf("evaluated value for ²³⁵U(n_th,f): 2.42 — the model is %.0f %% high\n",
+    @printf("evaluated value for ²³⁵U(n_th,f): 2.42 — the model is %+.0f %% off\n",
             100 * (mean(ν_tot) / 2.42 - 1))
-    @printf("that is the model, not a coding error: dividing the whole excitation\n")
-    @printf("energy by the neutron cost ignores the competition with prompt γ\n")
-    @printf("emission, which carries off roughly 6–7 MeV of TXE per fission, and\n")
-    @printf("<ε> = 4T/3 understates the mean emitted neutron energy.\n\n")
+    @printf("the residual is the model: prompt γ emission competes for the same\n")
+    @printf("excitation energy and carries off 6–7 MeV per fission, which this\n")
+    @printf("balance does not account for.\n\n")
 
     sets = [("Göök", "U5NUAGOOK.DAT", PALETTE.blue),
             ("Maslin", "U5NUAMASLIN.DAT", PALETTE.orange),

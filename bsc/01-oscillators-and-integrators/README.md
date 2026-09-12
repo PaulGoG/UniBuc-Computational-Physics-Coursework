@@ -11,6 +11,10 @@ solution `y = (y₀+5)e^{-0.4x} - 5e^{-x}` is available in closed form. Sweeping
 the step size over sixteen powers of two recovers the observed orders of
 convergence: **1.002** for Euler and **4.121** for RK4.
 
+`DiffEqEuler.cpp`'s autonomous nonlinear problem `y' = y + sin(0.4y)` is
+integrated alongside it against a finely resolved RK4 reference, since it has no
+closed form: orders **0.979** and **3.955**.
+
 ![Order of convergence](figures/integrator_order_comparison.png)
 
 Ported from `RKtrial.cpp` and `DiffEqEuler.cpp`. Both Butcher tableaux in the
@@ -44,8 +48,25 @@ integers on a 101×101 lattice with modulo bias.
 
 ## `oscillator_trajectory_separation.jl`
 
-Two trajectories starting 10⁻⁷ apart in phase space, followed for the undamped,
-under-damped and driven oscillator.
+Two trajectories starting 10⁻⁷ apart in phase space. The three parameter sets of
+the 2018 programs are integrated as written, alongside two non-degenerate
+replacements.
+
+| Case | Fitted decay rate | Input δ |
+|---|---|---|
+| Undamped (2018) | −0.00000 | 0 |
+| Critically damped, δ = ω₀ = 1 (2018) | 0.83410 | 1 |
+| Driven, δ = 0 (2018) | −0.00000 | 0 |
+| Under-damped, δ = 0.15 | 0.14996 | 0.15 |
+| Driven, δ = 0.3, ω = 1.6 | 0.29999 | 0.3 |
+
+**The 2018 undamped and 2018 driven cases give identical separation**, to every
+digit. The driving is the same along both trajectories and cancels in their
+difference, so `OscilatorFortat.cpp` could not have learned anything its
+undamped sibling did not already show — even if its file handles had worked.
+The critically damped case fits a rate of 0.834 rather than 1, because at
+δ = ω₀ the solution carries a `(A + Bt)e^{−δt}` factor and a pure exponential fit
+splits the difference.
 
 ![Trajectory separation](figures/oscillator_trajectory_separation.png)
 

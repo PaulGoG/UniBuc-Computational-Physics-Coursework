@@ -18,8 +18,15 @@ include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 
 const FIGURES = joinpath(@__DIR__, "figures")
 
-"Right-hand side of the test problem."
+"Right-hand side of the linear test problem, from RKtrial.cpp."
 rhs(x, y) = 3 * exp(-x) - 0.4 * y
+
+"""
+Right-hand side of the autonomous nonlinear problem from DiffEqEuler.cpp,
+y' = y + sin(0.4y). It has no closed-form solution, so the reference below is a
+finely resolved RK4 solution rather than an exact one.
+"""
+rhs_nonlinear(x, y) = y + sin(0.4 * y)
 
 "Exact solution of the test problem for the initial value `y₀` at `x = 0`."
 exact(x, y₀) = (y₀ + 5) * exp(-0.4x) - 5 * exp(-x)
@@ -81,6 +88,22 @@ function main()
 
     p_euler = observed_order(h, err_euler)
     p_rk4 = observed_order(h, err_rk4)
+
+    # the nonlinear problem of DiffEqEuler.cpp, against a fine RK4 reference
+    x_end_nl, y₀_nl = 1.0, 1.0
+    # the reference is RK4 at 2^18 steps; the sweep stops at 2^10 so that the
+    # RK4 discretisation error stays well above both the reference's own
+    # round-off and the double-precision floor
+    ref_nl = rk4(rhs_nonlinear, 0.0, y₀_nl, x_end_nl / 2^18, 2^18)
+    steps_nl = [2^k for k in 3:10]
+    h_nl = x_end_nl ./ steps_nl
+    err_e_nl = [abs(euler(rhs_nonlinear, 0.0, y₀_nl, h_nl[i], steps_nl[i]) - ref_nl)
+                for i in eachindex(steps_nl)]
+    err_r_nl = [abs(rk4(rhs_nonlinear, 0.0, y₀_nl, h_nl[i], steps_nl[i]) - ref_nl)
+                for i in eachindex(steps_nl)]
+    @printf("nonlinear y' = y + sin(0.4y): reference y(%.1f) = %.10f\n", x_end_nl, ref_nl)
+    @printf("  observed order, forward Euler = %.3f\n", observed_order(h_nl, err_e_nl))
+    @printf("  observed order, RK4           = %.3f\n", observed_order(h_nl, err_r_nl))
     @printf("exact y(%.1f) = %.12f\n", x_end, reference)
     @printf("observed order, forward Euler = %.3f  (expected 1)\n", p_euler)
     @printf("observed order, RK4           = %.3f  (expected 4)\n", p_rk4)

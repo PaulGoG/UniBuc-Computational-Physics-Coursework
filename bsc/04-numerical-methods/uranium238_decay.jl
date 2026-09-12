@@ -43,8 +43,9 @@ end
 
 function main()
     N₀ = 1.0
-    Δt = 1e8
-    n = 100
+    # the original's grid: dt = 1e7 yr over 1000 points
+    Δt = 1e7
+    n = 1000
 
     t, N_correct = euler_decay(N₀, τ, Δt, n)
     _, N_2018 = euler_decay(N₀, T_HALF, Δt, n)   # half-life used as mean life
@@ -63,7 +64,7 @@ function main()
     ax = Axis(fig[2, 1], xlabel = L"Time $t$ [Gyr]", ylabel = L"$N/N_0$")
 
     l_a = lines!(ax, t ./ 1e9, analytic, color = PALETTE.black, linewidth = 1.6)
-    l_c = scatter!(ax, t[1:4:end] ./ 1e9, N_correct[1:4:end],
+    l_c = scatter!(ax, t[1:40:end] ./ 1e9, N_correct[1:40:end],
         color = PALETTE.blue, markersize = 8)
     l_w = lines!(ax, t ./ 1e9, N_2018, color = PALETTE.red,
         linewidth = 1.5, linestyle = :dash)

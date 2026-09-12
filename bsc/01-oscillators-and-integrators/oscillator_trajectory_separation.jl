@@ -29,7 +29,9 @@
 # parameter choices were also degenerate -- the damped case used δ = ω₀ = 1,
 # exactly critical damping, which does not oscillate at all, and the driven case
 # used δ = 0, so it never reaches a steady state. Both are given physically
-# useful values below.
+# useful values below — but the original parameter sets are integrated here too,
+# so the record shows what those three programs were actually configured to do
+# and why the analysis built on top of them could not work.
 
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
@@ -98,11 +100,19 @@ function fitted_decay_rate(t, d)
     return -slope
 end
 
-# (label, ω₀, δ, F, ω, colour)
+# (label, ω₀, δ, F, ω, colour, linestyle)
+#
+# The first three are the parameter sets of OscilatorArmonique.cpp,
+# OscilatorAmortizat.cpp and OscilatorFortat.cpp exactly as written. Two of them
+# are degenerate: δ = ω₀ = 1 is critical damping, which does not oscillate, and
+# the driven case has δ = 0, so it never reaches a steady state and its damping
+# term is dead code. The last two are non-degenerate replacements.
 const CASES = (
-    ("Undamped", 1.0, 0.0, 0.0, 0.0, PALETTE.blue),
-    ("Under-damped, δ = 0.15", 1.0, 0.15, 0.0, 0.0, PALETTE.orange),
-    ("Driven, δ = 0.3, ω = 1.6", 1.0, 0.3, 1.0, 1.6, PALETTE.green),
+    ("Undamped (2018)",            1.0, 0.0,  0.0,  0.0, PALETTE.blue,   :solid),
+    ("Critically damped (2018)",   1.0, 1.0,  0.0,  0.0, PALETTE.red,    :solid),
+    ("Driven, δ = 0 (2018)",       1.0, 0.0, 10.0,  3.0, PALETTE.purple, :solid),
+    ("Under-damped, δ = 0.15",     1.0, 0.15, 0.0,  0.0, PALETTE.orange, :dash),
+    ("Driven, δ = 0.3, ω = 1.6",   1.0, 0.3,  1.0,  1.6, PALETTE.green,  :dash),
 )
 
 function main()
@@ -116,13 +126,18 @@ function main()
         yscale = log10)
 
     handles = []
-    for (label, ω₀, δ, F, ω, colour) in CASES
+    for (label, ω₀, δ, F, ω, colour, ls) in CASES
         t, d = separation((ω₀, δ, F, ω), 1.0, 0.0, D₀, Δt, n)
-        push!(handles, lines!(ax, t, d, color = colour, linewidth = 1.4))
+        push!(handles, lines!(ax, t, d, color = colour, linewidth = 1.4, linestyle = ls))
 
         @printf("%-26s |Δ(%.0f)| = %.3e   fitted decay rate = %.5f   input δ = %.5f\n",
                 label, t_end, last(d), fitted_decay_rate(t, d), δ)
     end
+    println()
+    println("the driving cancels in the difference, so the δ = 0 driven case has")
+    println("exactly the same separation as the δ = 0 undamped one — which is why")
+    println("OscilatorFortat.cpp could not have learned anything from it even if")
+    println("its file handles had worked.")
 
     h_ref = hlines!(ax, [D₀], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
     text!(ax, 0.02, 0.04;
@@ -131,8 +146,8 @@ function main()
 
     Legend(fig[1, 1], [handles; h_ref],
         [[c[1] for c in CASES]; L"Initial separation $d_0 = 10^{-7}$"],
-        orientation = :horizontal, framevisible = false, labelsize = 17,
-        colgap = 22, nbanks = 1)
+        orientation = :horizontal, framevisible = false, labelsize = 14,
+        colgap = 14, nbanks = 2)
 
     rowsize!(fig.layout, 2, Relative(0.86))
     path = savefigure(fig, FIGURES, "oscillator_trajectory_separation")

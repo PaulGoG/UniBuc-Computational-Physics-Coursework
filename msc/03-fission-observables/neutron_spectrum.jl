@@ -44,6 +44,20 @@ E₁(z) = expint(z)
 "Lower incomplete gamma γ(a, x)."
 γ_lower(a, x) = gamma(a) * gamma_inc(a, x)[1]
 
+"Maximum residual temperature, T_m = √(C·TXE/A) with C = 10 MeV as in 2018."
+T_max(A, TXE; C = 10.0) = sqrt(C * TXE / A)
+
+"""
+    E_f_pair(A, A_H, TKE)
+
+Average fragment kinetic energy per nucleon for the light and heavy fragment,
+from momentum conservation: E_L = TKE·A_H/A, so E_f_L = E_L/A_L.
+"""
+function E_f_pair(A, A_H, TKE)
+    A_L = A - A_H
+    return ((A_H / A_L) * TKE / A, (A_L / A_H) * TKE / A)
+end
+
 """
     madland_nix(E, E_f, T_m; correct)
 
@@ -79,27 +93,81 @@ function fit_maxwellian(E, N, σN)
     return T, χ²(T) / (length(E) - 1)
 end
 
-function main()
-    # the prefactor, at representative fragment parameters
-    E_f, T_m = 0.95, 1.05
-    E = 10 .^ range(-1.3, log10(20), length = 400)
-    good = madland_nix.(E, E_f, T_m)
-    bad = madland_nix.(E, E_f, T_m; correct = false)
-    ratio = (1 / (3 * sqrt(E_f * T_m))) / ((1 / 3) * sqrt(E_f * T_m))
-    @printf("Madland–Nix prefactor: correct 1/(3√(E_f·T_m)), 2018 (1/3)√(E_f·T_m)\n")
-    @printf("at E_f = %.2f MeV, T_m = %.2f MeV the two differ by a factor %.4f = 1/(E_f·T_m)\n",
-            E_f, T_m, ratio)
-    @printf("and since E_f and T_m vary with fragment mass, this does not cancel\n")
-    @printf("under renormalisation — it reweights the mass average.\n\n")
+"""
+    mass_averaged_spectrum(E_grid, fragments; correct)
 
-    # trapezoid on a logarithmic grid: sum(E.*N)/sum(N) would weight by grid
-    # spacing, which is not uniform here
-    w = [i == 1 ? (E[2]-E[1])/2 : i == length(E) ? (E[end]-E[end-1])/2 :
-         (E[i+1]-E[i-1])/2 for i in eachindex(E)]
-    E_mean = sum(w .* E .* good) / sum(w .* good)
-    @printf("mean energy of the correct spectrum <E> = %.3f MeV\n", E_mean)
-    @printf("equivalent Maxwellian temperature (2/3)<E> = %.3f MeV\n", 2E_mean/3)
-    @printf("measured ²³⁵U(n_th,f) values cluster near 1.32 MeV\n\n")
+N(E) averaged over the mass yield, as the 2018 file did: for each fragment mass
+the light- and heavy-fragment spectra are averaged and weighted by Y(A). This is
+the calculation the file exists to perform, and it is where the prefactor error
+matters — E_f and T_m both vary with A_H, so a prefactor carrying them cannot be
+absorbed into an overall normalisation.
+"""
+function mass_averaged_spectrum(E_grid, fragments; correct = true)
+    N = zeros(length(E_grid))
+    for (i, E) in enumerate(E_grid)
+        num = 0.0; den = 0.0
+        for f in fragments
+            N_L = madland_nix(E, f.E_f_L, f.T_m; correct = correct)
+            N_H = madland_nix(E, f.E_f_H, f.T_m; correct = correct)
+            num += f.Y * 0.5 * (N_L + N_H)
+            den += f.Y
+        end
+        N[i] = num / den
+    end
+    return N
+end
+
+"Trapezoid weights for a non-uniform grid."
+trapz_weights(x) = [i == 1 ? (x[2]-x[1])/2 : i == length(x) ? (x[end]-x[end-1])/2 :
+                    (x[i+1]-x[i-1])/2 for i in eachindex(x)]
+
+function main()
+    # per-mass TXE, TKE and Y(A) from the yield matrix, exactly as the 2018
+    # file built them, so the mass average below is over the same quantities
+    y = load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR"))
+    masses = load_masses(joinpath(DATA, "Defecte_masa", "AUDI2021.csv"))
+    A₀, Z₀ = 236, 92
+    Δ₀ = Δ(masses, Z₀, A₀)
+    S_n = (Δ(masses, 92, 235) + Δ(masses, 0, 1) - Δ₀) / 1000
+
+    fragments = NamedTuple[]
+    for a in sort(unique(y.A_H))
+        sub = y[y.A_H .== a, :]
+        Y = sum(sub.Y); Y > 0 || continue
+        TKE = sum(sub.TKE .* sub.Y) / Y
+        Zp = round(Int, Z₀ * a / A₀ - 0.5)
+        δH = Δ(masses, Zp, a); δL = Δ(masses, Z₀ - Zp, A₀ - a)
+        (δH === nothing || δL === nothing) && continue
+        TXE = (Δ₀ - δH - δL) / 1000 + S_n - TKE
+        TXE > 0 || continue
+        efl, efh = E_f_pair(A₀, a, TKE)
+        push!(fragments, (A_H = a, Y = Y, TKE = TKE, TXE = TXE,
+                          T_m = T_max(A₀, TXE), E_f_L = efl, E_f_H = efh))
+    end
+    @printf("mass average over %d fragment masses, A_H %d–%d\n",
+            length(fragments), fragments[1].A_H, fragments[end].A_H)
+    @printf("  T_m spans %.3f–%.3f MeV, E_f spans %.3f–%.3f MeV\n\n",
+            minimum(f.T_m for f in fragments), maximum(f.T_m for f in fragments),
+            minimum(min(f.E_f_L, f.E_f_H) for f in fragments),
+            maximum(max(f.E_f_L, f.E_f_H) for f in fragments))
+
+    E = 10 .^ range(-1.3, log10(20), length = 260)
+    good = mass_averaged_spectrum(E, fragments)
+    bad = mass_averaged_spectrum(E, fragments; correct = false)
+    w = trapz_weights(E)
+
+    @printf("Madland–Nix prefactor: correct 1/(3√(E_f·T_m)), 2018 (1/3)√(E_f·T_m)\n")
+    E_mean_good = sum(w .* E .* good) / sum(w .* good)
+    E_mean_bad = sum(w .* E .* bad) / sum(w .* bad)
+    @printf("mass-averaged <E>:  correct %.4f MeV,  2018 prefactor %.4f MeV\n",
+            E_mean_good, E_mean_bad)
+    @printf("equivalent Maxwellian (2/3)<E>: %.4f vs %.4f MeV\n",
+            2E_mean_good/3, 2E_mean_bad/3)
+    @printf("evaluated value for ²³⁵U(n_th,f): 1.32 MeV\n")
+    @printf("the two differ by %.2f %% in <E> — the prefactor carries E_f and T_m,\n",
+            100 * (E_mean_bad / E_mean_good - 1))
+    @printf("both of which vary with A_H, so it reweights the mass average and\n")
+    @printf("cannot be absorbed into an overall normalisation.\n\n")
 
     files = [("Gook, lab", "U5SPGOOK.DAT", PALETTE.blue),
              ("Vorobyev, lab", "U5SPVORO.DAT", PALETTE.orange),

@@ -43,7 +43,9 @@ against a fine reference:
 
 The middle panel contrasts the full pendulum `θ̈ = -(g/L) sin θ` with the
 small-angle approximation from θ₀ = 2.5 rad — they diverge by up to 4.9 rad,
-since the true period lengthens with amplitude. `Pendul_simplu.m` is headed
+since the true period lengthens with amplitude. It uses g/L = 9.8, the value of
+`Pendul_simplu.m` (L = 1 m, g = 9.8); the driven files set L = 9.8 m, hence the
+g/L = 1 of the Poincaré panel. `Pendul_simplu.m` is headed
 "pendulul matematic" but integrates the linearised equation, not the pendulum.
 
 The right panel is the Poincaré section of the driven damped pendulum at
@@ -61,7 +63,9 @@ exists for.
 The original wrote `tau = 4.4e9; % timpul mediu de viata U238`. That is the
 **half-life** of ²³⁸U, not the mean lifetime: τ = T½/ln 2 = 6.446 Gyr. Using one
 for the other decays the sample far too fast — at t = τ the surviving fraction
-is 0.36 rather than 0.23, a 37 % error. Both curves are shown.
+is 0.3674 rather than 0.2357, a 36 % error. Both curves are shown. On the
+original's grid (Δt = 10⁷ yr, 1000 points) the Euler solution recovers a
+half-life of 4.470 Gyr against the true 4.468.
 
 It is also not a decay chain despite the filename. ²³⁸U does decay through
 fourteen members to ²⁰⁶Pb, but none of that is modelled; the single-isotope law

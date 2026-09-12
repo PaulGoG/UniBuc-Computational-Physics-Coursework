@@ -59,7 +59,7 @@ changed results:
 | `OscilatorArmonique/Amortizat/Fortat.cpp`, `AtractorI/helpers.cpp` | an `ifstream` opened on the same file as an unflushed `ofstream`, so every extraction failed and — since C++11 — set its target to zero. **Every separation and extremum result those four programs printed was identically zero** |
 | `Runge_Kutta_4_pendul_dampat_fortat.m` | the θ-stages used the ω-slopes, making the scheme **first-order, not fourth**. Measured: 1.01 against 3.83 |
 | `IsingFinal.cpp` | rows allocated `n+2` wide, columns only `n`, while indexing `a[i][n+1]` — a heap overflow; ghost cells never refreshed; every bond double-counted, so Metropolis ran at effective temperature **T/2**; cooling per flip rather than per sweep |
-| `Fisiune_4.jl` | Madland–Nix prefactor written `(1/3)*sqrt(E_f*T_m)` where the model needs `1/(3*sqrt(E_f*T_m))` — multiplying where it must divide |
+| `Fisiune_4.jl` | Madland–Nix prefactor written `(1/3)*sqrt(E_f*T_m)` where the model needs `1/(3*sqrt(E_f*T_m))` — multiplying where it must divide. Measured over the mass average: a 4.76 % shift in ⟨E⟩ |
 | `Fisiune_2.jl` | Y(N) summed inside the (A,Z) loop over a quantity depending only on N: **805 % total yield instead of 100 %** |
 | `Frecventa_accident_aviatic.jl` | two crash-frequency estimators, neither of them an areal density, differing by one power of length — **neither was a frequency**, yet both were screened against per-year thresholds |
 | `Hubble.jl` | `Suma_σ² =+ σ_z[i]^2` parses as an assignment, not `+=`, so every averaged uncertainty kept only its last term |
@@ -84,6 +84,7 @@ fails. A perturbation of 10⁻¹² changes y(100) from 0 to 59.7. The 2018 file 
 | ⟨TKE⟩ in ²³⁵U(n_th,f) | 170.55 MeV |
 | S_n(²³⁶U) | 6.546 MeV |
 | Prompt-neutron spectrum temperature | 1.322 and 1.336 MeV (lab), 0.796 and 0.839 (CM) |
+| Prompt-neutron pair multiplicity | 2.883 (evaluated 2.42) |
 | H₀ from three galaxies | 73.1 ± 11.4 km s⁻¹ Mpc⁻¹ |
 | H₀ from H(z), flat ΛCDM | 73.3 ± 5.1 km s⁻¹ Mpc⁻¹, Ω_m = 0.267 ± 0.064 |
 | Tessar objective focal length | 50.79 mm |

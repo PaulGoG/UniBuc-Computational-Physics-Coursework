@@ -121,10 +121,12 @@ function main()
     @printf("observed order, correct RK4 = %.2f\n", p_correct)
     @printf("observed order, 2018 stages = %.2f\n", p_2018)
 
-    # small-angle against full nonlinear, undriven and undamped
-    free = (g_over_L = 1.0, q = 0.0, F_D = 0.0, Ω_D = 0.0)
-    Δt = 0.005
-    n = round(Int, 40 / Δt)
+    # small-angle against full nonlinear, undriven and undamped.
+    # Pendul_simplu.m used L = 1 m with g = 9.8, so g/L = 9.8 — not the g/L = 1
+    # of the driven files, which set L = 9.8 m.
+    free = (g_over_L = 9.8, q = 0.0, F_D = 0.0, Ω_D = 0.0)
+    Δt = 0.002
+    n = round(Int, 12 / Δt)
     t, θ_full, _ = integrate(rk4_step, 2.5, 0.0, Δt, n, free, accel)
     _, θ_lin, _ = integrate(rk4_step, 2.5, 0.0, Δt, n, free, accel_linear)
     @printf("free pendulum from θ₀ = 2.5 rad: full and linearised differ by up to %.3f rad\n",
@@ -153,7 +155,7 @@ function main()
     ax2 = Axis(fig[2, 2], xlabel = L"Time $t$", ylabel = L"Angle $\theta$ [rad]")
     l_f = lines!(ax2, t, θ_full, color = PALETTE.blue, linewidth = 1.3)
     l_l = lines!(ax2, t, θ_lin, color = PALETTE.orange, linewidth = 1.3, linestyle = :dash)
-    xlims!(ax2, 0, 40)
+    xlims!(ax2, 0, 12)
 
     ax3 = Axis(fig[2, 3], xlabel = L"\theta \ \mathrm{[rad]}", ylabel = L"\omega \ \mathrm{[rad/s]}")
     scatter!(ax3, wrap.(θc[keep]), ωc[keep], color = (PALETTE.green, 0.5), markersize = 2)

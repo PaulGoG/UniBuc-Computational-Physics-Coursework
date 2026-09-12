@@ -94,7 +94,10 @@ function main()
     S_n = (Δ_U235 + Δn - Δ₀) / 1000
     @printf("S_n(²³⁶U) = %.3f MeV\n", S_n)
 
+    # single-fragment kinetic energies from momentum conservation,
+    # KE_L = TKE·A_H/A₀ and KE_H = TKE·A_L/A₀ — computed by Fisiune_2.jl:KE_A
     TKE_A = Float64[]; TXE_A = Float64[]; A_keep = Int[]
+    KE_L = Float64[]; KE_H = Float64[]
     for a in A
         sub = y[y.A_H .== a, :]
         sum(sub.Y) > 0 || continue
@@ -104,7 +107,12 @@ function main()
         (δH === nothing || δL === nothing) && continue
         q = (Δ₀ - δH - δL) / 1000
         push!(A_keep, a); push!(TKE_A, tke); push!(TXE_A, q + S_n - tke)
+        push!(KE_L, tke * a / A₀); push!(KE_H, tke * (A₀ - a) / A₀)
     end
+    @printf("KE_L ranges %.1f–%.1f MeV, KE_H ranges %.1f–%.1f MeV\n",
+            minimum(KE_L), maximum(KE_L), minimum(KE_H), maximum(KE_H))
+    @printf("  check: KE_L + KE_H = TKE to %.2e MeV\n",
+            maximum(abs.(KE_L .+ KE_H .- TKE_A)))
     @printf("⟨TKE⟩(A) ranges %.1f–%.1f MeV, TXE(A) ranges %.1f–%.1f MeV\n",
             minimum(TKE_A), maximum(TKE_A), minimum(TXE_A), maximum(TXE_A))
 
@@ -118,8 +126,11 @@ function main()
     ax4 = Axis(fig[2, 2], xlabel = L"$A_H$", ylabel = "Energy [MeV]")
     l_tke = lines!(ax4, A_keep, TKE_A, color = PALETTE.blue, linewidth = 1.6)
     l_txe = lines!(ax4, A_keep, TXE_A, color = PALETTE.red, linewidth = 1.6)
-    axislegend(ax4, [l_tke, l_txe], [L"\langle TKE \rangle(A)", "TXE(A)"],
-               position = :rt, framevisible = false, labelsize = 15)
+    l_kel = lines!(ax4, A_keep, KE_L, color = PALETTE.green, linewidth = 1.4, linestyle = :dash)
+    l_keh = lines!(ax4, A_keep, KE_H, color = PALETTE.orange, linewidth = 1.4, linestyle = :dash)
+    axislegend(ax4, [l_tke, l_txe, l_kel, l_keh],
+               [L"\langle TKE \rangle(A)", "TXE(A)", L"KE_L(A)", L"KE_H(A)"],
+               position = :rt, framevisible = false, labelsize = 13, nbanks = 2)
 
     println("\nwrote ", savefigure(fig, FIGURES, "fragment_yields"))
 end

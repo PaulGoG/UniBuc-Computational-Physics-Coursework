@@ -31,6 +31,11 @@ must.
 | ⟨TKE⟩ | **170.55 MeV** |
 | S_n(²³⁶U) | **6.546 MeV** |
 | TXE(A) | 20.7–44.0 MeV |
+| KE_L(A) | 77.9–101.1 MeV |
+| KE_H(A) | 49.0–80.2 MeV |
+
+The single-fragment kinetic energies follow from momentum conservation,
+KE_L = TKE·A_H/A₀; they close against TKE to 2.8 × 10⁻¹⁴ MeV.
 
 ⟨TKE⟩ and S_n both reproduce the evaluated values to three digits.
 
@@ -50,7 +55,24 @@ this, and five commented-out `deleteat!` lines in `Fisiune_3.jl` document it.
 
 ![Neutron spectrum](figures/neutron_spectrum.png)
 
-Madland–Nix spectrum and Maxwellian fits to four measured spectra.
+Madland–Nix spectrum, **averaged over the mass yield** as the original did —
+per-mass TXE, TKE, T_m = √(10·TXE/A) and E_f, with the light- and
+heavy-fragment spectra averaged and weighted by Y(A) over 41 masses — and
+Maxwellian fits to four measured spectra.
+
+The mass average is what makes the prefactor error measurable. T_m spans
+0.936–1.365 MeV and E_f spans 0.310–1.273 MeV across the fragments, so a
+prefactor carrying both cannot be absorbed into an overall normalisation:
+
+| | ⟨E⟩ | (2/3)⟨E⟩ |
+|---|---|---|
+| Correct prefactor | 2.1025 MeV | 1.4017 MeV |
+| 2018 prefactor | 2.2025 MeV | 1.4683 MeV |
+
+a **4.76 %** shift in the mean energy. Real, and in the direction that matters,
+but modest — worth stating precisely rather than left as an assertion. The
+correct equivalent Maxwellian temperature of 1.40 MeV sits above the evaluated
+1.32, which is the Los Alamos model with C = 10 rather than a coding issue.
 
 | Dataset | T_M [MeV] | χ²/ν |
 |---|---|---|
@@ -84,14 +106,24 @@ bounded its optimiser at T_M = 0 where T_M^{-3/2} is infinite.
 
 ![Neutron multiplicity](figures/neutron_multiplicity.png)
 
-ν(A) from an energy balance, against Göök, Maslin, Nishio and Vorobyev.
+ν(A) from the energy balance `Fisiune_3.jl` used,
 
-The model gives ⟨ν_pair⟩ = **3.99** against the evaluated **2.42** — 65 % high.
-That is the model and not a coding error: dividing the whole excitation energy
-by the neutron cost ignores the competition with prompt γ emission, which
-carries off 6–7 MeV per fission, and ⟨ε⟩ = 4T/3 understates the mean emitted
-neutron energy. The measured sets average 1.16–1.32 neutrons per fragment,
-consistent with 2.42 for the pair.
+```
+ν_pair = (TXE − q) / (⟨ε⟩ + ⟨S_n⟩ + p),   ⟨ε⟩ = 4T_m/3,  T_m = √(TXE/a_tot)
+p = 6.71 − Z²·0.156/A = 1.116 MeV        q = 0.75 + Z²·0.088/A = 3.905 MeV
+```
+
+against Göök, Maslin, Nishio and Vorobyev.
+
+⟨ν_pair⟩ = **2.883** against the evaluated **2.42**, +19 %. The residual is the
+model: prompt γ emission competes for the same excitation energy and carries off
+6–7 MeV per fission, which this balance does not account for. The measured sets
+average 1.16–1.32 neutrons per fragment, consistent with 2.42 for the pair.
+
+The pair multiplicity is split between fragments by the ratio of their
+level-density parameters. The original took that ratio from its scission-point
+deformation energies; that model is not reproduced, and the level-density ratio
+is the statistical-equilibrium limit of the same quantity.
 
 The defect fixed from `Fisiune_3.jl`:
 
