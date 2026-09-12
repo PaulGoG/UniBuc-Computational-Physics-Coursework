@@ -78,7 +78,8 @@ function main()
     @printf("secular equilibrium ratio Λ₂/Λ₁ → %.6f\n\n", λ₂ / (λ₂ - λ₁))
 
     λ_al = decay_constant(T_AL28)
-    τ, K = 300.0, 2.565e7
+    # the original set τ = 5·T½ and ran three activation/pause cycles
+    τ, K = 5 * T_AL28, 2.565e7
     @printf("²⁸Al T½ = %.1f s (2018 used %.1f s, %.1f %% high)\n",
             T_AL28, 2.3 * 60, 100 * (2.3 * 60 / T_AL28 - 1))
     @printf("pulsed flux, τ = %.0f s: saturation activity K = %.3e s⁻¹\n", τ, K)
@@ -100,10 +101,10 @@ function main()
         color = PALETTE.red, align = (:left, :center), fontsize = 15)
 
     ax2 = Axis(fig[2, 2], xlabel = L"Time $t$ [s]", ylabel = L"Activity $\Lambda$ [s$^{-1}$]")
-    ts = range(0, 12τ, length = 3000)
+    ts = range(0, 6τ, length = 3000)
     lines!(ax2, ts, pulsed_activity.(ts, λ_al, τ, K), color = PALETTE.green, linewidth = 1.5)
     h = hlines!(ax2, [K], color = PALETTE.black, linestyle = :dash, linewidth = 1.1)
-    for c in 0:5
+    for c in 0:2
         vspan!(ax2, 2c * τ, (2c + 1) * τ, color = (PALETTE.orange, 0.12))
     end
     text!(ax2, 0.5, 0.06; text = "shaded: flux on",

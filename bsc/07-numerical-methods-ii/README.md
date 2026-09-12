@@ -32,9 +32,14 @@ component, doing double the work and discarding half of each result.
 ![NLS soliton collision](figures/nonlinear_schrodinger_mol.png)
 
 The focusing nonlinear Schrödinger equation `i∂ₜΨ = -½∂ₓₓΨ - |Ψ|²Ψ` by the
-method of lines, on two solitons that collide and pass through each other.
+method of lines, on the original's two-soliton initial condition.
 
-The norm `∫|Ψ|²dx` is conserved to a relative **1.3 × 10⁻¹⁵** over 24 000 steps.
+A soliton carrying the phase factor `e^{ikx}` travels with velocity `v = k`, so
+the original's pair — centred at x = ∓5 with k = ∓0.1 — moves **apart**, not
+together. On the periodic domain [−10, 10] they reach the boundary, meet there,
+pass through one another and separate again, which is what the heatmap shows.
+
+The norm `∫|Ψ|²dx` is conserved to a relative **8 × 10⁻¹⁵** over 625 000 steps.
 That is the check the port exists for: the 2018 stages were
 
 ```julia

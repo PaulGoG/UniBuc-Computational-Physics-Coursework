@@ -58,8 +58,15 @@ Corrections:
 
 ![Pairing and shell corrections](figures/pairing_and_shell_corrections.png)
 
-Three-point neutron pairing gap over 2594 nuclides: median **1.015 MeV**, with
-an RMS residual of 0.425 MeV against the empirical 12/√A.
+Both pairing indicators the original offered:
+
+| Formula | Nuclides | Median Δ_n | RMS residual vs 12/√A |
+|---|---|---|---|
+| Guttormsen, ¼\|S(A+1) − 2S(A) + S(A−1)\| | 2594 | **1.015 MeV** | 0.425 MeV |
+| Vlăduca, \|S(A) − S(A−1)\| | 2533 | 1.943 MeV | 1.174 MeV |
+
+The three-point form is much the better indicator, as it must be: the two-point
+difference carries the smooth trend of S(A) as well as the staggering.
 
 Shell correction δW = W_LDM − W_exp from the Pearson liquid drop, on 2847
 nuclides shared with Möller–Nix: correlation coefficient **0.655**. The doubly
@@ -79,8 +86,9 @@ consecutive points into a scribble instead of a curve.
 Two-member Bateman chain ²³⁸U → ²³⁴Th, and ²⁷Al(n,γ)²⁸Al under a pulsed flux.
 
 The daughter activity peaks at **867 days**, and λ₂/λ₁ = 6.8 × 10¹⁰ drives the
-secular-equilibrium ratio to 1.000000. Under a 300 s pulsed flux the ²⁸Al
-activity settles at 82.4 % of saturation.
+secular-equilibrium ratio to 1.000000. Under the original's schedule — τ = 5·T½ = 674 s of irradiation alternating with
+an equal pause — the ²⁸Al activity reaches **96.9 %** of saturation by the end of
+the first irradiation, which is exactly 1 − 2⁻⁵, and settles at 97.0 %.
 
 **The 2018 Bateman figure was degenerate.** Its time axis came from
 `T_scalare = max(T½₁, T½₂)` — the ²³⁸U half-life of 4.468 Gyr — giving a grid

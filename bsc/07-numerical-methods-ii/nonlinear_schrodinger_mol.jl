@@ -3,8 +3,13 @@
 #   i ∂ₜΨ = -½ ∂ₓₓΨ - |Ψ|²Ψ,     periodic in x,
 #
 # solved as ∂ₜΨ = i(½ ∂ₓₓΨ + |Ψ|²Ψ) with a second-order centred stencil in space
-# and RK4 in time, on a two-soliton initial condition that collides and passes
-# through.
+# and RK4 in time, on the two-soliton initial condition of the original.
+#
+# A soliton carrying the phase factor e^{ikx} travels with velocity v = k, so the
+# original's pair — centred at x = ∓5 with k = ∓0.1 — moves **apart**, not
+# together. On the periodic domain [-10, 10] each reaches the boundary at
+# t = 50 and wraps, so they meet at the edge rather than in the middle. The
+# initial condition, domain and phase are kept exactly as written.
 #
 # Ported from SolitonicEq_MOL.jl. The sign convention and the stencil were
 # right. The time stepping was not: the original wrote
@@ -56,16 +61,20 @@ function step_rk4!(Ψ, work, dx, dt)
 end
 
 function main()
-    a, dx = 20.0, 0.05
+    # domain and initial condition as in the original; the resolution is not.
+    # SolitonicEq_MOL.jl used dx = 0.5 against a soliton of width ≈0.5, so it
+    # carried about one grid point per soliton — far too coarse for a
+    # second-order stencil to represent the shape at all.
+    a, dx = 10.0, 0.02
     x = collect(-a:dx:a)
     n = length(x)
     dt = 0.2 * dx^2                      # diffusive stability limit of the stencil
-    t_end = 12.0
+    t_end = 50.0
     n_steps = round(Int, t_end / dt)
 
-    # two solitons approaching each other
-    Ψ = @. 2 * exp(-im * 0.6 * x) / cosh(2 * (x + 6)) +
-           2 * exp(+im * 0.6 * x) / cosh(2 * (x - 6))
+    # the original pair: centred at ∓5, phases ∓0.1, so they travel apart
+    Ψ = @. 2 * exp(-im * 0.1 * x) / cosh(2 * (x + 5)) +
+           2 * exp(+im * 0.1 * x) / cosh(2 * (x - 5))
     work = ntuple(_ -> similar(Ψ), 5)
 
     norm₀ = sum(abs2, Ψ) * dx

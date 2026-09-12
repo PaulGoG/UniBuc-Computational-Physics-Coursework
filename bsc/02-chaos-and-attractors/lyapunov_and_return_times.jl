@@ -25,8 +25,8 @@ include(joinpath(@__DIR__, "attractors_core.jl"))
 
 const FIGURES = joinpath(@__DIR__, "figures")
 
-"Initial separation of the perturbed trajectory."
-const D₀ = 1e-9
+"Initial separation of the perturbed trajectory, as in Integratori.cpp: 1e-7\nin each coordinate. The Benettin estimate is insensitive to this; the\nun-renormalised curve is not, since it sets how long the exponential window\nlasts before saturation."
+const D₀ = 1e-7
 
 """
     separation_history(f, u₀, p, h, n, d₀; transient)

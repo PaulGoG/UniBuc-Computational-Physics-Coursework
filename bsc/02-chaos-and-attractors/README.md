@@ -28,7 +28,8 @@ names in the translation unit.
 
 ![Lyapunov divergence and return times](figures/lyapunov_and_return_times.png)
 
-Two trajectories starting 10⁻⁹ apart, followed until their separation saturates
+Two trajectories starting 10⁻⁷ apart in each coordinate, as `Integratori.cpp`
+did, followed until their separation saturates
 at the diameter of the attractor, and the distribution of intervals between
 successive maxima of that separation.
 

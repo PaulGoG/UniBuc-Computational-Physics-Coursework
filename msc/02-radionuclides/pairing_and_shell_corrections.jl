@@ -55,19 +55,27 @@ function W_exp(t, Z, A)
 end
 
 """
-    pairing_gap(t, Z, A, kind)
+    pairing_gap(t, Z, A, kind, formula)
 
-Three-point pairing indicator from the separation energies of neighbouring
-nuclides, in MeV. `kind` is `:neutron` or `:proton`.
+Pairing indicator from the separation energies of neighbouring nuclides, in MeV.
+`kind` is `:neutron` or `:proton`. Both indicators the original offered are
+available: `:guttormsen`, the three-point form |¼[S(A+1) − 2S(A) + S(A−1)]|, and
+`:vladuca`, the two-point |S(A) − S(A−1)|.
 """
-function pairing_gap(t, Z, A, kind)
+function pairing_gap(t, Z, A, kind, formula)
     Zx, Ax = kind === :neutron ? (0, 1) : (1, 1)
     dZ, dA = kind === :neutron ? (0, 1) : (1, 1)
     s = map((-1, 0, 1)) do k
         separation_energy(t, Z + k*dZ, A + k*dA, Zx, Ax)
     end
     any(isnothing, s) && return nothing
-    return abs(s[3] - 2s[2] + s[1]) / 4 / 1000
+    if formula === :guttormsen
+        return abs(s[3] - 2s[2] + s[1]) / 4 / 1000
+    elseif formula === :vladuca
+        return abs(s[2] - s[1]) / 1000
+    else
+        throw(ArgumentError("formula must be :guttormsen or :vladuca, got $formula"))
+    end
 end
 
 function main()
@@ -75,18 +83,21 @@ function main()
     moller = load_moller(joinpath(DATA, "MOLLER.csv"))
     @printf("AME1995 %d nuclides, Möller–Nix %d entries\n", length(t), length(moller))
 
-    gaps_n = Tuple{Int,Float64}[]
-    for n in values(t)
-        n.A < 4 && continue
-        g = pairing_gap(t, n.Z, n.A, :neutron)
-        g !== nothing && 0 < g < 5 && push!(gaps_n, (n.A, g))
+    gap_sets = Dict{Symbol,Vector{Tuple{Int,Float64}}}()
+    for formula in (:guttormsen, :vladuca)
+        g_list = Tuple{Int,Float64}[]
+        for n in values(t)
+            n.A < 4 && continue
+            g = pairing_gap(t, n.Z, n.A, :neutron, formula)
+            g !== nothing && 0 < g < 5 && push!(g_list, (n.A, g))
+        end
+        gap_sets[formula] = g_list
+        resid = [g - 12/sqrt(A) for (A, g) in g_list]
+        @printf("neutron pairing gap, %-11s %d nuclides, median %.3f MeV, ",
+                string(formula) * ":", length(g_list), median(last.(g_list)))
+        @printf("RMS residual against 12/√A %.3f MeV\n", sqrt(mean(abs2, resid)))
     end
-    @printf("neutron pairing gap: %d nuclides, median %.3f MeV\n",
-            length(gaps_n), median(last.(gaps_n)))
-    # empirical 12/√A
-    resid = [g - 12/sqrt(A) for (A, g) in gaps_n]
-    @printf("  against 12/√A: mean residual %+.3f MeV, RMS %.3f MeV\n",
-            mean(resid), sqrt(mean(abs2, resid)))
+    gaps_n = gap_sets[:guttormsen]
 
     δW = Tuple{Int,Float64,Float64}[]   # (A, ours, Möller–Nix)
     for n in values(t)
@@ -112,8 +123,12 @@ function main()
 
     ax1 = Axis(fig[2, 1], xlabel = L"Mass number $A$",
         ylabel = L"Neutron pairing gap $\Delta_n$ [MeV]")
+    scatter!(ax1, first.(gap_sets[:vladuca]), last.(gap_sets[:vladuca]),
+        color = (PALETTE.orange, 0.18), markersize = 3)
     scatter!(ax1, first.(gaps_n), last.(gaps_n),
         color = (PALETTE.blue, 0.3), markersize = 3)
+    text!(ax1, 0.03, 0.93; text = "blue: Guttormsen 3-point\norange: Vlăduca 2-point",
+        space = :relative, align = (:left, :top), fontsize = 14)
     Af = sort(unique(first.(gaps_n)))
     l_emp = lines!(ax1, Af, 12 ./ sqrt.(Af), color = PALETTE.red, linewidth = 2)
     ylims!(ax1, 0, 3.5)

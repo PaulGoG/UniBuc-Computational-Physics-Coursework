@@ -44,7 +44,8 @@ function main()
     for A_H in A_H_range
         A_L = A₀ - A_H
         num = 0.0; den = 0.0
-        for Z_H in (round(Int, Z_p(A_H)) - 2):(round(Int, Z_p(A_H)) + 2)
+        # three charge splits about the most probable charge, as in Fisiune_1.jl
+        for Z_H in (round(Int, Z_p(A_H)) - 1):(round(Int, Z_p(A_H)) + 1)
             Z_L = Z₀ - Z_H
             δH = Δ(masses, Z_H, A_H); δL = Δ(masses, Z_L, A_L)
             (δH === nothing || δL === nothing) && continue
