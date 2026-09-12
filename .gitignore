@@ -1,4 +1,5 @@
-Manifest.toml
+# Manifest.toml is tracked: these are scripts, not a library, and pinning the
+# resolved versions is what makes a figure reproducible on another machine.
 
 # Build products of the C/C++ sources
 *.o
