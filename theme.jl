@@ -114,20 +114,49 @@ mantissa of 1 is dropped, so the result never reads `1 \\times 10^{n}` or carrie
 a `\\times 10^{0}`. Figures and papers never show computer notation such as
 `1.8e-07`, which is what `@sprintf("%e", …)` produces.
 """
-function sci(x::Real; digits::Integer = 2)
-    iszero(x) && return L"0"
-    isfinite(x) || throw(ArgumentError("sci expects a finite number, got $x"))
+function sci end
+
+"""
+    _split_sci(x, digits) -> (mantissa::String, exponent::Int) or (folded::String, nothing)
+
+The mantissa and exponent `sci` and `rsci` share. Exponents of −1, 0 and 1 come
+back already folded into a plain decimal, with `nothing` for the exponent.
+"""
+function _split_sci(x::Real, digits::Integer)
+    isfinite(x) || throw(ArgumentError("expected a finite number, got $x"))
     e = floor(Int, log10(abs(x)))
     m = round(x / 10.0^e; digits = digits)
     if abs(m) >= 10                      # rounding can carry the mantissa to 10
         m /= 10
         e += 1
     end
-    -1 <= e <= 1 && return latexstring(_trim(round(x; sigdigits = digits + 1)))
-    mantissa = _trim(m)
+    -1 <= e <= 1 && return (_trim(round(x; sigdigits = digits + 1)), nothing)
+    return (_trim(m), e)
+end
+
+function sci(x::Real; digits::Integer = 2)
+    iszero(x) && return L"0"
+    mantissa, e = _split_sci(x, digits)
+    e === nothing && return latexstring(mantissa)
     mantissa == "1" && return latexstring("10^{$e}")
     mantissa == "-1" && return latexstring("-10^{$e}")
     return latexstring("$mantissa \\times 10^{$e}")
+end
+
+"""
+    rsci(x; digits = 2)
+
+`sci` as a `rich` run, for the mixed prose-and-mathematics labels a
+`LaTeXString` cannot be embedded in. Minus signs are the typographic `−`.
+"""
+function rsci(x::Real; digits::Integer = 2)
+    iszero(x) && return rich("0")
+    mantissa, e = _split_sci(x, digits)
+    minus(s) = replace(s, "-" => "−")
+    e === nothing && return rich(minus(mantissa))
+    mantissa == "1" && return rich("10", superscript(minus(string(e))))
+    mantissa == "-1" && return rich("−10", superscript(minus(string(e))))
+    return rich(minus(mantissa), " × 10", superscript(minus(string(e))))
 end
 
 """

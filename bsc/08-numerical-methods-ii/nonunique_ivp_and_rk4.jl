@@ -77,16 +77,29 @@ function main()
 
     ax1 = Axis(fig[2, 1], xlabel = L"x", ylabel = L"y(x)")
     handles = []
+    # The 10^-12 and 10^-6 solutions agree to four digits at x = 100 and one
+    # would simply erase the other at equal width; broad solid under narrow
+    # dashed keeps both visible, which is the point -- a perturbation twelve
+    # orders down lands in the same place.
+    widths = (1.8, 4.5, 1.8, 1.8)
+    styles = (:solid, :solid, :dash, :solid)
     for (k, (y₀, ysol)) in enumerate(zip(starts, solutions))
         col = (PALETTE.black, PALETTE.blue, PALETTE.orange, PALETTE.green)[k]
-        push!(handles, lines!(ax1, x, ysol, color = col, linewidth = 1.5))
+        push!(handles, lines!(ax1, x, ysol, color = col,
+              linewidth = widths[k], linestyle = styles[k]))
     end
     xlims!(ax1, 0, 100)
+    text!(ax1, 0.03, 0.96;
+        text = latexstring(@sprintf("\\text{A perturbation of } 10^{-12} \\text{ moves } \
+                                     y(100) \\text{ from } 0 \\text{ to } %.1f", 
+                                    last(solutions[2]))),
+        space = :relative, align = (:left, :top), fontsize = 15)
 
     ax2 = Axis(fig[2, 2], xlabel = L"y", ylabel = L"z = y'")
     lines!(ax2, y, z, color = PALETTE.purple, linewidth = 1.2)
     text!(ax2, 0.97, 0.06;
-        text = @sprintf("Invariant drift %.1e", maximum(abs.(E .- E[1]))),
+        text = rich("Invariant drift ", rsci(maximum(abs.(E .- E[1])); digits = 1),
+                    @sprintf(" over %d RK4 steps", n)),
         space = :relative, align = (:right, :bottom), fontsize = 15)
 
     Legend(fig[1, 1:2], handles,

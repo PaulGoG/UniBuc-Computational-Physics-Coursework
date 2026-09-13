@@ -75,25 +75,44 @@ function main()
     ax = Axis(fig[2, 1], xlabel = L"x_1", ylabel = L"x_2", aspect = DataAspect())
 
     order = sortperm([atan(p[2] - 1, p[1] - 1) for p in V])
-    poly!(ax, Point2f[V[order]...], color = (PALETTE.sky, 0.35),
+    l_feas = poly!(ax, Point2f[V[order]...], color = (PALETTE.sky, 0.35),
           strokewidth = 1.5, strokecolor = PALETTE.blue)
-    scatter!(ax, first.(V), last.(V), color = PALETTE.blue, markersize = 11)
+    l_vert = scatter!(ax, first.(V), last.(V), color = PALETTE.blue,
+        markersize = MARKERSIZE.data)
 
     seg = sort(optimal, by = first)
     l_opt = lines!(ax, [seg[1][1], seg[end][1]], [seg[1][2], seg[end][2]],
-        color = PALETTE.red, linewidth = 4)
+        color = PALETTE.red, linewidth = 5)
+
+    # The objective contours are the reason the optimum is a face and not a
+    # vertex -- they are parallel to the binding constraint -- so they need
+    # naming rather than appearing as unexplained diagonals.
+    local l_obj
     for c in -1:4
-        lines!(ax, [0, 3.6], [c - 0, c - 3.6], color = (PALETTE.black, 0.25),
+        l_obj = lines!(ax, [0, 3.6], [c - 0, c - 3.6], color = (PALETTE.black, 0.3),
                linestyle = :dot, linewidth = 1.0)
     end
-    limits!(ax, -0.2, 3.6, -0.2, 2.0)
-    text!(ax, 0.97, 0.95;
+
+    # x₂ ≤ 3 is redundant, and a panel that stops at x₂ = 2 cannot show it. The
+    # axis reaches the constraint and draws it, so that "active at no feasible
+    # vertex" is something the reader can check.
+    l_red = hlines!(ax, [3.0], color = PALETTE.purple, linestyle = :dashdot,
+        linewidth = 1.6)
+
+    limits!(ax, -0.2, 3.6, -0.2, 3.4)
+    text!(ax, 3.55, 3.05; text = rich(it("x"), subscript("2"), " ≤ 3, redundant"),
+        align = (:right, :top), color = PALETTE.purple, fontsize = 15)
+    text!(ax, 0.97, 0.62;
         text = @sprintf("Optimum %.0f on the whole segment\n(3, 0) – (2, 1)", best),
         space = :relative, align = (:right, :top), color = PALETTE.red, fontsize = 15)
 
-    Legend(fig[1, 1], [l_opt], ["Optimal face"],
-        orientation = :horizontal, framevisible = false, labelsize = 17)
-    rowsize!(fig.layout, 2, Relative(0.88))
+    Legend(fig[1, 1], [l_feas, l_vert, l_opt, l_obj],
+        ["Feasible region", "Vertices", "Optimal face",
+         rich("Objective contours ", it("x"), subscript("1"), " + ", it("x"),
+              subscript("2"))],
+        orientation = :horizontal, framevisible = false, labelsize = 15,
+        nbanks = 2, colgap = 18)
+    rowsize!(fig.layout, 2, Relative(0.84))
     path = savefigure(fig, FIGURES, "linear_program")
     println("wrote ", path)
 end

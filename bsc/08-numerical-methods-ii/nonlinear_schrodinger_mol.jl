@@ -100,20 +100,27 @@ function main()
     ρ = reduce(hcat, frames)
 
     fig = Figure(size = (980, 440))
-    ax1 = Axis(fig[1, 1], xlabel = L"x", ylabel = L"Time $t$",
-        title = L"|\Psi(x,t)|^2", titlesize = 17)
-    heatmap!(ax1, x, times, ρ, colormap = :viridis)
+    ax1 = Axis(fig[1, 1], xlabel = L"x", ylabel = L"Time $t$")
+    # The collision reaches |Psi|^2 = 16 for one instant while the solitons sit
+    # at 4, so a linear scale spent three quarters of its range on that instant
+    # and rendered the trajectories as a dim fringe on near-black. The square
+    # root keeps the collision the brightest thing in the panel and still shows
+    # the solitons, and the colourbar is ticked in the original units.
+    heatmap!(ax1, x, times, sqrt.(ρ), colormap = :viridis)
 
     ax2 = Axis(fig[1, 2], xlabel = L"x", ylabel = L"|\Psi|^2")
     for (k, idx) in enumerate((1, length(times) ÷ 2, length(times)))
         lines!(ax2, x, frames[idx],
                color = (PALETTE.blue, PALETTE.orange, PALETTE.green)[k], linewidth = 1.5,
-               label = @sprintf("t = %.1f", times[idx]))
+               label = rich(it("t"), @sprintf(" = %.1f", times[idx])))
     end
+    ylims!(ax2, -0.2, 5.1)   # headroom: the legend sat on the right-hand pulses
     axislegend(ax2, position = :rt, framevisible = false, labelsize = 15)
 
-    Colorbar(fig[1, 3], limits = (minimum(ρ), maximum(ρ)), colormap = :viridis,
-             label = L"|\Psi|^2")
+    ticks = [0, 1, 4, 9, 16]
+    Colorbar(fig[1, 3], limits = (sqrt(minimum(ρ)), sqrt(maximum(ρ))),
+             colormap = :viridis, label = L"|\Psi|^2",
+             ticks = (sqrt.(ticks), [latexstring(string(t)) for t in ticks]))
     colsize!(fig.layout, 3, Relative(0.03))
 
     path = savefigure(fig, FIGURES, "nonlinear_schrodinger_mol")
@@ -139,8 +146,8 @@ function animate_solitons(x, frames, times, norms, norm0)
 
     profile = Observable(frames[1])
     trace_t = Observable([times[1]])
-    trace_n = Observable([norms[1] / norm0])
-    caption = Observable("")
+    trace_n = Observable([(norms[1] / norm0 - 1) * 1e15])
+    caption = Observable{Any}("")   # the frame captions are rich text, not String
 
     fig = Figure(size = (900, 520))
     ax1 = Axis(fig[2, 1], xlabel = L"x", ylabel = L"|\Psi|^2")
@@ -148,25 +155,35 @@ function animate_solitons(x, frames, times, norms, norm0)
     xlims!(ax1, first(x), last(x))
     ylims!(ax1, 0, maximum(maximum, frames) * 1.08)
 
+    # The drift is of order 1e-15, so a panel scaled to a relative norm of
+    # 1 +/- 0.005 showed a flat line on the unity guide and nothing else. The
+    # trace is the departure from unity in units of 1e-15, where the scheme's
+    # actual behaviour is visible; the guide keeps its label.
+    # The full integral expression is too tall a label for a strip this short,
+    # and left to itself the axis crowded nine ticks into it.
     ax2 = Axis(fig[3, 1], xlabel = L"Time $t$",
-        ylabel = L"$\int|\Psi|^2\mathrm{d}x$, relative")
+        ylabel = L"Norm drift [$10^{-15}$]",
+        yticks = ([-10, -5, 0, 5, 10], [L"-10", L"-5", L"0", L"5", L"10"]))
+    hlines!(ax2, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
     lines!(ax2, trace_t, trace_n, color = PALETTE.green, linewidth = 2)
-    hlines!(ax2, [1.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
+    text!(ax2, 0.99, 0.95; text = L"$\int|\Psi|^2\mathrm{d}x$ exactly conserved",
+        space = :relative,
+        align = (:right, :top), fontsize = 13, color = PALETTE.black)
     xlims!(ax2, 0, last(times))
-    ylims!(ax2, 0.995, 1.005)
+    ylims!(ax2, -12, 12)
 
     Label(fig[1, 1], caption, fontsize = 17, tellwidth = false)
-    rowsize!(fig.layout, 2, Relative(0.66))
-    rowgap!(fig.layout, 8)
+    rowsize!(fig.layout, 2, Relative(0.62))
+    rowgap!(fig.layout, 10)
 
     path = joinpath(FIGURES, "nonlinear_schrodinger_mol.gif")
     mkpath(FIGURES)
     record(fig, path, ks; framerate = 15) do k
         profile[] = frames[k]
         trace_t[] = times[1:k]
-        trace_n[] = norms[1:k] ./ norm0
-        caption[] = @sprintf("t = %.1f     norm drift %+.2e", times[k],
-            norms[k] / norm0 - 1)
+        trace_n[] = (norms[1:k] ./ norm0 .- 1) .* 1e15
+        caption[] = rich(it("t"), @sprintf(" = %.1f      ", times[k]), "norm drift ",
+            rsci(norms[k] / norm0 - 1; digits = 2))
     end
     return path
 end
