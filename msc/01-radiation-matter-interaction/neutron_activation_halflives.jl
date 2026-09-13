@@ -85,7 +85,11 @@ function main()
 
     fig = Figure(size = (1000, 450))
     ax1 = Axis(fig[2, 1], xlabel = L"Acquisition start $t$ [s]", ylabel = L"\ln(N_0/N)")
-    ax2 = Axis(fig[2, 2], xlabel = "", ylabel = L"$T_{1/2}$ [min]",
+    # Logarithmic: on a linear 1.5-26 min axis the 28-Al point, its error bar
+    # and its literature value collapsed into one blob and the comparison could
+    # not be read at all.
+    ax2 = Axis(fig[2, 2], xlabel = "", ylabel = L"$T_{1/2}$ [min]", yscale = log10,
+        yticks = ([2, 5, 10, 20, 30], [L"2", L"5", L"10", L"20", L"30"]),
         xticks = (1:length(SERIES), [s[1] for s in SERIES]))
 
     handles = []
@@ -99,18 +103,27 @@ function main()
                 label, λ, σλ, T½, σT, T_lit, abs(T½ - T_lit) / σT)
 
         col = (PALETTE.blue, PALETTE.orange, PALETTE.green)[k]
-        push!(handles, scatter!(ax1, x, y, color = col, markersize = 10))
+        push!(handles, scatter!(ax1, x, y, color = col, markersize = MARKERSIZE.data))
         xf = range(0, maximum(x) * 1.05, length = 50)
         lines!(ax1, xf, p[1] .+ λ .* xf, color = col, linewidth = 1.3)
     end
 
     errorbars!(ax2, 1:length(SERIES), measured, errors,
-        color = PALETTE.blue, whiskerwidth = 12)
-    scatter!(ax2, 1:length(SERIES), measured, color = PALETTE.blue, markersize = 12)
-    scatter!(ax2, 1:length(SERIES), reference, color = PALETTE.red,
-        markersize = 14, marker = :hline)
-    text!(ax2, 0.5, 0.95; text = "red: literature", space = :relative,
-        align = (:center, :top), color = PALETTE.red, fontsize = 15)
+        color = PALETTE.black, whiskerwidth = 14)
+    m_meas = scatter!(ax2, 1:length(SERIES), measured, color = PALETTE.black,
+        markersize = MARKERSIZE.data)
+    m_lit = scatter!(ax2, 1:length(SERIES), reference, color = PALETTE.red,
+        markersize = MARKERSIZE.emphasis + 8, marker = :hline)
+    for (k, (label, _, _, T_lit)) in enumerate(SERIES)
+        text!(ax2, k + 0.12, measured[k];
+            text = @sprintf("%.2fσ", abs(measured[k] - T_lit) / errors[k]),
+            align = (:left, :center), fontsize = 14, color = PALETTE.black)
+    end
+    xlims!(ax2, 0.5, length(SERIES) + 0.75)
+    # A legend, not a sentence naming a colour: "red" fails in grey scale and
+    # for a colour-blind reader, which is what the palette is chosen to avoid.
+    axislegend(ax2, [m_meas, m_lit], ["Measured", "Evaluated"],
+        position = :lt, framevisible = false, labelsize = 15, padding = 2)
 
     Legend(fig[1, 1:2], handles, [s[1] for s in SERIES],
         orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 26)

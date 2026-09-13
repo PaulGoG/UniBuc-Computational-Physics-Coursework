@@ -62,15 +62,24 @@ function main()
     xf = range(0, maximum(x) * 1.08, length = 100)
     l_fit = lines!(ax, xf, p[1] .+ p[2] .* xf, color = PALETTE.blue, linewidth = 1.6)
     errorbars!(ax, x, Δε, sqrt.(diag(C)), color = PALETTE.orange, whiskerwidth = 10)
-    l_dat = scatter!(ax, x, Δε, color = PALETTE.orange, markersize = 11)
-    scatter!(ax, [0.0], [0.0], color = PALETTE.black, markersize = 11, marker = :diamond)
+    l_dat = scatter!(ax, x, Δε, color = PALETTE.orange, markersize = MARKERSIZE.data)
+    l_ref = scatter!(ax, [0.0], [0.0], color = PALETTE.black,
+        markersize = MARKERSIZE.data, marker = :diamond)
     text!(ax, 0.03, 0.93;
-        text = @sprintf("slope = %.0f ± %.0f keV/unit\nintercept = %.0f ± %.0f keV",
-                        p[2], σp[2], p[1], σp[1]),
-        space = :relative, align = (:left, :top), fontsize = 15)
+        text = rich("slope = ",
+                    replace(@sprintf("%.0f ± %.0f", p[2], σp[2]), "-" => "−"),
+                    " keV per unit\nintercept = ",
+                    replace(@sprintf("%.0f ± %.0f", p[1], σp[1]), "-" => "−"),
+                    " keV, ", @sprintf("%.2fσ", abs(p[1]) / σp[1]),
+                    " from the zero it must be\n", it("χ"), superscript("2"),
+                    @sprintf(" = %.2f on %d degrees of freedom", χ², length(x) - 2)),
+        space = :relative, align = (:left, :top), fontsize = 15, color = PALETTE.blue)
 
-    Legend(fig[1, 1], [l_dat, l_fit], ["Measured, correlated errors", "Weighted linear fit"],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24)
+    Legend(fig[1, 1], [l_dat, l_ref, l_fit],
+        ["Measured, correlated errors",
+         rich("Reference measurement ", it("ε"), subscript("0")),
+         "Weighted linear fit"],
+        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 22)
     rowsize!(fig.layout, 2, Relative(0.86))
     println("wrote ", savefigure(fig, FIGURES, "alpha_attenuation_mylar"))
 end

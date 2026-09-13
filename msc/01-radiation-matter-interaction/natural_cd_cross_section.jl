@@ -64,18 +64,29 @@ function main()
     ax = Axis(fig[2, 1],
         xlabel = "Mass number A", ylabel = "Contribution to σ [b]",
         yscale = log10,
-        xticks = ([i.A for i in CADMIUM], [string(i.A) for i in CADMIUM]),
-        yticks = ([1e-3, 1e-1, 10, 1e3], [L"10^{-3}", L"10^{-1}", L"10", L"10^{3}"]))
+        xticks = ([i.A for i in CADMIUM], [latexstring(string(i.A)) for i in CADMIUM]),
+        yticks = logticks(-3, 4; step = 2))
     contributions = [i.abundance / 100 * i.σ for i in CADMIUM]
     barplot!(ax, [i.A for i in CADMIUM], contributions, color = PALETTE.blue,
              strokewidth = 0.5, strokecolor = PALETTE.black)
-    h = hlines!(ax, [σ_nat], color = PALETTE.red, linestyle = :dash, linewidth = 1.3)
-    text!(ax, 0.5, 0.93;
-        text = @sprintf("σ(natural Cd) = %.0f b at %.2f eV", σ_nat, E_EVAL_EV),
-        space = :relative, align = (:center, :top), color = PALETTE.red, fontsize = 16)
+    hlines!(ax, [σ_nat], color = PALETTE.red, linestyle = :dash, linewidth = 1.3)
+    # Headroom above the total, with the note in it: centred at 93 % of the
+    # panel its last word was drawn over the 113-Cd bar, orange on saturated
+    # blue.
+    ylims!(ax, nothing, σ_nat * 30)
+    text!(ax, 0.98, 0.97;
+        text = rich(it("σ"), @sprintf("(natural Cd) = %.0f b at %.2f eV\n", σ_nat, E_EVAL_EV),
+                    @sprintf("%.2f %% of it from ", 100 * CADMIUM[dominant].abundance / 100 *
+                             CADMIUM[dominant].σ / σ_nat),
+                    superscript("113"), "Cd alone"),
+        space = :relative, align = (:right, :top), color = PALETTE.red, fontsize = 16,
+        justification = :right)
 
-    Legend(fig[1, 1], [h], ["Total, natural Cd"],
-        orientation = :horizontal, framevisible = false, labelsize = 17)
+    Legend(fig[1, 1],
+        [PolyElement(color = PALETTE.blue),
+         LineElement(color = PALETTE.red, linestyle = :dash, linewidth = 1.3)],
+        ["Isotopic contribution, abundance × σ", "Total, natural Cd"],
+        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24)
     rowsize!(fig.layout, 2, Relative(0.86))
     println("wrote ", savefigure(fig, FIGURES, "natural_cd_cross_section"))
 end

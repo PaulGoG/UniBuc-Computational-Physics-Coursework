@@ -79,17 +79,23 @@ function main()
         xlabel = L"Kinetic energy $E$ [MeV]",
         ylabel = L"$-\mathrm{d}E/\mathrm{d}x$ [MeV cm$^{-1}$]",
         xscale = log10, yscale = log10,
-        xticks = ([1, 10, 100], ["1", "10", "100"]))
+        xticks = logticks(-1, 2),
+        # explicit: over a range narrower than a decade and a half Makie labels
+        # this axis 10^{3.3}, 10^{3.0}, ..., which no stopping power is read in
+        yticks = ([200, 500, 1000, 2000], [L"200", L"500", L"1000", L"2000"]))
     l = lines!(ax, energies, S_curve, color = PALETTE.blue, linewidth = 1.8)
-    v = vlines!(ax, [E], color = PALETTE.red, linestyle = :dash, linewidth = 1.2)
-    scatter!(ax, [E], [S], color = PALETTE.red, markersize = 11)
-    text!(ax, E * 1.25, S; text = @sprintf("5 MeV: %.0f MeV/cm", S),
+    vlines!(ax, [E], color = PALETTE.red, linestyle = :dash, linewidth = 1.2)
+    scatter!(ax, [E], [S], color = PALETTE.red, markersize = MARKERSIZE.emphasis)
+    # The units here follow the axis rather than switching to MeV/cm, and the
+    # legend entry that repeated this line is gone.
+    text!(ax, E * 1.3, S;
+        text = rich(@sprintf("%.0f MeV cm", S), superscript("−1"), " at 5 MeV"),
         color = PALETTE.red, align = (:left, :center), fontsize = 16)
     text!(ax, 0.97, 0.93;
-        text = "Shell and Barkas corrections omitted;\nBethe–Bloch breaks down below ~0.5 MeV",
+        text = "Shell and Barkas corrections omitted;\nBethe–Bloch breaks down below ≈0.5 MeV",
         space = :relative, align = (:right, :top), fontsize = 15)
 
-    Legend(fig[1, 1], [l, v], [L"$\alpha$ in silicon", "5 MeV"],
+    Legend(fig[1, 1], [l], [L"$\alpha$ in silicon"],
         orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24)
     rowsize!(fig.layout, 2, Relative(0.86))
     println("wrote ", savefigure(fig, FIGURES, "bethe_bloch_stopping_power"))
