@@ -119,15 +119,20 @@ at all. Kept because it is what the companion file actually did.
 `perlmutter1999_sn_ia.csv` is Tables 1 and 2 of astro-ph/9812133, transcribed
 from the machine-readable tables that came with the paper.
 
-`supernova_magnitudes.csv` is now **identified**: it is the Asiago Supernova
-Catalogue, recovered as `sncat_latest_view.xls` in the project folder, last
-saved by Victor Rikhvitsky on 17 July 2019 — the Dubna visit. Its columns
-`sn_name`, `gal_mag`, `redshift` are columns 1, 6 and 11 of that catalogue, and
-its first entries (1006A, 1054A) match.
+`supernova_magnitudes.csv` is **identified**, by the presentation's own closing
+slide: the **SAI Supernova Catalogue** of the Sternberg Astronomical Institute,
+`http://stella.sai.msu.su/sncat/download.html`. Its columns `sn_name`,
+`gal_mag`, `redshift` are columns 1, 6 and 11 of that catalogue, matching value
+for value.
+
+**Column 18 of the same file is `sn_mag`** — the supernova magnitude at maximum.
+For SN 1885A the file carries `gal_mag` 4.28 and `sn_mag` 5.8; the analysis took
+the first. So the supernova magnitudes were not merely available in the same
+folder, they were in the same table, twelve columns along from the ones used.
 
 `sn_ia_distance_moduli.csv` remains **unidentified**. It is Crăciun's reduction —
-selected on `Method == "SNIa"`, deduplicated in redshift, sorted — but the
-Asiago catalogue has neither a `Method` column nor a distance modulus, so it is
+selected on `Method == "SNIa"`, deduplicated in redshift, sorted — but the SAI
+catalogue has neither a `Method` column nor a distance modulus, so it is
 not the source. A redshift-independent distance compilation of the NED-D kind
 fits the column set, but that is an inference. Its Ω_m instability should be
 read as a property of an unidentified heterogeneous compilation, not as a result

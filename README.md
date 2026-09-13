@@ -123,8 +123,12 @@ fails. A perturbation of 10⁻¹² changes y(100) from 0 to 59.7. The 2021 file 
 The [`legacy`](../../tree/legacy) branch holds the material exactly as it was
 submitted — Romanian identifiers
 and comments, the defects above intact — as the reference this branch is read
-against. It is a single import: the commit histories of the two archives this
-came from are not carried over.
+against. It is a single import: the commit histories of the two private
+repositories this came from are not carried over.
+
+The fission work in `msc/04` is the coursework ancestor of a deterministic
+prompt-emission model that is still private and due for release; the same is
+true of the EXFOR retrieval and fragment-temperature work it leans on.
 
 ## Attribution
 

@@ -49,7 +49,7 @@ does not retain them.
 
 ### Checked against the submitted portfolio
 
-The portfolio submitted for this course survives in the private archive. Its
+The portfolio submitted for this course survives in a private repository. Its
 results are raster images inside the document, so they were read by OCR. Four of
 the five totals agree to every digit the OCR resolves:
 

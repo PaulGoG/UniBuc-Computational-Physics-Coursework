@@ -7,10 +7,11 @@
 # magnitudes and their uncertainties.
 #
 # The paper and its two data tables were in the Dubna project folder, alongside
-# Riess et al. (1998) — astro-ph/9805201, the companion discovery — and the
-# Asiago supernova catalogue that `supernova_magnitudes.csv` came from. They
-# were never used: the 2019 code fitted host-galaxy magnitudes instead, which
-# carry no cosmological information at all.
+# Riess et al. (1998) — astro-ph/9805201, the companion discovery — and the SAI
+# Supernova Catalogue that `supernova_magnitudes.csv` came from. They were never
+# used: the 2019 code fitted host-galaxy magnitudes instead, which carry no
+# cosmological information at all. The catalogue's own `sn_mag` column, the
+# supernova magnitude at maximum, sat twelve columns from the one taken.
 #
 # These do. The effective magnitudes are standardised: stretch-corrected,
 # K-corrected and extinction-corrected, which is what makes a Type Ia a standard
