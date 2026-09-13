@@ -165,6 +165,7 @@ function main()
             minimum(keys(gc)), maximum(keys(gc)))
 
     A_list = Int[]; ν_H = Float64[]; ν_L = Float64[]; ν_tot = Float64[]
+    yield_A = Float64[]                    # mass yield, the weight for every average
     R_ld = Float64[]; R_def = Float64[]
     for a in sort(unique(y.A_H))
         sub = y[y.A_H .== a, :]
@@ -195,7 +196,7 @@ function main()
         # split by the level-density ratio, the statistical-equilibrium limit
         R = aH_ld / a_tot
         push!(A_list, a); push!(ν_H, ν_pair * R); push!(ν_L, ν_pair * (1 - R))
-        push!(ν_tot, ν_pair)
+        push!(ν_tot, ν_pair); push!(yield_A, sum(sub.Y))
 
         # the deformation route, for comparison: the same statistical split of
         # what is left after each fragment pays for its own extra deformation
@@ -215,9 +216,14 @@ function main()
     @printf("ν computed for %d mass splits\n", length(A_list))
     @printf("systematics terms for ²³⁶U: p = %.3f MeV, q = %.3f MeV\n",
             p_term(A₀, Z₀), q_term(A₀, Z₀))
-    @printf("mean total multiplicity <nu_pair> = %.3f\n", mean(ν_tot))
+    ν_weighted = sum(ν_tot .* yield_A) / sum(yield_A)
+    @printf("mean total multiplicity <nu_pair> = %.3f, yield-weighted\n", ν_weighted)
+    @printf("  unweighted over mass splits      = %.3f\n", mean(ν_tot))
+    @printf("  the two differ because the symmetric splits carry TXE some 3.5 MeV\n")
+    @printf("  above the yield-weighted mean and a yield around 10^-4 of the peak,\n")
+    @printf("  so counting them equally inflates the average.\n")
     @printf("evaluated value for ²³⁵U(n_th,f): 2.42 — the model is %+.0f %% off\n",
-            100 * (mean(ν_tot) / 2.42 - 1))
+            100 * (ν_weighted / 2.42 - 1))
     @printf("the residual is the model: prompt γ emission competes for the same\n")
     @printf("excitation energy and carries off 6–7 MeV per fission, which this\n")
     @printf("balance does not account for.\n\n")

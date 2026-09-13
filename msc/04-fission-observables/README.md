@@ -69,15 +69,35 @@ those three, so the charge nearest Z_p is not the charge whose Q equals the
 distribution's mean: taking it raised ⟨Q⟩ by 0.50 MeV and carried the same error
 straight into ⟨TXE⟩. Averaging brings both onto the portfolio's values.
 
-### An open discrepancy
+### The multiplicity, and how the portfolio found the error
 
-The portfolio also gives **⟨ν⟩ = 2.538 ± 0.00041** per fragment pair.
-`neutron_multiplicity.jl` gives **2.826** on what is meant to be the same energy
-balance. The charge-averaging fix above moved it from 2.883 to 2.826, so it is
-part of the story and not the whole of it; 11 % remains unexplained. The
-portfolio's value is also much the closer to the evaluated 2.42. This is
-recorded rather than resolved — the portfolio's intermediate steps are images of
-formulae, not numbers that can be diffed.
+The portfolio gives **⟨ν⟩ = 2.538 ± 0.00041** per fragment pair.
+`neutron_multiplicity.jl` gave **2.826** on what is meant to be the same energy
+balance, and finding out why took two fixes.
+
+The first was the charge averaging above, which moved it to 2.826 from 2.883.
+The second was the average itself: **ν was being averaged over mass splits with
+equal weight.** Every other total in this module is yield-weighted, and ν has to
+be too. The splits are not equivalent — the near-symmetric ones carry TXE about
+3.5 MeV above the yield-weighted mean while contributing a yield around 10⁻⁴ of
+the peak — so counting them equally inflates the answer. Yield-weighted:
+
+| | ⟨TXE⟩ | ⟨ν⟩ |
+|---|---|---|
+| Unweighted over mass splits | 26.115 MeV | 2.826 |
+| **Yield-weighted** | **22.621 MeV** | **2.573** |
+| Portfolio | 22.6 | 2.538 |
+| Evaluated, ²³⁵U(n_th,f) | — | 2.42 |
+
+1.4 % from the portfolio, against 11 % before, and the model now sits +6 % above
+the evaluated value rather than +17 %. The residual +6 % is the model itself:
+prompt γ emission competes for the same excitation energy and carries off 6–7 MeV
+per fission, which this balance does not account for.
+
+This one is worth stating plainly: the discrepancy was only visible because the
+submitted portfolio survived and could be read. Nothing internal to the code
+flagged it, because an unweighted mean of a physically meaningful quantity looks
+entirely reasonable until you compare it with something.
 
 ### Against the published values
 
