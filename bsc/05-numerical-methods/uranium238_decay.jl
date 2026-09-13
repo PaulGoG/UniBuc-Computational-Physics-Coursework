@@ -65,18 +65,19 @@ function main()
 
     l_a = lines!(ax, t ./ 1e9, analytic, color = PALETTE.black, linewidth = 1.6)
     l_c = scatter!(ax, t[1:40:end] ./ 1e9, N_correct[1:40:end],
-        color = PALETTE.blue, markersize = 8)
+        color = PALETTE.blue, markersize = MARKERSIZE.data)
     l_w = lines!(ax, t ./ 1e9, N_halflife, color = PALETTE.red,
         linewidth = 1.5, linestyle = :dash)
 
-    l_h = hlines!(ax, [0.5], color = PALETTE.green, linestyle = :dot, linewidth = 1.2)
+    hlines!(ax, [0.5], color = PALETTE.green, linestyle = :dot, linewidth = 1.2)
     vlines!(ax, [T_HALF / 1e9], color = PALETTE.green, linestyle = :dot, linewidth = 1.2)
     text!(ax, T_HALF / 1e9 + 0.3, 0.55;
         text = L"$T_{1/2} = 4.468$ Gyr", color = PALETTE.green,
         align = (:left, :bottom), fontsize = 16)
 
     Legend(fig[1, 1], [l_a, l_c, l_w],
-        [L"Analytic $N_0 e^{-t/\tau}$", "Forward Euler", L"Original: $T_{1/2}$ used as $\tau$"],
+        [L"Analytic $N_0 e^{-t/\tau}$", "Forward Euler",
+         rich("Original: ", it("T"), subscript("1/2"), " used as ", it("τ"))],
         orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24)
 
     rowsize!(fig.layout, 2, Relative(0.86))

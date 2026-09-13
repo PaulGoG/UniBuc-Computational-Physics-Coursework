@@ -59,8 +59,10 @@ Explicit decade ticks for a base-10 logarithmic axis running from `10^e_min` to
 `10^e_max`, returned as the `(values, labels)` tuple an `Axis` takes.
 
 Spans of four decades or fewer are labelled as plain decimals (`0.01, 0.1, 1,
-10`); wider spans use powers of ten, with `10^0` written `1` and `10^1` written
-`10`. Pass `style = :decimal` or `style = :power` to override the choice.
+10`) provided the decades themselves stay within `10^-4` to `10^4`, beyond which
+a decimal is a run of zeros and the power of ten is the readable form; wider
+spans use powers of ten, with `10^0` written `1` and `10^1` written `10`. Pass
+`style = :decimal` or `style = :power` to override the choice.
 
 Every logarithmic axis in this repository sets its ticks through this function.
 Left to itself Makie labels the unit decade as `10^0` on some axes and as `1` on
@@ -80,7 +82,8 @@ function logticks(e_min::Integer, e_max::Integer; step::Integer = 1, style::Symb
     style in (:auto, :decimal, :power) ||
         throw(ArgumentError("style must be :auto, :decimal or :power, got :$style"))
     exponents = collect(e_min:step:e_max)
-    decimal = style == :decimal || (style == :auto && e_max - e_min <= 4)
+    readable = e_max - e_min <= 4 && e_min >= -4 && e_max <= 4
+    decimal = style == :decimal || (style == :auto && readable)
     labels = [decimal ? _decimal_label(e) : _power_label(e) for e in exponents]
     return ([10.0^e for e in exponents], labels)
 end

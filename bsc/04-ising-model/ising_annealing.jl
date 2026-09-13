@@ -159,22 +159,35 @@ function main()
     Legend(fig[1, 1:3],
         [l_energy, l_mag, l_tc, l_ground],
         [L"Energy per spin $E/N$", L"Magnetisation $|m|$",
-         L"Onsager $T_\mathrm{c} = 2.269\ J/k_\mathrm{B}$", L"Ground state $E/N = -2J$"],
+         rich("Onsager ", it("T"), subscript("c"), " = 2.269 ", it("J"), "/", it("k"),
+              subscript("B")),
+         rich("Ground state ", it("E"), "/", it("N"), " = −2", it("J"))],
         orientation = :horizontal, framevisible = false,
         padding = (0, 0, 0, 0), labelsize = 17, colgap = 22)
 
+    # The temperature identifies each lattice, so it is the panel's axis label
+    # rather than a title over it, and the spin colours are stated once beneath
+    # the first: nothing else in the figure says which way up orange is.
     for (k, (T, config)) in enumerate(snapshots)
         axk = Axis(fig[3, k], aspect = DataAspect(),
-            title = L"T = %$(round(T, digits = 2))\ J/k_\mathrm{B}",
-            titlesize = 18)
+            xlabel = rich(it("T"), @sprintf(" = %.2f ", T), it("J"), "/", it("k"),
+                          subscript("B")),
+            xlabelsize = 18)
         heatmap!(axk, config', colormap = [PALETTE.orange, PALETTE.blue],
                  colorrange = (-1, 1))
-        hidedecorations!(axk)
+        hidedecorations!(axk, label = false)
         hidespines!(axk)
     end
+    Label(fig[4, 1:3],
+        rich(rich("■ ", color = PALETTE.orange), rich("s", font = :italic),
+             subscript(rich("i", font = :italic)), " = +1      ",
+             rich("■ ", color = PALETTE.blue), rich("s", font = :italic),
+             subscript(rich("i", font = :italic)), " = −1"),
+        fontsize = 16, tellwidth = false)
 
-    rowsize!(fig.layout, 2, Relative(0.58))
+    rowsize!(fig.layout, 2, Relative(0.56))
     rowgap!(fig.layout, 14)
+    rowgap!(fig.layout, 3, 4)
     path = savefigure(fig, FIGURES, "ising_annealing")
     println("wrote ", path)
     println("wrote ", animate_anneal())
@@ -205,7 +218,7 @@ function animate_anneal(; every::Int = 20)
     trace_x = Observable([Float64(sweeps_at[1])])
     trace_E = Observable([frames[1][3]])
     trace_m = Observable([frames[1][4]])
-    caption = Observable("")
+    caption = Observable{Any}("")   # the frame captions are rich text, not String
 
     # The sweep at which the geometric cooling passes the Onsager temperature.
     cooling = (T_FINAL / T_INITIAL)^(1 / (SWEEPS - 1))
@@ -251,8 +264,10 @@ function animate_anneal(; every::Int = 20)
         trace_E[] = [f[3] for f in frames[1:k]]
         trace_m[] = [f[4] for f in frames[1:k]]
         phase = T > T_CRITICAL ? "above" : "below"
-        caption[] = @sprintf("T = %.2f J/k_B, %s T_c     E/N = %+.3f J     |m| = %.3f",
-            T, phase, E, m)
+        caption[] = rich(it("T"), @sprintf(" = %.2f ", T), it("J"), "/", it("k"),
+            subscript("B"), ", $phase ", it("T"), subscript("c"), "      ",
+            it("E"), "/", it("N"), replace(@sprintf(" = %+.3f ", E), "-" => "−"), it("J"),
+            "      |", it("m"), @sprintf("| = %.3f", m))
     end
     return path
 end

@@ -83,20 +83,45 @@ function main()
     fig = Figure(size = (940, 440))
     colours = (PALETTE.blue, PALETTE.orange, PALETTE.green)
 
-    ax1 = Axis(fig[2, 1], xlabel = L"t", ylabel = L"y_k(t)")
+    # y₁ and y₂ are both dominated by -e^t and reach -3000; y₃ is a bounded
+    # oscillation. On one axis the first two lie on top of each other and the
+    # third is a flat line on zero, so the panel showed one curve where it
+    # claimed three. Each gets the scale it needs, sharing the abscissa.
+    top = GridLayout(fig[2, 1])
+    ax1 = Axis(top[1, 1], ylabel = L"y_{1,2}(t)")
     handles = []
-    for k in 1:3
-        lines!(ax1, t, ref[k, :], color = colours[k], linewidth = 1.4)
-        push!(handles, scatter!(ax1, t[1:5:end], y[k, 1:5:end],
-              color = colours[k], markersize = 6))
-    end
+    # broad solid under narrow dashed: y₁ and y₂ agree to 0.15 % of their range
+    # here, so drawn at equal width the second simply erases the first
+    push!(handles, lines!(ax1, t, ref[1, :], color = colours[1], linewidth = 4.0))
+    push!(handles, lines!(ax1, t, ref[2, :], color = colours[2], linewidth = 1.6,
+        linestyle = :dash))
+    hidexdecorations!(ax1, grid = false)
+    text!(ax1, 0.04, 0.06;
+        text = rich(it("y"), subscript("1"), " and ", it("y"), subscript("2"),
+                    " are indistinguishable here:\nboth go as −", it("e"),
+                    superscript(rich("t", font = :italic)),
+                    ", and differ by the oscillatory part alone"),
+        space = :relative, align = (:left, :bottom), fontsize = 14)
 
-    ax2 = Axis(fig[2, 2], xlabel = L"t", ylabel = "Absolute error", yscale = log10)
+    ax3 = Axis(top[2, 1], xlabel = L"t", ylabel = L"y_3(t)")
+    lines!(ax3, t, ref[3, :], color = colours[3], linewidth = 1.4)
+    push!(handles, scatter!(ax3, t[1:5:end], y[3, 1:5:end],
+          color = colours[3], markersize = MARKERSIZE.dense))
+    linkxaxes!(ax1, ax3)
+    rowsize!(top, 1, Relative(0.62))
+    rowgap!(top, 6)
+
+    ax2 = Axis(fig[2, 2], xlabel = L"t", ylabel = "Absolute error",
+        yscale = log10, yticks = logticks(-8, -3; step = 2))
     for k in 1:3
         lines!(ax2, t[2:end], err[k, 2:end], color = colours[k], linewidth = 1.4)
     end
+    text!(ax2, 0.04, 0.96;
+        text = latexstring(@sprintf("\\text{Observed order } %.2f", slope)),
+        space = :relative, align = (:left, :top), fontsize = 15)
 
-    Legend(fig[1, 1:2], handles, [L"y_1", L"y_2", L"y_3"],
+    Legend(fig[1, 1:2], handles,
+        [L"y_1", L"y_2", L"$y_3$, with the RK4 points"],
         orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 26)
 
     rowsize!(fig.layout, 2, Relative(0.85))

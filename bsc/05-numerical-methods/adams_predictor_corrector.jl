@@ -98,17 +98,28 @@ function main()
 
     fig = Figure(size = (960, 440))
 
-    ax1 = Axis(fig[2, 1], xlabel = L"x", ylabel = L"y(x)")
-    l_num = scatter!(ax1, x, y, color = PALETTE.blue, markersize = 7)
+    # Both panels are the same abscissa, so they carry the same limits and the
+    # same ticks; the error panel had been left to pick its own.
+    xticks = ([0, 1, 2, 3, 4, 5, 6], [L"0", L"1", L"2", L"3", L"4", L"5", L"6"])
+
+    ax1 = Axis(fig[2, 1], xlabel = L"x", ylabel = L"y(x)", xticks = xticks)
+    l_num = scatter!(ax1, x, y, color = PALETTE.blue, markersize = MARKERSIZE.dense)
     xf = range(0, 6, length = 400)
     l_ex = lines!(ax1, xf, exact.(xf), color = PALETTE.black, linewidth = 1.2)
+    xlims!(ax1, -0.25, 6.25)
 
-    ax2 = Axis(fig[2, 2], xlabel = L"x", ylabel = "Error", yscale = log10)
+    ax2 = Axis(fig[2, 2], xlabel = L"x", ylabel = "Error", yscale = log10,
+        xticks = xticks, yticks = logticks(-8, -6))
     l_g = lines!(ax2, x[5:end], err[5:end], color = PALETTE.orange, linewidth = 1.5)
     l_p = lines!(ax2, x[5:end], pc[5:end], color = PALETTE.green, linewidth = 1.5)
+    xlims!(ax2, -0.25, 6.25)
 
     Legend(fig[1, 1:2], [l_num, l_ex, l_g, l_p],
-        ["Adams PECE", "Exact", "Global error", "Predictor–corrector Δ"],
+        ["Adams PECE", "Exact",
+         # the takeaway as a legend entry: the error panel has no band clear of
+         # both curves wide enough to hold it
+         latexstring(@sprintf("\\text{Global error, observed order } %.2f", slope)),
+         "Predictor–corrector Δ"],
         orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24)
 
     rowsize!(fig.layout, 2, Relative(0.85))

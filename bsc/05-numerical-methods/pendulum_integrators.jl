@@ -77,6 +77,27 @@ end
 wrap(θ) = mod(θ + π, 2π) - π
 
 """
+    wrapped_trace(t, θ)
+
+`θ` wrapped to (-π, π] against `t`, with a `NaN` pair inserted at every wrap, so
+that a line plot breaks there instead of drawing a vertical stroke across the
+panel. Used for the original stage coupling, which winds rather than oscillates.
+"""
+function wrapped_trace(t, θ)
+    xs, ys = Float64[], Float64[]
+    w = wrap.(θ)
+    for i in eachindex(w)
+        if i > 1 && abs(w[i] - w[i - 1]) > π
+            push!(xs, NaN)
+            push!(ys, NaN)
+        end
+        push!(xs, t[i])
+        push!(ys, w[i])
+    end
+    return xs, ys
+end
+
+"""
     integrate(step, θ₀, ω₀, Δt, n, p, f)
 
 Apply `step` `n` times, returning time, angle and angular-velocity traces.
@@ -142,33 +163,51 @@ function main()
 
     fig = Figure(size = (1040, 460))
 
-    ax1 = Axis(fig[2, 1], xlabel = L"Step size $\Delta t$", ylabel = "Global error",
+    ax1 = Axis(fig[2, 1], xlabel = L"Step size $\Delta t$ [s]", ylabel = "Global error [rad]",
         xscale = log10, yscale = log10,
         xticks = ([0.00125, 0.0025, 0.005, 0.01, 0.02],
-                  ["0.00125", "0.0025", "0.005", "0.01", "0.02"]),
-        yticks = ([1e-13, 1e-10, 1e-7, 1e-4],
-                  [L"10^{-13}", L"10^{-10}", L"10^{-7}", L"10^{-4}"]))
+                  [L"0.00125", L"0.0025", L"0.005", L"0.01", L"0.02"]),
+        yticks = logticks(-13, -4; step = 3))
     ax1.xticklabelrotation = π/4
-    l_c = scatterlines!(ax1, hs, e_correct, color = PALETTE.blue, markersize = 8)
-    l_o = scatterlines!(ax1, hs, e_original, color = PALETTE.red, markersize = 8, marker = :rect)
+    # Each panel carries its own legend. One figure-level legend gave blue two
+    # meanings -- the correct RK4 of the order study and the full pendulum of
+    # the comparison -- and orange two, while leaving the Poincaré section with
+    # no entry at all.
+    scatterlines!(ax1, hs, e_correct, color = PALETTE.blue,
+        markersize = MARKERSIZE.data,
+        label = latexstring(@sprintf("\\text{RK4, order } %.2f", p_correct)))
+    scatterlines!(ax1, hs, e_original, color = PALETTE.red,
+        markersize = MARKERSIZE.data, marker = :rect,
+        label = latexstring(@sprintf("\\text{Original stages, order } %.2f", p_original)))
+    axislegend(ax1, position = :lt, framevisible = false, labelsize = 15, padding = 2)
 
-    ax2 = Axis(fig[2, 2], xlabel = L"Time $t$", ylabel = L"Angle $\theta$ [rad]")
-    l_f = lines!(ax2, t, θ_full, color = PALETTE.blue, linewidth = 1.3)
-    l_l = lines!(ax2, t, θ_lin, color = PALETTE.orange, linewidth = 1.3, linestyle = :dash)
+    ax2 = Axis(fig[2, 2], xlabel = L"Time $t$ [s]", ylabel = L"Angle $\theta$ [rad]")
+    lines!(ax2, t, θ_full, color = PALETTE.green, linewidth = 1.5,
+        label = "Full pendulum")
+    # the takeaway as a legend entry: the panel is too narrow to carry it as a
+    # separate annotation without running into the legend
+    lines!(ax2, t, θ_lin, color = PALETTE.purple, linewidth = 1.5, linestyle = :dash,
+        label = @sprintf("Small-angle, up to %.1f rad apart",
+                         maximum(abs.(θ_full .- θ_lin))))
     xlims!(ax2, 0, 12)
+    ylims!(ax2, -2.9, 4.1)
+    axislegend(ax2, position = :lt, framevisible = false, labelsize = 15, padding = 2)
 
-    ax3 = Axis(fig[2, 3], xlabel = L"\theta \ \mathrm{[rad]}", ylabel = L"\omega \ \mathrm{[rad/s]}")
-    scatter!(ax3, wrap.(θc[keep]), ωc[keep], color = (PALETTE.green, 0.5), markersize = 2)
+    ax3 = Axis(fig[2, 3], xlabel = L"\theta \ \mathrm{[rad]}",
+        ylabel = L"\omega \ \mathrm{[rad\ s^{-1}]}",
+        xticks = ([-π, -π/2, 0, π/2, π],
+                  [L"-\pi", L"-\pi/2", L"0", L"\pi/2", L"\pi"]))
+    scatter!(ax3, wrap.(θc[keep]), ωc[keep], color = (PALETTE.orange, 0.6),
+        markersize = MARKERSIZE.cloud)
+    # built by hand: a legend entry taken from the plot would inherit the small
+    # marker the section needs and be unreadable
+    axislegend(ax3,
+        [MarkerElement(color = PALETTE.orange, marker = :circle,
+                       markersize = MARKERSIZE.key)],
+        ["Poincaré section"],
+        position = :lt, framevisible = false, labelsize = 15, padding = 2)
 
-    Legend(fig[1, 1:3],
-        [l_c, l_o, l_f, l_l],
-        [L"RK4, order $%$(round(p_correct, digits = 2))$",
-         L"Original stages, order $%$(round(p_original, digits = 2))$",
-         "Full pendulum", "Small-angle"],
-        orientation = :horizontal, framevisible = false, labelsize = 16,
-        colgap = 18, nbanks = 1)
-
-    rowsize!(fig.layout, 2, Relative(0.85))
+    rowsize!(fig.layout, 2, Relative(0.92))
     path = savefigure(fig, FIGURES, "pendulum_integrators")
     println("wrote ", path)
     println("wrote ", animate_pendulum())
@@ -200,8 +239,9 @@ function animate_pendulum()
     rods = Observable([Point2f(0, 0), p1, Point2f(0, 0), p2])
     trace_t = Observable([t[1]])
     trace_c = Observable([θc[1]])
-    trace_o = Observable([θo[1]])
-    caption = Observable("")
+    trace_ot = Observable([t[1]])
+    trace_o = Observable([wrap(θo[1])])
+    caption = Observable{Any}("")   # the frame captions are rich text, not String
 
     fig = Figure(size = (940, 460))
     axp = Axis(fig[2, 1], aspect = DataAspect())
@@ -214,16 +254,23 @@ function animate_pendulum()
         color = [PALETTE.blue, PALETTE.blue, PALETTE.red, PALETTE.red],
         linewidth = 2.5,
     )
-    scatter!(axp, bobs, color = [PALETTE.blue, PALETTE.red], markersize = 26)
-    scatter!(axp, [Point2f(0, 0)], color = :black, markersize = 8)
-    xlims!(axp, -1.25, 1.25)
-    ylims!(axp, -1.25, 0.25)
+    scatter!(axp, bobs, color = [PALETTE.blue, PALETTE.red], markersize = 32)
+    scatter!(axp, [Point2f(0, 0)], color = :black, markersize = MARKERSIZE.dense)
+    # The bob sits at (sin θ, -cos θ), so it rises above y = 0 for |θ| > π/2 and
+    # the swing starts at 2.5 rad: a top limit of 0.25 clipped both bobs over
+    # most of every swing, exactly where the two pendulums differ most.
+    xlims!(axp, -1.35, 1.35)
+    ylims!(axp, -1.35, 1.35)
 
     axt = Axis(fig[2, 2], xlabel = L"Time $t$ [s]", ylabel = L"Angle $\theta$ [rad]")
     lc = lines!(axt, trace_t, trace_c, color = PALETTE.blue, linewidth = 2)
-    lo = lines!(axt, trace_t, trace_o, color = PALETTE.red, linewidth = 2)
+    lo = lines!(axt, trace_ot, trace_o, color = PALETTE.red, linewidth = 2)
     xlims!(axt, 0, last(t))
-    ylims!(axt, -3.2, 3.2)
+    # The original coupling does not oscillate, it winds: θ runs past -70 rad by
+    # the end. Wrapping it to (-π, π] keeps it in the panel, so the comparison
+    # the animation exists to make is visible for the whole twelve seconds
+    # instead of the first 1.7.
+    ylims!(axt, -3.4, 3.4)
 
     Legend(fig[1, 1:2], [lc, lo], ["RK4, correct stages", "Original stage coupling"],
         orientation = :horizontal, framevisible = false, labelsize = 16)
@@ -240,9 +287,12 @@ function animate_pendulum()
         rods[] = [Point2f(0, 0), pc, Point2f(0, 0), po]
         trace_t[] = t[1:k]
         trace_c[] = θc[1:k]
-        trace_o[] = θo[1:k]
-        caption[] = @sprintf("t = %.2f s,  Δt = %.2f s     phase error %+.2f rad",
-            t[k], Δt, θo[k] - θc[k])
+        ot, ow = wrapped_trace(t[1:k], θo[1:k])
+        trace_ot[] = ot
+        trace_o[] = ow
+        caption[] = rich(it("t"), @sprintf(" = %.2f s,  ", t[k]), "Δ", it("t"),
+            @sprintf(" = %.2f s      ", Δt), "phase error ",
+            replace(@sprintf("%+.2f", θo[k] - θc[k]), "-" => "−"), " rad")
     end
     return path
 end
