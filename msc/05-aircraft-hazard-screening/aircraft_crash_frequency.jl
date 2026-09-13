@@ -3,8 +3,25 @@
 # calculation, to be compared against the 10⁻⁵ and 10⁻⁷ yr⁻¹ design-basis
 # thresholds.
 #
-# The formulation follows the standard structure of DOE-STD-3014 and
-# NUREG-0800 §3.5.1.6:
+# **Provenance.** This was not a course assignment. The internship report for
+# the RATEN–CITON placement of September 2021 to February 2022 (coordinator
+# Ing. Doina Eugenia Pantazi, academic supervisor Prof. Alexandru Jipa) lists
+# among the work completed "modelarea matematică (cu scop pedagogic) a unei
+# analize de risc prin metoda statistică, în speță studiul statistic al riscului
+# prăbușirii unei aeronave de pasageri asupra unui amplasament nuclear folosind
+# distribuții Poisson" — a deliberately pedagogical Poisson risk model, written
+# at CITON rather than for a class.
+#
+# That matters for how the result should be read. The quantity computed is a
+# Poisson rate, so the probability of at least one impact in t years is
+# 1 − e^{−Ft}; for the frequencies here, F t ≪ 1 and the two coincide. The
+# values of N, P, g and y₀ are not recorded in anything that survives, so they
+# remain as the 2018 file set them and the absolute frequency should be read as
+# an exercise, not as a screening result for any real site.
+#
+# The formulation below follows the standard structure of DOE-STD-3014 and
+# NUREG-0800 §3.5.1.6, which is how a calculation of this shape is normally
+# presented; the original did not cite either:
 #
 #   F = N · P · ∫ f(s(x)) dx · A_eff        [yr⁻¹]
 #

@@ -8,6 +8,20 @@
 # amplitudes add before squaring, so the observed line shape is neither of the
 # two resonances nor their sum, and its apparent position and width depend on φ.
 #
+# The two resonances, the two phases and the equal weights all come from the
+# assignment (Fenomenologia particulelor elementare, Tema 1), which sets them
+# per student. The row for this one gives f₂(2300) at 2297 ± 60 MeV with
+# Γ = 149 ± 40 MeV and f₂(2340) at 2339 ± 60 MeV with Γ = 319 ± 70 MeV.
+#
+# `Breit_Wigner.jl` used 2300/150 and 2340/320 instead — the resonances' names
+# and round numbers rather than the measured values it was given. The difference
+# is small against widths of 149 and 319 MeV, and it moves the interference peak
+# by a couple of MeV, but the uncertainties are the point: at ±60 MeV on each
+# position and ±40 to ±70 MeV on each width, the apparent peak position this
+# calculation produces is not determined to the 0.01 MeV its arithmetic
+# suggests. The assigned values are used here and the uncertainties are carried
+# so that they can be said out loud.
+#
 # Ported from Breit_Wigner.jl. The physics was right. The measurement of the
 # resulting peak was not: the full width at half maximum was located by scanning
 # for points satisfying
@@ -29,9 +43,17 @@ include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 
 const FIGURES = joinpath(@__DIR__, "figures")
 
-"Resonance parameters in MeV: (position, width)."
-const RES1 = (E = 2300.0, Γ = 150.0)
-const RES2 = (E = 2340.0, Γ = 320.0)
+"""
+Resonance parameters in MeV: position, width, and the quoted uncertainty on
+each.
+
+These are the values the assignment sets for this student, not the rounded
+figures implied by the resonances' names. f₂(2300) and f₂(2340) are both 2⁺, so
+the amplitudes add coherently, and the assignment specifies equal generation
+weights — which is where C₁ = C₂ comes from.
+"""
+const RES1 = (E = 2297.0, σE = 60.0, Γ = 149.0, σΓ = 40.0)
+const RES2 = (E = 2339.0, σE = 60.0, Γ = 319.0, σΓ = 70.0)
 
 "Breit-Wigner amplitude."
 amplitude(E, r) = (0.5 * r.Γ) / (r.E - E - 0.5im * r.Γ)
@@ -58,6 +80,49 @@ end
 "Normalise a sampled distribution to unit integral."
 normalise(x, y) = y ./ (sum((y[1:end-1] .+ y[2:end]) ./ 2 .* diff(x)))
 
+"""
+    interference_shape(E, r1, r2, φ)
+
+Normalised `|C₁B₁ + C₂B₂e^{iφ}|²` on the grid `E`, with each amplitude
+separately normalised so that the two enter with equal weight, as the
+assignment specifies.
+"""
+function interference_shape(E, r1, r2, φ)
+    a1 = amplitude.(E, Ref(r1)); a2 = amplitude.(E, Ref(r2))
+    c1 = 1 / sqrt(sum((abs2.(a1)[1:end-1] .+ abs2.(a1)[2:end]) ./ 2 .* diff(E)))
+    c2 = 1 / sqrt(sum((abs2.(a2)[1:end-1] .+ abs2.(a2)[2:end]) ./ 2 .* diff(E)))
+    return normalise(E, abs2.(c1 .* a1 .+ c2 .* a2 .* exp(im * φ)))
+end
+
+"""
+    peak_uncertainty(E, φ)
+
+Spread of the interference peak position and width when each of the four
+resonance parameters is moved by its quoted uncertainty in turn.
+
+The arithmetic reports a peak to 0.01 MeV from inputs known to ±60 MeV, so the
+sensitivity is worth measuring rather than leaving implied. Each parameter is
+moved by ±σ on its own and the **largest** single excursion is returned, which
+is an envelope rather than a propagated error: the assignment quotes no
+covariances, and with only four parameters the envelope is the honest summary.
+"""
+function peak_uncertainty(E, φ)
+    base_w, base_pos = fwhm(E, interference_shape(E, RES1, RES2, φ))
+    δpos = 0.0; δw = 0.0
+    for (field, σfield) in ((:E, :σE), (:Γ, :σΓ)), which in 1:2
+        for sign in (+1, -1)
+            r1, r2 = RES1, RES2
+            r = which == 1 ? r1 : r2
+            shifted = merge(r, NamedTuple{(field,)}((getfield(r, field) + sign * getfield(r, σfield),)))
+            which == 1 ? (r1 = shifted) : (r2 = shifted)
+            w, pos = fwhm(E, interference_shape(E, r1, r2, φ))
+            δpos = max(δpos, abs(pos - base_pos))
+            δw = max(δw, abs(w - base_w))
+        end
+    end
+    return δpos, δw
+end
+
 function main()
     E = collect(1600.0:0.05:3000.0)
 
@@ -71,15 +136,17 @@ function main()
 
     println()
     interference = map((π/6, π/4)) do φ
-        a1 = amplitude.(E, Ref(RES1)); a2 = amplitude.(E, Ref(RES2))
-        c1 = 1 / sqrt(sum((abs2.(a1)[1:end-1] .+ abs2.(a1)[2:end]) ./ 2 .* diff(E)))
-        c2 = 1 / sqrt(sum((abs2.(a2)[1:end-1] .+ abs2.(a2)[2:end]) ./ 2 .* diff(E)))
-        y = normalise(E, abs2.(c1 .* a1 .+ c2 .* a2 .* exp(im * φ)))
+        y = interference_shape(E, RES1, RES2, φ)
         w, pos = fwhm(E, y)
-        @printf("φ = %3.0f°   interference peak %7.2f MeV   FWHM %6.2f MeV\n",
-                rad2deg(φ), pos, w)
-        (φ = φ, y = y, w = w, pos = pos)
+        δpos, δw = peak_uncertainty(E, φ)
+        @printf("φ = %3.0f°   interference peak %7.2f ± %.0f MeV   FWHM %6.2f ± %.0f MeV\n",
+                rad2deg(φ), pos, δpos, w, δw)
+        (φ = φ, y = y, w = w, pos = pos, δpos = δpos, δw = δw)
     end
+    @printf("\nthe two phases move the peak by %.1f MeV, well inside the %.0f MeV that\n",
+            abs(interference[2].pos - interference[1].pos), interference[1].δpos)
+    @printf("the quoted resonance parameters allow: the phase dependence is real but\n")
+    @printf("this data cannot resolve it.\n")
     @printf("\nneither resonance sits at %.0f or %.0f: the apparent position and width\n",
             RES1.E, RES2.E)
     @printf("of the observed line depend on the relative phase.\n")
@@ -95,14 +162,15 @@ function main()
     end
     xlims!(ax, 1900, 2800)
     text!(ax, 0.97, 0.93;
-        text = @sprintf("φ = 30°: peak %.0f, FWHM %.0f\nφ = 45°: peak %.0f, FWHM %.0f",
+        text = @sprintf("φ = 30°: peak %.0f, FWHM %.0f\nφ = 45°: peak %.0f, FWHM %.0f\n± %.0f MeV from the inputs",
                         interference[1].pos, interference[1].w,
-                        interference[2].pos, interference[2].w),
+                        interference[2].pos, interference[2].w,
+                        interference[1].δpos),
         space = :relative, align = (:right, :top), fontsize = 15)
 
     Legend(fig[1, 1], handles,
-        [L"$|C_1B_1|^2$, $E_1 = 2300$, $\Gamma_1 = 150$",
-         L"$|C_2B_2|^2$, $E_2 = 2340$, $\Gamma_2 = 320$",
+        [L"$|C_1B_1|^2$: $f_2(2300)$, $E_1 = 2297$, $\Gamma_1 = 149$",
+         L"$|C_2B_2|^2$: $f_2(2340)$, $E_2 = 2339$, $\Gamma_2 = 319$",
          L"interference, $\varphi = 30°$", L"interference, $\varphi = 45°$"],
         orientation = :horizontal, framevisible = false, labelsize = 15,
         nbanks = 2, colgap = 18)

@@ -29,6 +29,9 @@ must.
 | Y(Z) peak | Z_H = **54** (Xe) |
 | Even–odd staggering δ | 0.121 |
 | ⟨TKE⟩ | **170.55 MeV** |
+| ⟨A_H⟩ / ⟨A_L⟩ | **139.32 / 96.68** |
+| ⟨Q⟩ | **187.13 MeV** |
+| ⟨TXE⟩ | **23.13 MeV** |
 | S_n(²³⁶U) | **6.546 MeV** |
 | TXE(A) | 20.7–44.0 MeV |
 | KE_L(A) | 77.9–101.1 MeV |
@@ -37,7 +40,22 @@ must.
 The single-fragment kinetic energies follow from momentum conservation,
 KE_L = TKE·A_H/A₀; they close against TKE to 2.8 × 10⁻¹⁴ MeV.
 
-⟨TKE⟩ and S_n both reproduce the evaluated values to three digits.
+⟨TKE⟩ and S_n both reproduce the evaluated values to three digits. All five
+yield-weighted totals the assignment asks for are now reported, with the
+uncertainty propagated by the course's formula
+δ²⟨q⟩ = Σ((qᵢ − ⟨q⟩)δYᵢ/ΣY)², which carries the yield errors; the AME
+mass-excess errors behind Q and TXE are not propagated, because the mass loader
+does not retain them.
+
+Against the values Straede publishes for this same matrix — the yield file is
+Ch. Straede, C. Budtz-Jørgensen, H.-H. Knitter, *Nucl. Phys. A* **462** (1987)
+85 — ⟨TKE⟩ comes out **0.143 MeV low** (170.549 against 170.692 ± 0.005) and the
+kinetic-energy split **2.25 and 0.92 MeV high** (100.55/69.99 against
+98.30/69.07). The matrix is self-consistent, KE_L + KE_H reproducing TKE to
+10⁻¹⁴ MeV, so the gaps sit between this data file and the published reduction
+rather than inside the arithmetic. The split used here is the
+momentum-conservation one, TKE·A_complement/A₀, which is pre-neutron; a
+post-neutron split moves both in the direction seen.
 
 **Y(N) was over-counted.** The original summed over all rows with a given
 N = A_H − Z_H *inside* the double loop over (A_H, Z_H), so the sum was re-added
@@ -99,8 +117,17 @@ it reweights the mass average.
 
 E₁(z) and γ(3/2,x) were also re-integrated with `quadgk` at every evaluation,
 some 34 000 adaptive quadratures per run, where `SpecialFunctions` has both in
-closed form. And `Fisiune_5.jl` divided χ² by N while labelling it χ², and
-bounded its optimiser at T_M = 0 where T_M^{-3/2} is infinite.
+closed form. `Fisiune_5.jl` bounded its optimiser at T_M = 0, where T_M^{-3/2}
+is infinite.
+
+**Retracted.** This README previously held that `Fisiune_5.jl` was wrong to
+divide χ² by N rather than by ν = N − 1. It was not. The course defines
+χ² = (1/n)Σ(yᵢ − f(xᵢ))²/σᵢ², over the number of points, and the original
+followed that definition. The reduced χ² over ν is kept here because one
+parameter is fitted, but it is a convention and the original was not in error.
+The course's own reference fits, on its convention: Hambsch & Kornilov
+²³⁵U(n_th,f) → T_M = 1.297 MeV at χ² = 2.034; Mannhart ²⁵²Cf → 1.402 and
+1.396 MeV at χ² = 2.513 and 3.256.
 
 ## `neutron_multiplicity.jl`
 
@@ -137,10 +164,29 @@ Gilbert–Cameron table, so Z_H ran 11 to 150. Unphysical pairs such as
 distribution and everything averaged over it. The charge range now comes from
 the yield matrix, which spans Z_H = 44–63.
 
-The scission-point deformation model of `Fisiune_3.jl` is **not** reproduced. It
-hardcodes six undocumented parametrisation constants — `a = 0.58/13`,
-`b = -28*a`, `-0.58/6`, `0.6/15`, `-50*a` — with no source given, and those are
-the most model-dependent numbers in the archive.
+**Retracted.** This README previously called the six constants of the
+scission-point deformation model in `Fisiune_3.jl` — `a = 0.58/13`, `b = -28*a`,
+`-0.58/6`, `0.6/15`, `-50*a` — "undocumented, with no source", and declined to
+reproduce the model on that ground. They were a table. Tudora's notes on the
+partition of TXE give β at scission as a piecewise-linear function of fragment
+charge through five breakpoints,
+
+| Z | 28 | 41 | 44 | 50 | 65 |
+|---|---|---|---|---|---|
+| β | 0 | 0.58 | 0.58 | 0 | 0.6 |
+
+and interpolating between them reproduces all six constants exactly. The
+parameterisation is now implemented, and plotted against the Möller–Nix
+ground-state β₂ as the assignment asks — the right-hand panel above. It is its
+own check: the two zeros fall on the closed shells at Z = 28 and Z = 50.
+
+With the liquid-drop deformation energy from the same notes, the heavy
+fragment's share of the excitation energy comes out **⟨R⟩ = 0.453** against
+**0.503** from the level-density ratio alone — a 10 % shift, from just above
+half to just below. ν(A) is still computed from the level-density ratio, because
+the deformation route adds a parameterised β(Z) and a liquid-drop energy on top
+of it and there is nothing here to validate that against; both are reported
+rather than chosen between.
 
 `Dump.jl` is deleted: it referenced `distributie_bidym`, `Y`, `y_A`, `DataFrame`
 and `CSV`, none of which it defined or imported, so it could not run and was

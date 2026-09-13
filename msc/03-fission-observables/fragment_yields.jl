@@ -56,6 +56,24 @@ function even_odd_staggering(Z, Y)
     return (even - odd) / (even + odd)
 end
 
+"""
+    yield_weighted_average(q, Y, σY)
+
+Yield-weighted mean of `q` and its uncertainty, by the course's formula
+
+    δ²⟨q⟩ = Σᵢ (Yᵢ δqᵢ / ΣY)² + Σᵢ ((qᵢ − ⟨q⟩) δYᵢ / ΣY)²
+
+with the first term dropped here: every quantity averaged in this file is
+either an exact bin label or is derived from mass excesses whose uncertainties
+the loader does not retain. Only the yield errors contribute.
+"""
+function yield_weighted_average(q, Y, σY)
+    ΣY = sum(Y)
+    m = sum(q .* Y) / ΣY
+    σ = sqrt(sum(abs2, (q .- m) .* σY ./ ΣY))
+    return m, σ
+end
+
 function main()
     y = load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR"))
     masses = load_masses(joinpath(DATA, "Defecte_masa", "AUDI2021.csv"))
@@ -116,7 +134,40 @@ function main()
     @printf("⟨TKE⟩(A) ranges %.1f–%.1f MeV, TXE(A) ranges %.1f–%.1f MeV\n",
             minimum(TKE_A), maximum(TKE_A), minimum(TXE_A), maximum(TXE_A))
 
+    # The five yield-weighted totals the assignment asks for. Only ⟨TKE⟩ was
+    # reported before.
+    wA = [sum(y.Y[y.A_H .== a]) for a in A_keep]
+    σwA = [sqrt(sum(abs2, y.σY[y.A_H .== a])) for a in A_keep]
+    Q_A = TXE_A .- S_n .+ TKE_A
+    println()
+    for (name, q, unit) in (("⟨A_H⟩", Float64.(A_keep), ""),
+                            ("⟨A_L⟩", Float64.(A₀ .- A_keep), ""),
+                            ("⟨TKE⟩", TKE_A, " MeV"),
+                            ("⟨Q⟩", Q_A, " MeV"),
+                            ("⟨TXE⟩", TXE_A, " MeV"))
+        m, σ = yield_weighted_average(q, wA, σwA)
+        @printf("  %-7s = %8.3f ± %.3f%s\n", name, m, σ, unit)
+    end
+    keL = yield_weighted_average(KE_L, wA, σwA)[1]
+    keH = yield_weighted_average(KE_H, wA, σwA)[1]
+    tke = yield_weighted_average(TKE_A, wA, σwA)[1]
+    @printf("  %-7s = %8.3f MeV\n", "⟨KE_L⟩", keL)
+    @printf("  %-7s = %8.3f MeV\n", "⟨KE_H⟩", keH)
+    @printf("The uncertainty carries the yield errors only: A and TKE are exact bin\n")
+    @printf("labels, and the AME mass-excess errors behind Q and TXE are not\n")
+    @printf("propagated, because the mass loader does not retain them.\n")
+    @printf("\nAgainst the values Straede publishes for this same matrix:\n")
+    @printf("  ⟨TKE⟩   170.692 ± 0.005 MeV   here %.3f, low by %.3f\n", tke, 170.692 - tke)
+    @printf("  ⟨KE_L⟩  98.30 MeV             here %.3f, high by %.2f\n", keL, keL - 98.30)
+    @printf("  ⟨KE_H⟩  69.07 MeV             here %.3f, high by %.2f\n", keH, keH - 69.07)
+    @printf("The matrix is self-consistent — KE_L + KE_H reproduces TKE to 1e-14 —\n")
+    @printf("so the gaps are between this file and the published reduction, not\n")
+    @printf("inside the arithmetic. The KE split here is the momentum-conservation\n")
+    @printf("one, TKE·A_complement/A₀, which is pre-neutron; a post-neutron split\n")
+    @printf("would move both in the direction seen.\n")
+
     fig = Figure(size = (1020, 640))
+
     ax1 = Axis(fig[1, 1], xlabel = L"$A_H$", ylabel = "Y(A) [%]")
     lines!(ax1, A, Y_A, color = PALETTE.blue, linewidth = 1.6)
     ax2 = Axis(fig[1, 2], xlabel = L"$Z_H$", ylabel = "Y(Z) [%]")

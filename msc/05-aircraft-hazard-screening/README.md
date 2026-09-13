@@ -6,9 +6,27 @@ Annual frequency of an aircraft crash onto an installation sited a perpendicular
 distance y₀ from an air corridor, screened against the 10⁻⁵ and 10⁻⁷ yr⁻¹
 design-basis thresholds.
 
+## Provenance
+
+**This was not a course assignment.** The internship report for the RATEN–CITON
+placement of September 2021 – February 2022 (coordinator Ing. Doina Eugenia
+Pantazi, academic supervisor Prof. Alexandru Jipa) lists among the work
+completed a deliberately pedagogical Poisson risk model — *"studiul statistic al
+riscului prăbușirii unei aeronave de pasageri asupra unui amplasament nuclear
+folosind distribuții Poisson"*. It was written at CITON, not for a class.
+
+The quantity computed is therefore a Poisson rate: the probability of at least
+one impact in t years is 1 − e^{−Ft}, which for these frequencies is
+indistinguishable from F·t. The values of N, P, g and y₀ are not recorded in
+anything that survives, so they stand as the 2018 file set them, and the
+absolute frequency is an exercise rather than a screening result for a real
+site.
+
 ## Formulation
 
-Following the structure of DOE-STD-3014 and NUREG-0800 §3.5.1.6:
+The structure below is that of DOE-STD-3014 and NUREG-0800 §3.5.1.6, which is
+how a calculation of this shape is normally presented. The original cited
+neither; the framing is this rewrite's, not the 2018 author's.
 
 ```
 F = N · P · ∫ f(s(x)) dx · A_eff            [yr⁻¹]

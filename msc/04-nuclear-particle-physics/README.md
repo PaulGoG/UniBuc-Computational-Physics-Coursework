@@ -9,15 +9,29 @@ add before squaring.
 
 | | Peak [MeV] | FWHM [MeV] |
 |---|---|---|
-| Resonance 1 alone | 2300.00 | 150.00 |
-| Resonance 2 alone | 2340.00 | 320.00 |
-| Interference, φ = 30° | 2308.40 | 193.59 |
-| Interference, φ = 45° | 2311.90 | 191.00 |
+| f₂(2300) alone | 2297.00 | 149.00 |
+| f₂(2340) alone | 2339.00 | 319.00 |
+| Interference, φ = 30° | 2305.40 ± 61 | 192.98 ± 50 |
+| Interference, φ = 45° | 2308.90 ± 60 | 190.40 ± 47 |
 
 The isolated resonances return their input parameters exactly, which validates
-the width measurement. The interference line sits at neither 2300 nor 2340 and
+the width measurement. The interference line sits at neither 2297 nor 2339 and
 is narrower than the broad resonance — its apparent position and width depend on
 the relative phase, which is the point of the exercise.
+
+**The parameters are the assigned ones.** `Breit_Wigner.jl` used 2300/150 and
+2340/320 — the resonances' *names*, rounded, with no uncertainties. The
+assignment sheet sets them per student, and this student's row gives
+f₂(2300) at **2297 ± 60 MeV, Γ = 149 ± 40** and f₂(2340) at **2339 ± 60,
+Γ = 319 ± 70**, with phases 30° and 45° and equal generation weights — which is
+where C₁ = C₂ comes from, previously assumed without comment.
+
+Carrying those uncertainties changes what the exercise can conclude. The two
+phases move the peak by **3.5 MeV**; the quoted resonance parameters allow it to
+move by **61 MeV**. The phase dependence is real and it is the point of the
+exercise, but with these inputs it is not resolvable — a statement the
+calculation could not make while it reported a peak to 0.01 MeV from round
+numbers.
 
 The physics in the original was right; the width measurement was not. FWHM was
 located by scanning for samples satisfying

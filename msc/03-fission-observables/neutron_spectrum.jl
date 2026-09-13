@@ -9,6 +9,10 @@
 #
 # Ported from Fisiune_4.jl and Fisiune_5.jl.
 #
+# The prefactor and the χ² convention are both settled by the course's own
+# notes (Tudora, *Modele de emisie prompta globala* and *Aplicatie fit cu
+# spectru Maxwellian*), which were recovered after this file was first written.
+#
 # **The prefactor was wrong.** The original wrote
 #
 #     return (1/3*sqrt(E_F*T_MAX)) * ( ... )
@@ -19,7 +23,13 @@
 # divide. Since E_f and T_m both vary with fragment mass, the error does *not*
 # cancel under the Maxwellian renormalisation applied afterwards; it reweights
 # the mass-averaged sum. Both forms are evaluated below so the size of the
-# distortion is visible.
+# distortion is visible. The course notes print the spectrum with the
+# 1/(3√(E_f T_max)) prefactor explicitly, so this is a transcription slip in the
+# original rather than a difference of convention.
+#
+# The level-density constant likewise has a source: ⟨a⟩ = A₀/C with C = 11 MeV
+# for an optical-model compound cross-section and **C = 10 MeV for a constant
+# one**, which is the case used here.
 #
 # Two further defects, both removed: E₁(z) and γ(3/2,x) were each re-integrated
 # from scratch with `quadgk` at every evaluation — about 34 000 adaptive
@@ -28,9 +38,21 @@
 # inside the χ² comprehension, running a quadrature and a trapezoid over the
 # whole dataset for every data point at every optimiser iteration.
 #
-# `Fisiune_5.jl` also divided χ² by N rather than by ν = N − 1 while labelling
-# every figure χ², and bounded its optimiser at T_M = 0 where T_M^{-3/2} is
-# infinite.
+# **A retraction.** An earlier version of this header held that `Fisiune_5.jl`
+# was wrong to divide χ² by N rather than by ν = N − 1. It was not: the course
+# defines χ² = (1/n)Σ(yᵢ − f(xᵢ))²/σᵢ², divided by the number of points, and the
+# original was following that definition. The reduced χ² over ν = N − 1 is kept
+# here because one parameter is fitted and that is the standard reading, but the
+# difference is a convention and the original was not in error. With N in the
+# hundreds the two differ by well under a percent; the reference fits quoted
+# below are on the course's convention.
+#
+# For comparison, the fits the course quotes: Hambsch & Kornilov ²³⁵U(n_th,f)
+# → T_M = 1.297 MeV at χ² = 2.034; Mannhart ²⁵²Cf → 1.402 and 1.396 MeV at
+# χ² = 2.513 and 3.256.
+#
+# `Fisiune_5.jl` did bound its optimiser at T_M = 0, where T_M^{-3/2} is
+# infinite; that is fixed.
 
 using Printf, SpecialFunctions, Optim, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
