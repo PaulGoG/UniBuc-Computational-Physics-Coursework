@@ -94,39 +94,104 @@ function main()
                 mean(sw_col[s]), std(sw_col[s]), count(s))
     end
 
-    fig = Figure(size = (1040, 470))
+    fig = Figure(size = (1300, 900))
     secs(t) = Dates.value(Second(t - Time(0, 0, 0)))
     ticks = [Time(h, 0, 0) for h in 9:15]
+    tickspec = (secs.(ticks), [Dates.format(t, "HH:MM") for t in ticks])
 
-    ax1 = Axis(fig[2, 1], xlabel = "Time [UTC]",
-        ylabel = L"NO$_2$ dSCD [molec cm$^{-2}$]",
-        xticks = (secs.(ticks), [Dates.format(t, "HH:MM") for t in ticks]))
-    ax1.xticklabelrotation = π/4
+    # dSCD in units of 1e16: every tick of this axis otherwise repeated the
+    # factor, and Makie wrote the first of them as 1x10^16 rather than 10^16.
+    const_scale = 1e16
+    dscd_label = L"NO$_2$ dSCD [$10^{16}$ molec cm$^{-2}$]"
 
-    handles = []
-    for (α, colour) in zip(shared, (PALETTE.blue, PALETTE.orange, PALETTE.green,
-                                    PALETTE.purple, PALETTE.red, PALETTE.sky))
-        m = md_ok .& (md_elev .== α)
-        count(m) == 0 && continue
-        push!(handles, scatter!(ax1, secs.(md_t[m]), md_col[m],
-              color = colour, markersize = 6))
+    # One colour per elevation angle, shared by the two time series. The figure
+    # previously carried a single instrument legend over a left panel that was
+    # colour-coded by elevation and held MAX-DOAS alone, so a reader following
+    # the legend read its orange points -- MAX-DOAS at 18 degrees -- as SWING.
+    elev_colours = Dict(zip(shared,
+        (PALETTE.blue, PALETTE.orange, PALETTE.green, PALETTE.purple, PALETTE.red,
+         PALETTE.sky)))
+
+    function series_panel(ax, t, col, elev, ok, name)
+        for α in shared
+            m = ok .& (elev .== α)
+            count(m) == 0 && continue
+            scatter!(ax, secs.(t[m]), col[m] ./ const_scale,
+                     color = elev_colours[α], markersize = MARKERSIZE.dense)
+        end
+        text!(ax, 0.02, 0.97; text = name, space = :relative,
+              align = (:left, :top), fontsize = 16)
+        ax.xticklabelrotation = π/4
     end
 
-    ax2 = Axis(fig[2, 2], xlabel = L"Elevation angle $\alpha$ [deg]",
-        ylabel = L"Mean NO$_2$ dSCD [molec cm$^{-2}$]")
-    md_means = [mean(md_col[md_ok .& (md_elev .== α)]) for α in shared]
-    sw_means = [mean(sw_col[sw_ok .& (sw_elev .== α)]) for α in shared]
-    md_sds = [std(md_col[md_ok .& (md_elev .== α)]) for α in shared]
-    sw_sds = [std(sw_col[sw_ok .& (sw_elev .== α)]) for α in shared]
-    l_m = scatterlines!(ax2, shared, md_means, color = PALETTE.blue, markersize = 10)
-    errorbars!(ax2, shared, md_means, md_sds, color = PALETTE.blue, whiskerwidth = 8)
-    l_s = scatterlines!(ax2, shared, sw_means, color = PALETTE.orange,
-        markersize = 10, marker = :rect)
-    errorbars!(ax2, shared, sw_means, sw_sds, color = PALETTE.orange, whiskerwidth = 8)
+    ax1 = Axis(fig[2, 1], xlabel = "Time [UTC]", ylabel = dscd_label, xticks = tickspec)
+    series_panel(ax1, md_t, md_col, md_elev, md_ok, "MAX-DOAS (ground)")
 
-    Legend(fig[1, 1:2], [l_m, l_s], ["MAX-DOAS (ground)", "SWING (UAV)"],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 26)
-    rowsize!(fig.layout, 2, Relative(0.84))
+    ax2 = Axis(fig[2, 2], xlabel = "Time [UTC]", ylabel = "", xticks = tickspec)
+    series_panel(ax2, sw_t, sw_col, sw_elev, sw_ok, "SWING (UAV)")
+    linkyaxes!(ax1, ax2)
+    hideydecorations!(ax2, grid = false)
+
+    Legend(fig[1, 1:2],
+        [MarkerElement(color = elev_colours[α], marker = :circle,
+                       markersize = MARKERSIZE.key) for α in shared],
+        [latexstring("\\alpha = $(α)^\\circ") for α in shared],
+        "Elevation angle";
+        orientation = :horizontal, framevisible = false, labelsize = 16,
+        titlesize = 16, titleposition = :left, colgap = 22)
+
+    # The quality cut is the module's result, and it was nowhere in the figure.
+    ax3 = Axis(fig[3, 1], xlabel = "Time [UTC]",
+        ylabel = "Fit residual RMS", yscale = log10,
+        xticks = tickspec, yticks = logticks(-4, -1))
+    ax3.xticklabelrotation = π/4
+    # headroom above the worst fits, so that the two notes sit in a clear band
+    # rather than on the data or on each other
+    ylims!(ax3, 2e-4, 0.9)
+    # Colour means elevation angle in the panels above, so the instruments are
+    # separated here by shape and tone instead of by hue.
+    scatter!(ax3, secs.(md_t), md_rms, color = (PALETTE.black, 0.45),
+             markersize = MARKERSIZE.dense, label = "MAX-DOAS (ground)")
+    scatter!(ax3, secs.(sw_t), sw_rms, color = (:grey45, 0.75), marker = :rect,
+             markersize = MARKERSIZE.dense, label = "SWING (UAV)")
+    hlines!(ax3, [RMS_MAX], color = PALETTE.red, linestyle = :dash, linewidth = 1.6)
+    axislegend(ax3, position = :lt, framevisible = false, labelsize = 14, padding = 2)
+    text!(ax3, 0.98, 0.98;
+        text = rich("Rejected above RMS ", rsci(RMS_MAX; digits = 0), "\n",
+                    @sprintf("keeps %d/%d MAX-DOAS and %d/%d SWING",
+                             count(md_ok), nrow(md), count(sw_ok), nrow(sw))),
+        space = :relative, align = (:right, :top), fontsize = 14,
+        justification = :right, color = PALETTE.red)
+
+    # the two spectra the lab report named as a physical peak
+    named = findall(i -> sw_rms[i] > RMS_MAX && Time(11, 10) <= sw_t[i] <= Time(11, 25),
+                    eachindex(sw_rms))
+    scatter!(ax3, secs.(sw_t[named]), sw_rms[named], color = PALETTE.red,
+             marker = :xcross, markersize = MARKERSIZE.emphasis)
+    text!(ax3, secs(Time(11, 20)), 0.075;
+        text = "The 11:20 peak named by the report:\nthe worst fits in the file",
+        align = (:center, :bottom), fontsize = 14, color = PALETTE.red,
+        justification = :center)
+
+    ax4 = Axis(fig[3, 2], xlabel = L"Elevation angle $\alpha$ [deg]",
+        ylabel = "", xticks = (shared, [latexstring(string(α)) for α in shared]))
+    md_means = [mean(md_col[md_ok .& (md_elev .== α)]) for α in shared] ./ const_scale
+    sw_means = [mean(sw_col[sw_ok .& (sw_elev .== α)]) for α in shared] ./ const_scale
+    md_sds = [std(md_col[md_ok .& (md_elev .== α)]) for α in shared] ./ const_scale
+    sw_sds = [std(sw_col[sw_ok .& (sw_elev .== α)]) for α in shared] ./ const_scale
+    scatterlines!(ax4, shared, md_means, color = PALETTE.black,
+        markersize = MARKERSIZE.data, label = "MAX-DOAS (ground)")
+    errorbars!(ax4, shared, md_means, md_sds, color = PALETTE.black, whiskerwidth = 10)
+    scatterlines!(ax4, shared, sw_means, color = :grey45, linestyle = :dash,
+        markersize = MARKERSIZE.data, marker = :rect, label = "SWING (UAV)")
+    errorbars!(ax4, shared, sw_means, sw_sds, color = :grey45, whiskerwidth = 10)
+    ax4.ylabel = L"Mean NO$_2$ dSCD [$10^{16}$ molec cm$^{-2}$]"
+    axislegend(ax4, position = :rt, framevisible = false, labelsize = 15, padding = 2)
+
+    rowsize!(fig.layout, 2, Relative(0.44))
+    rowgap!(fig.layout, 1, 6)
+    rowgap!(fig.layout, 2, 22)
+    colgap!(fig.layout, 26)
     println("wrote ", savefigure(fig, FIGURES, "doas_no2_intercomparison"))
 end
 
