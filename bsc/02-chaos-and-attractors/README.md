@@ -13,6 +13,16 @@ Vector fields, parameters and the RK4 step shared by both scripts.
 
 ![Lorenz and Rössler attractors](figures/lorenz_rossler_attractors.png)
 
+![Attractors traced out](figures/lorenz_rossler_attractors.gif)
+
+The static figure is the invariant set — where the trajectory ends up. The
+animation is the trajectory itself, and it shows what a still image cannot: on
+the Lorenz attractor the state circles one lobe an unpredictable number of times
+before crossing to the other, which is the sensitivity that makes the system
+chaotic and the reason the Lyapunov exponent below is positive. The Rössler
+trajectory spirals outward in a near-plane and is folded back — a simpler
+mechanism producing the same kind of set.
+
 Projections of the two strange attractors after discarding a transient. The
 non-trivial Lorenz fixed points `(±√(β(ρ-1)), ±√(β(ρ-1)), ρ-1)` sit at
 ±8.4853 for β = 8/3; the 2018 code wrote β = 2.66, which puts them at ±8.4747.

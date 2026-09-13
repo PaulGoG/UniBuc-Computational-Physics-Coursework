@@ -22,6 +22,13 @@ the true global error across the whole interval.
 
 ![Pendulum integrators](figures/pendulum_integrators.png)
 
+![Pendulum integrators compared](figures/pendulum_integrators.gif)
+
+The order study measures the defect; this shows it. Both pendulums are given the
+same coarse step of 0.05 s, and the one whose θ-stages were fed the ω-slopes
+drifts visibly in phase within a few swings. At the 0.002 s step used elsewhere
+the two are indistinguishable, which is exactly why the error went unnoticed.
+
 **The original "RK4" was first-order.** For the coupled system `θ̇ = ω`,
 `ω̇ = F(θ, ω, t)`, the θ-stage increments must use the θ-slopes. The original
 wrote

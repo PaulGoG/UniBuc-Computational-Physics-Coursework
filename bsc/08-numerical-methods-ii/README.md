@@ -31,6 +31,14 @@ component, doing double the work and discarding half of each result.
 
 ![NLS soliton collision](figures/nonlinear_schrodinger_mol.png)
 
+![Soliton collision](figures/nonlinear_schrodinger_mol.gif)
+
+The heatmap shows the collision as a static interference pattern; the animation
+shows what happens. The two pulses pass through one another and emerge unchanged
+in shape and speed, which is what makes them solitons rather than merely
+localised packets, and the panel beneath tracks the conserved norm as the
+numerical check running alongside.
+
 The focusing nonlinear Schrödinger equation `i∂ₜΨ = -½∂ₓₓΨ - |Ψ|²Ψ` by the
 method of lines, on the original's two-soliton initial condition.
 

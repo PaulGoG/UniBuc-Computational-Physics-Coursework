@@ -73,6 +73,66 @@ function main()
 
     path = savefigure(fig, FIGURES, "lorenz_rossler_attractors")
     println("wrote ", path)
+    println("wrote ", animate_attractors(xL, zL, xR, yR, h))
+end
+
+"""
+    animate_attractors(xL, zL, xR, yR, h)
+
+Trace both attractors out in time, with a head marker on the current state.
+
+The static figure is the invariant set — where the trajectory eventually goes.
+The animation is the trajectory itself, and it shows the thing the static plot
+cannot: on the Lorenz attractor the state circles one lobe an unpredictable
+number of times before crossing to the other, which is the sensitivity that
+makes the system chaotic. On the Rössler attractor it spirals outward in a
+near-plane and is folded back, which is the simpler mechanism producing the same
+kind of set.
+"""
+function animate_attractors(xL, zL, xR, yR, h)
+    n = min(length(xL), length(xR))
+    frames = 160
+    stride = n ÷ frames
+    tail = 25_000            # points kept behind the head, about 50 time units
+
+    headL = Observable(Point2f[])
+    headR = Observable(Point2f[])
+    dotL = Observable(Point2f[])
+    dotR = Observable(Point2f[])
+    caption = Observable("")
+
+    fig = Figure(size = (940, 420))
+    ax1 = Axis(fig[2, 1], xlabel = L"x", ylabel = L"z")
+    lines!(ax1, headL, color = PALETTE.blue, linewidth = 0.4)
+    scatter!(ax1, dotL, color = PALETTE.red, markersize = 9)
+    xlims!(ax1, minimum(xL) - 2, maximum(xL) + 2)
+    ylims!(ax1, minimum(zL) - 2, maximum(zL) + 2)
+    text!(ax1, 0.5, 0.02; text = "Lorenz", space = :relative,
+        align = (:center, :bottom), fontsize = 16, color = PALETTE.blue)
+
+    ax2 = Axis(fig[2, 2], xlabel = L"x", ylabel = L"y")
+    lines!(ax2, headR, color = PALETTE.green, linewidth = 0.4)
+    scatter!(ax2, dotR, color = PALETTE.red, markersize = 9)
+    xlims!(ax2, minimum(xR) - 2, maximum(xR) + 2)
+    ylims!(ax2, minimum(yR) - 2, maximum(yR) + 2)
+    text!(ax2, 0.5, 0.02; text = "Rössler", space = :relative,
+        align = (:center, :bottom), fontsize = 16, color = PALETTE.green)
+
+    Label(fig[1, 1:2], caption, fontsize = 17, tellwidth = false)
+    rowgap!(fig.layout, 6)
+
+    path = joinpath(FIGURES, "lorenz_rossler_attractors.gif")
+    mkpath(FIGURES)
+    record(fig, path, 1:frames; framerate = 14) do k
+        j = k * stride
+        i = max(1, j - tail)
+        headL[] = Point2f.(view(xL, i:j), view(zL, i:j))
+        headR[] = Point2f.(view(xR, i:j), view(yR, i:j))
+        dotL[] = [Point2f(xL[j], zL[j])]
+        dotR[] = [Point2f(xR[j], yR[j])]
+        caption[] = @sprintf("t = %.1f", j * h)
+    end
+    return path
 end
 
 main()

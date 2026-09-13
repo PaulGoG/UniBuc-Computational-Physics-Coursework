@@ -171,6 +171,80 @@ function main()
     rowsize!(fig.layout, 2, Relative(0.85))
     path = savefigure(fig, FIGURES, "pendulum_integrators")
     println("wrote ", path)
+    println("wrote ", animate_pendulum())
+end
+
+"""
+    animate_pendulum()
+
+Swing the pendulum under the correct RK4 and under the original stage coupling,
+side by side, at a step size where the difference in order is visible.
+
+The order study measures the defect; this shows it. Both schemes are given the
+same coarse step, and the one whose θ-stages were fed the ω-slopes drifts in
+phase within a few swings — a first-order error accumulating where a
+fourth-order one would not.
+"""
+function animate_pendulum()
+    free = (g_over_L = 9.8, q = 0.0, F_D = 0.0, Ω_D = 0.0)
+    Δt = 0.05                 # coarse on purpose: at 0.002 the two agree
+    n = round(Int, 12 / Δt)
+    t, θc, _ = integrate(rk4_step, 2.5, 0.0, Δt, n, free, accel)
+    _, θo, _ = integrate(rk4_step_original, 2.5, 0.0, Δt, n, free, accel)
+
+    # Initialised from the first frame: a colour vector cannot be matched
+    # against an empty position vector at construction.
+    p1 = Point2f(sin(θc[1]), -cos(θc[1]))
+    p2 = Point2f(sin(θo[1]), -cos(θo[1]))
+    bobs = Observable([p1, p2])
+    rods = Observable([Point2f(0, 0), p1, Point2f(0, 0), p2])
+    trace_t = Observable([t[1]])
+    trace_c = Observable([θc[1]])
+    trace_o = Observable([θo[1]])
+    caption = Observable("")
+
+    fig = Figure(size = (940, 460))
+    axp = Axis(fig[2, 1], aspect = DataAspect())
+    hidedecorations!(axp)
+    hidespines!(axp)
+    # one colour per point: four points make the two rods
+    linesegments!(
+        axp,
+        rods,
+        color = [PALETTE.blue, PALETTE.blue, PALETTE.red, PALETTE.red],
+        linewidth = 2.5,
+    )
+    scatter!(axp, bobs, color = [PALETTE.blue, PALETTE.red], markersize = 26)
+    scatter!(axp, [Point2f(0, 0)], color = :black, markersize = 8)
+    xlims!(axp, -1.25, 1.25)
+    ylims!(axp, -1.25, 0.25)
+
+    axt = Axis(fig[2, 2], xlabel = L"Time $t$ [s]", ylabel = L"Angle $\theta$ [rad]")
+    lc = lines!(axt, trace_t, trace_c, color = PALETTE.blue, linewidth = 2)
+    lo = lines!(axt, trace_t, trace_o, color = PALETTE.red, linewidth = 2)
+    xlims!(axt, 0, last(t))
+    ylims!(axt, -3.2, 3.2)
+
+    Legend(fig[1, 1:2], [lc, lo], ["RK4, correct stages", "Original stage coupling"],
+        orientation = :horizontal, framevisible = false, labelsize = 16)
+    Label(fig[3, 1:2], caption, fontsize = 16, tellwidth = false)
+    colsize!(fig.layout, 1, Relative(0.38))
+    rowgap!(fig.layout, 6)
+
+    path = joinpath(FIGURES, "pendulum_integrators.gif")
+    mkpath(FIGURES)
+    record(fig, path, 1:2:n; framerate = 20) do k
+        pc = Point2f(sin(θc[k]), -cos(θc[k]))
+        po = Point2f(sin(θo[k]), -cos(θo[k]))
+        bobs[] = [pc, po]
+        rods[] = [Point2f(0, 0), pc, Point2f(0, 0), po]
+        trace_t[] = t[1:k]
+        trace_c[] = θc[1:k]
+        trace_o[] = θo[1:k]
+        caption[] = @sprintf("t = %.2f s,  Δt = %.2f s     phase error %+.2f rad",
+            t[k], Δt, θo[k] - θc[k])
+    end
+    return path
 end
 
 main()

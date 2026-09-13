@@ -77,7 +77,7 @@ function main()
            2 * exp(+im * 0.1 * x) / cosh(2 * (x - 5))
     work = ntuple(_ -> similar(Ψ), 5)
 
-    norm₀ = sum(abs2, Ψ) * dx
+    norm0 = sum(abs2, Ψ) * dx
     n_save = 400
     save_every = max(n_steps ÷ n_save, 1)
     frames = Vector{Vector{Float64}}()
@@ -95,7 +95,7 @@ function main()
 
     @printf("grid %d points, dt = %.2e, %d steps to t = %.1f\n", n, dt, n_steps, t_end)
     @printf("norm ∫|Ψ|²dx: initial %.6f, final %.6f, relative drift %.2e\n",
-            norm₀, last(norms), abs(last(norms) - norm₀) / norm₀)
+            norm0, last(norms), abs(last(norms) - norm0) / norm0)
 
     ρ = reduce(hcat, frames)
 
@@ -118,6 +118,57 @@ function main()
 
     path = savefigure(fig, FIGURES, "nonlinear_schrodinger_mol")
     println("wrote ", path)
+    println("wrote ", animate_solitons(x, frames, times, norms, norm0))
+end
+
+"""
+    animate_solitons(x, frames, times, norms, norm0)
+
+Animate the two solitons colliding, with the conserved norm tracked beneath.
+
+The heatmap shows the collision as a static interference pattern; the animation
+shows what actually happens — the two pulses pass through one another and come
+out unchanged in shape and speed, which is what makes them solitons rather than
+merely localised wave packets. The norm panel is the numerical check running
+alongside: a method-of-lines scheme that distorted the pulses would not hold
+the norm flat.
+"""
+function animate_solitons(x, frames, times, norms, norm0)
+    every = max(length(frames) ÷ 120, 1)
+    ks = 1:every:length(frames)
+
+    profile = Observable(frames[1])
+    trace_t = Observable([times[1]])
+    trace_n = Observable([norms[1] / norm0])
+    caption = Observable("")
+
+    fig = Figure(size = (900, 520))
+    ax1 = Axis(fig[2, 1], xlabel = L"x", ylabel = L"|\Psi|^2")
+    lines!(ax1, x, profile, color = PALETTE.blue, linewidth = 2)
+    xlims!(ax1, first(x), last(x))
+    ylims!(ax1, 0, maximum(maximum, frames) * 1.08)
+
+    ax2 = Axis(fig[3, 1], xlabel = L"Time $t$",
+        ylabel = L"$\int|\Psi|^2\mathrm{d}x$, relative")
+    lines!(ax2, trace_t, trace_n, color = PALETTE.green, linewidth = 2)
+    hlines!(ax2, [1.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
+    xlims!(ax2, 0, last(times))
+    ylims!(ax2, 0.995, 1.005)
+
+    Label(fig[1, 1], caption, fontsize = 17, tellwidth = false)
+    rowsize!(fig.layout, 2, Relative(0.66))
+    rowgap!(fig.layout, 8)
+
+    path = joinpath(FIGURES, "nonlinear_schrodinger_mol.gif")
+    mkpath(FIGURES)
+    record(fig, path, ks; framerate = 15) do k
+        profile[] = frames[k]
+        trace_t[] = times[1:k]
+        trace_n[] = norms[1:k] ./ norm0
+        caption[] = @sprintf("t = %.1f     norm drift %+.2e", times[k],
+            norms[k] / norm0 - 1)
+    end
+    return path
 end
 
 main()
