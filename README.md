@@ -38,6 +38,26 @@ that run, say what they compute, and check themselves against something.
 Each directory has its own README with the figures, the results, and what was
 wrong with the original.
 
+## By subject
+
+The layout above is by degree and then chronological, which is how the work
+happened. Several subjects span that ordering, so they are indexed here too.
+
+| Subject | Where |
+|---|---|
+| **Numerical integration of ODEs** | `bsc/01` (integrator order, symplectic vs explicit), `bsc/02` (applied to chaotic flows), `bsc/04` (Adams, RK4, pendulum), `bsc/07` (non-unique IVPs, method of lines) |
+| **Cosmology** | `bsc/06` (Friedmann, the Hubble diagram, the acceleration discovery), `msc/05` (`hubble_parameter.jl`, H₀ from galaxy recession) |
+| **Optics** | `bsc/05` (paraxial ray transfer, prism dispersion), `msc/02` (prism spectroscope calibration) — the two halves of the same Cauchy relation, one assumed and one measured |
+| **Monte Carlo and statistics** | `bsc/03` (Ising, Metropolis), `bsc/08` (Bayesian updating, rejection sampling) |
+| **Nuclear structure and reactions** | `msc/01` (radiation–matter), `msc/03` (masses, separation, pairing), `msc/04` (fission observables) |
+| **Radiological assessment** | `bsc/09` (DOAS retrieval), `msc/06` (external-hazard screening), and [AtmosphericDispersion.jl](https://github.com/PaulGoG/AtmosphericDispersion.jl) |
+
+The numerical-methods pair, `bsc/04` and `bsc/07`, is one course taught twice —
+the first in Octave in the third year, the second in Mathematica and Octave in
+the fourth. They are kept apart because the degree-then-date ordering puts them
+apart, and because what they show is different: `04` is about the schemes
+themselves, `07` about what happens when a problem is ill-posed.
+
 ## Running it
 
 ```bash
