@@ -22,7 +22,7 @@ that run, say what they compute, and check themselves against something.
 │   ├── 03-ising-and-compton/             2018, from C++
 │   ├── 04-numerical-methods/             from Octave
 │   ├── 05-geometrical-optics/            from Octave and Origin lab data
-│   ├── 06-cosmology/                     2019, JINR Dubna
+│   ├── 06-cosmology/                     2019, JINR Dubna (LIT)
 │   ├── 07-numerical-methods-ii/          2021
 │   ├── 08-bayesian-statistics/           2021
 │   └── 09-remote-sensing-doas/           2021
