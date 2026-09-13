@@ -101,7 +101,8 @@ came from are not carried over.
 
 `bsc/06-cosmology/` is joint work with
 [Alexandru Crăciun](https://github.com/Craciun-Alexandru), presented together at
-JINR Dubna in 2019.
+JINR Dubna in 2019. Its `sn_ia_distance_moduli.csv` is his reduction of the
+project's raw catalogue and is used here with that attribution.
 
 ## Licence
 
