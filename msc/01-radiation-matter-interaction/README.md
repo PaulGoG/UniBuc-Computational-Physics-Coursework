@@ -1,4 +1,4 @@
-# Interaction of radiation with matter — MSc year 1
+# Interaction of radiation with matter — MSc year 1 (2021–2022)
 
 ## `bethe_bloch_stopping_power.jl`
 
@@ -13,7 +13,7 @@ sub-0.5 MeV portion, where the Bethe logarithm turns over and the formula stops
 describing the physics — the shell and Barkas corrections it omits are no longer
 small at β = 0.052.
 
-The formula was transcribed correctly in 2018. What was missing was context: the
+The formula was transcribed correctly in the original. What was missing was context: the
 target material is named nowhere in the file, A was written as 28 rather than
 28.085, and the log argument typed the same sub-expression twice instead of
 squaring it, hiding that the second factor is W_max.
@@ -33,7 +33,7 @@ The original fitted **unweighted** while drawing error bars that therefore did
 not enter the χ², never called `stderror`, and never printed the coefficients —
 its only output was a figure.
 
-A caveat on the abscissa, labelled "x (μm)" in 2018: the fitted slope is
+A caveat on the abscissa, labelled "x (μm)" in the original: the fitted slope is
 392 keV per unit, while the tabulated electronic stopping power of Mylar near
 4 MeV is ≈150 keV/µm, and a 1.85 MeV residual after 8 µm cannot be reconciled
 with the ≈30 µm range of a 4.9 MeV α. The abscissa is more likely a foil count

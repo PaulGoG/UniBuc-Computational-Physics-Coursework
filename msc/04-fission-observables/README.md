@@ -1,4 +1,4 @@
-# Fission observables — MSc year 2
+# Fission observables — MSc year 2 (2022–2023)
 
 Neutron-induced fission of ²³⁵U at thermal energy, from the Straede
 Y(A_H, Z_H, TKE) matrix, the AME mass evaluation, Möller–Nix deformations,
@@ -139,7 +139,7 @@ prefactor carrying both cannot be absorbed into an overall normalisation:
 | | ⟨E⟩ | (2/3)⟨E⟩ |
 |---|---|---|
 | Correct prefactor | 2.1025 MeV | 1.4017 MeV |
-| 2018 prefactor | 2.2025 MeV | 1.4683 MeV |
+| Original prefactor | 2.2025 MeV | 1.4683 MeV |
 
 a **4.76 %** shift in the mean energy. Real, and in the direction that matters,
 but modest — worth stating precisely rather than left as an assertion. The

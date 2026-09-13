@@ -21,7 +21,7 @@
 #      length; the convergence (optical power) is P = 1/f = -S(1,2).
 #   3. "Erlfe" is a misspelling of **Erfle**, the 1921 wide-field eyepiece.
 #
-# Both designs are strictly paraxial here, as they were in 2018: no real ray
+# Both designs are strictly paraxial here, as they were originally: no real ray
 # trace, no aberrations, and a single refractive index per glass. The last point
 # matters, because the cemented doublet in the Tessar and the cemented doublet
 # and triplet in the Erfle exist precisely to achromatise, and without dispersion
@@ -143,7 +143,7 @@ function main()
         @printf("  front focal zf1      = %+9.4f mm from V1\n", c.zf1)
         @printf("  back  focal zf2      = %+9.4f mm from V%d\n", c.zf2, length(sys.R))
         @printf("  principal   zH1, zH2 = %+9.4f, %+9.4f mm\n", c.zH1, c.zH2)
-        @printf("  interstice H1H2      = %+9.4f mm   (2018 formula gave %+9.4f)\n",
+        @printf("  interstice H1H2      = %+9.4f mm   (original formula gave %+9.4f)\n",
                 c.interstice, sum(sys.d) - abs(c.zH1) - abs(c.zH2))
         (sys = sys, S = S, c = c)
     end

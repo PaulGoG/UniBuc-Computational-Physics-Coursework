@@ -1,4 +1,4 @@
-# Numerical methods II — 2021
+# Numerical methods II — BSc year 4 (2020–2021)
 
 Fourth-year exam problems.
 
@@ -19,7 +19,7 @@ derivative diverges — so Picard–Lindelöf does not apply and uniqueness fail
 
 All four are legitimate solutions of the same initial-value problem. A
 perturbation of 10⁻¹² changes the answer by sixty. No numerical method can
-choose between them, and the 2018 code quietly set `y[1] = 1`, contradicting its
+choose between them, and the 2021 code quietly set `y[1] = 1`, contradicting its
 own stated initial condition and stepping around the issue.
 
 The second problem, `y' = z, z' = -y sin y`, is conservative; the invariant
@@ -40,7 +40,7 @@ together. On the periodic domain [−10, 10] they reach the boundary, meet there
 pass through one another and separate again, which is what the heatmap shows.
 
 The norm `∫|Ψ|²dx` is conserved to a relative **8 × 10⁻¹⁵** over 625 000 steps.
-That is the check the port exists for: the 2018 stages were
+That is the check the port exists for: the 2021 stages were
 
 ```julia
 k2 = Sⁿ(Ψⱼ₋₁ + dt*k1/2, Ψⱼ + dt*k1/2, Ψⱼ₊₁ + dt*k1/2, dx)

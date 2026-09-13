@@ -1,4 +1,4 @@
-# Experimental methods in physics — MSc year 1
+# Experimental methods in physics — MSc year 1 (2021–2022)
 
 Optical-metrology coursework from *Metode Experimentale in Fizica*.
 

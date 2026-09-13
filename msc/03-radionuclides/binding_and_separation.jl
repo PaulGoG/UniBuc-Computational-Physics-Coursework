@@ -35,7 +35,7 @@ function main()
     @printf("AME1995 %d nuclides, AME2021 %d nuclides\n", length(ame95), length(ame21))
 
     missing_from_21 = count(k -> !haskey(ame21, k), keys(ame95))
-    @printf("AME95 nuclides absent from AME2021: %d — the subset relation the 2018\n",
+    @printf("AME95 nuclides absent from AME2021: %d — the subset relation the original\n",
             missing_from_21)
     @printf("existence check silently depended on\n\n")
 

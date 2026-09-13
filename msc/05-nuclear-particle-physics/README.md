@@ -1,4 +1,4 @@
-# Nuclear and particle physics — MSc year 2
+# Nuclear and particle physics — MSc year 2 (2022–2023)
 
 ## `breit_wigner_interference.jl`
 

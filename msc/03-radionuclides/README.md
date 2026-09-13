@@ -1,4 +1,4 @@
-# Radionuclides and nuclear masses — MSc year 1
+# Radionuclides and nuclear masses — MSc year 1 (2021–2022)
 
 Seven Octave-era Julia scripts reduced to four, on a shared indexed mass table.
 
@@ -90,7 +90,7 @@ secular-equilibrium ratio to 1.000000. Under the original's schedule — τ = 5�
 an equal pause — the ²⁸Al activity reaches **96.9 %** of saturation by the end of
 the first irradiation, which is exactly 1 − 2⁻⁵, and settles at 97.0 %.
 
-**The 2018 Bateman figure was degenerate.** Its time axis came from
+**The original Bateman figure was degenerate.** Its time axis came from
 `T_scalare = max(T½₁, T½₂)` — the ²³⁸U half-life of 4.468 Gyr — giving a grid
 step of 4.5 × 10⁸ yr while the transient peaks at 2.4 yr. The whole interesting
 region, the vertical marker and the printed `t_m/T_scalare = 0.0` all collapsed

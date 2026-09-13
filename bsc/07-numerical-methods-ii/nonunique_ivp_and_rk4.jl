@@ -11,7 +11,7 @@
 # uniqueness fails. y ≡ 0 is a solution, and so is a family of solutions that
 # leave the origin after an arbitrary delay. A numerical method cannot choose
 # between them: RK4 started exactly at 0 stays at 0 forever, while starting at
-# any ε > 0 climbs away. The 2018 code quietly set y[1] = 1, contradicting its
+# any ε > 0 climbs away. The 2021 code quietly set y[1] = 1, contradicting its
 # own comment and stepping around the problem. Both behaviours are shown.
 #
 # (b) was integrated correctly but called RungeKutta4 twice per step, once for
@@ -39,7 +39,7 @@ function rk4_scalar(f, y₀, Δx, n)
     return y
 end
 
-"One RK4 step of the coupled system — computed once, not twice as in 2018."
+"One RK4 step of the coupled system — computed once, not twice as in 2021."
 function rk4_system(f, y₀, z₀, Δx, n)
     y = Vector{Float64}(undef, n + 1)
     z = Vector{Float64}(undef, n + 1)

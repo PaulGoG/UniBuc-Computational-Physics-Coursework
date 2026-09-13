@@ -48,15 +48,15 @@ function main()
     n = 1000
 
     t, N_correct = euler_decay(N₀, τ, Δt, n)
-    _, N_2018 = euler_decay(N₀, T_HALF, Δt, n)   # half-life used as mean life
+    _, N_halflife = euler_decay(N₀, T_HALF, Δt, n)   # half-life used as mean life
     analytic = N₀ .* exp.(-t ./ τ)
 
     @printf("T½ = %.3e yr, mean life τ = T½/ln2 = %.3e yr\n", T_HALF, τ)
     @printf("Euler step Δt/τ = %.2e, max relative error against analytic = %.2e\n",
             Δt / τ, maximum(abs.(N_correct .- analytic) ./ analytic))
     @printf("at t = τ: correct N/N₀ = %.4f, using T½ as τ = %.4f (%.1f%% low)\n",
-            N_correct[findfirst(>=(τ), t)], N_2018[findfirst(>=(τ), t)],
-            100 * (1 - N_2018[findfirst(>=(τ), t)] / N_correct[findfirst(>=(τ), t)]))
+            N_correct[findfirst(>=(τ), t)], N_halflife[findfirst(>=(τ), t)],
+            100 * (1 - N_halflife[findfirst(>=(τ), t)] / N_correct[findfirst(>=(τ), t)]))
     @printf("half-life recovered from the correct curve: %.3e yr\n",
             t[findfirst(<=(0.5), N_correct)])
 
@@ -66,7 +66,7 @@ function main()
     l_a = lines!(ax, t ./ 1e9, analytic, color = PALETTE.black, linewidth = 1.6)
     l_c = scatter!(ax, t[1:40:end] ./ 1e9, N_correct[1:40:end],
         color = PALETTE.blue, markersize = 8)
-    l_w = lines!(ax, t ./ 1e9, N_2018, color = PALETTE.red,
+    l_w = lines!(ax, t ./ 1e9, N_halflife, color = PALETTE.red,
         linewidth = 1.5, linestyle = :dash)
 
     l_h = hlines!(ax, [0.5], color = PALETTE.green, linestyle = :dot, linewidth = 1.2)
@@ -76,7 +76,7 @@ function main()
         align = (:left, :bottom), fontsize = 16)
 
     Legend(fig[1, 1], [l_a, l_c, l_w],
-        [L"Analytic $N_0 e^{-t/\tau}$", "Forward Euler", L"2018: $T_{1/2}$ used as $\tau$"],
+        [L"Analytic $N_0 e^{-t/\tau}$", "Forward Euler", L"Original: $T_{1/2}$ used as $\tau$"],
         orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24)
 
     rowsize!(fig.layout, 2, Relative(0.86))

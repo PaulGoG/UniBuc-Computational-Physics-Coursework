@@ -37,7 +37,7 @@ const YEAR = 3.15576e7                       # s
 "²³⁸U and ²³⁴Th half-lives in seconds."
 const T_U238 = 4.468e9 * YEAR
 const T_TH234 = 24.10 * 86400
-"²⁸Al half-life in seconds — the evaluated value, not the 2018 2.3 min."
+"²⁸Al half-life in seconds — the evaluated value, not the original 2.3 min."
 const T_AL28 = 2.245 * 60
 
 decay_constant(T½) = log(2) / T½
@@ -73,14 +73,14 @@ function main()
     @printf("λ₂/λ₁ = %.3e — the daughter equilibrates %.0e times faster than the parent\n",
             λ₂ / λ₁, λ₂ / λ₁)
     @printf("daughter maximum at t = %.3f yr = %.1f d\n", t_m / YEAR, t_m / 86400)
-    @printf("  the 2018 time grid had a step of %.2e yr, so this sat at x = 0\n",
+    @printf("  the original time grid had a step of %.2e yr, so this sat at x = 0\n",
             T_U238 / YEAR / 10)
     @printf("secular equilibrium ratio Λ₂/Λ₁ → %.6f\n\n", λ₂ / (λ₂ - λ₁))
 
     λ_al = decay_constant(T_AL28)
     # the original set τ = 5·T½ and ran three activation/pause cycles
     τ, K = 5 * T_AL28, 2.565e7
-    @printf("²⁸Al T½ = %.1f s (2018 used %.1f s, %.1f %% high)\n",
+    @printf("²⁸Al T½ = %.1f s (the original used %.1f s, %.1f %% high)\n",
             T_AL28, 2.3 * 60, 100 * (2.3 * 60 / T_AL28 - 1))
     @printf("pulsed flux, τ = %.0f s: saturation activity K = %.3e s⁻¹\n", τ, K)
     for n in (1, 3, 5, 10)

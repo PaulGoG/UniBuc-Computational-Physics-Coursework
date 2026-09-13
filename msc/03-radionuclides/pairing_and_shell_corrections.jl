@@ -43,7 +43,7 @@ Pearson liquid-drop coefficients in MeV.
 The course portfolio names the parameterisation — "corecțiile de pături bazate
 pe parametrizarea Pearson a modelului picătură de lichid" — which is where this
 choice comes from; the coefficients themselves are not tabulated anywhere that
-survives, so they stand as the 2018 file set them.
+survives, so they stand as the original file set them.
 """
 const LDM = (a_v = 15.65, a_s = 17.63, a_sym = 27.72, a_ss = 25.60,
              a_c = 0.864 / 1.233)      # (3/5)e²/r₀ with e² = 1.44 MeV·fm, r₀ = 1.233 fm

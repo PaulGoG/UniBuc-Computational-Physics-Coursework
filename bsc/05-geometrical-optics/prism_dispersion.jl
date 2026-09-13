@@ -7,7 +7,7 @@
 # `PrismaOptica.opj`: six Hg and Cd lines from 4050 to 6700 Å, each with the two
 # goniometer readings α₁ and α₂, the minimum deviation, and the refractive index
 # the student derived. There is no companion Julia file — this analysis did not
-# exist in 2018; the data sat in an Origin project.
+# exist in the original; the data sat in an Origin project.
 #
 # The reason to write it now is that
 # `msc/02-experimental-methods/hg_spectroscope_calibration.jl` has to *assume*

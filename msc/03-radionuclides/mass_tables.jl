@@ -1,6 +1,6 @@
 # Loading and indexing of the nuclear mass tables shared by this directory.
 #
-# The 2018 scripts accessed these tables with expressions of the form
+# The original scripts accessed these tables with expressions of the form
 #
 #     df.D[(df.A .== A) .& (df.Z .== Z)][1]
 #
@@ -60,7 +60,7 @@ end
 
 """
 Mass excess of ¹H — the hydrogen **atom**, which is the correct reference for
-atomic mass excesses. The 2018 code named this `Dᵖ` and called it the proton;
+atomic mass excesses. The original code named this `Dᵖ` and called it the proton;
 the value was right, the name was not.
 """
 Δ_H1(t) = t[(1, 1)].Δ
@@ -83,7 +83,7 @@ end
     separation_energy(t, Z, A, Z_x, A_x)
 
 Energy to remove the particle (Z_x, A_x) from the nuclide (Z, A), in keV, or
-`nothing` if either the parent, the ejectile or the residual is absent. The 2018
+`nothing` if either the parent, the ejectile or the residual is absent. The original
 version returned `[true, S]` on success and `[false, 0]` on failure — two
 different element types from one function, then indexed as `[1]` for a boolean
 and `[2]` for an energy.

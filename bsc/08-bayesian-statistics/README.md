@@ -1,4 +1,4 @@
-# Bayesian statistics and Monte Carlo — 2021
+# Bayesian statistics and Monte Carlo — BSc year 4 (2020–2021)
 
 ## `bayesian_coin_updating.jl`
 

@@ -1,4 +1,4 @@
-# Aircraft crash hazard screening
+# Aircraft crash hazard screening — late 2023
 
 ![Impact frequency](figures/aircraft_crash_frequency.png)
 
@@ -8,17 +8,15 @@ design-basis thresholds.
 
 ## Provenance
 
-**This was not a course assignment.** The internship report for the RATEN–CITON
-placement of September 2021 – February 2022 (coordinator Ing. Doina Eugenia
-Pantazi, academic supervisor Prof. Alexandru Jipa) lists among the work
-completed a deliberately pedagogical Poisson risk model — *"studiul statistic al
-riscului prăbușirii unei aeronave de pasageri asupra unui amplasament nuclear
-folosind distribuții Poisson"*. It was written at CITON, not for a class.
+**This was not a course assignment.** It is a deliberately pedagogical Poisson
+risk model — *"studiul statistic al riscului prăbușirii unei aeronave de
+pasageri asupra unui amplasament nuclear folosind distribuții Poisson"* — written
+in late 2023 as professional rather than academic work.
 
 The quantity computed is therefore a Poisson rate: the probability of at least
 one impact in t years is 1 − e^{−Ft}, which for these frequencies is
 indistinguishable from F·t. The values of N, P, g and y₀ are not recorded in
-anything that survives, so they stand as the 2018 file set them, and the
+anything that survives, so they stand as the original file set them, and the
 absolute frequency is an exercise rather than a screening result for a real
 site.
 
@@ -26,7 +24,7 @@ site.
 
 The structure below is that of DOE-STD-3014 and NUREG-0800 §3.5.1.6, which is
 how a calculation of this shape is normally presented. The original cited
-neither; the framing is this rewrite's, not the 2018 author's.
+neither; the framing is this rewrite's, not the original author's.
 
 ```
 F = N · P · ∫ f(s(x)) dx · A_eff            [yr⁻¹]
@@ -62,7 +60,7 @@ a site radius of 135 m and the 10⁻⁵ threshold to 1349 m.
 
 ## What was wrong
 
-The 2018 file computed two estimators,
+The original file computed two estimators,
 
 ```julia
 integrandRadial          = (x/s) e^{-gs}

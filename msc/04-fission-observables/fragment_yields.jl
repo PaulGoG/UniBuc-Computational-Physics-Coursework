@@ -124,7 +124,7 @@ function main()
     @printf("even–odd staggering of Y(Z): δ = %.4f\n", even_odd_staggering(Z, Y_Z))
     @printf("⟨TKE⟩ over the whole matrix = %.2f MeV\n", sum(y.TKE .* y.Y) / sum(y.Y))
 
-    # the 2018 Y(N), reproducing the over-count
+    # the original Y(N), reproducing the over-count
     bad = Dict{Int,Float64}()
     for A_H in minimum(y.A_H):maximum(y.A_H)
         sub = y[y.A_H .== A_H, :]
@@ -136,7 +136,7 @@ function main()
     end
     ks = sort(collect(keys(bad)))
     over = [bad[k] for k in ks]
-    @printf("\n2018 Y(N) over-count: total %.1f vs %.3f, peak moves from N = %d to %d\n",
+    @printf("\noriginal Y(N) over-count: total %.1f vs %.3f, peak moves from N = %d to %d\n",
             sum(over), sum(Y_N), N[argmax(Y_N)], ks[argmax(over)])
 
     # <TKE>(A) and TXE(A)

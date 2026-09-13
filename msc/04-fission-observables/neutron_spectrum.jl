@@ -66,7 +66,7 @@ E₁(z) = expint(z)
 "Lower incomplete gamma γ(a, x)."
 γ_lower(a, x) = gamma(a) * gamma_inc(a, x)[1]
 
-"Maximum residual temperature, T_m = √(C·TXE/A) with C = 10 MeV as in 2018."
+"Maximum residual temperature, T_m = √(C·TXE/A) with C = 10 MeV as in the original."
 T_max(A, TXE; C = 10.0) = sqrt(C * TXE / A)
 
 """
@@ -85,7 +85,7 @@ end
 
 Madland–Nix spectrum at neutron energy `E` for average fragment kinetic energy
 per nucleon `E_f` and maximum residual temperature `T_m`. `correct = false`
-reproduces the 2018 prefactor.
+reproduces the original prefactor.
 """
 function madland_nix(E, E_f, T_m; correct = true)
     u₁ = (sqrt(E) - sqrt(E_f))^2 / T_m
@@ -109,7 +109,7 @@ function fit_maxwellian(E, N, σN)
     area = sum((N[1:end-1] .+ N[2:end]) ./ 2 .* diff(E))
     n = N ./ area; s = σN ./ area
     χ²(T) = sum(((n .- maxwellian.(E, T)) ./ s) .^ 2)
-    # bounded: the 2018 version allowed T_M = 0, where T^(-3/2) is infinite
+    # bounded: the original allowed T_M = 0, where T^(-3/2) is infinite
     res = optimize(χ², 0.3, 3.0, Brent())
     T = Optim.minimizer(res)
     return T, χ²(T) / (length(E) - 1)
@@ -118,7 +118,7 @@ end
 """
     mass_averaged_spectrum(E_grid, fragments; correct)
 
-N(E) averaged over the mass yield, as the 2018 file did: for each fragment mass
+N(E) averaged over the mass yield, as the original did: for each fragment mass
 the light- and heavy-fragment spectra are averaged and weighted by Y(A). This is
 the calculation the file exists to perform, and it is where the prefactor error
 matters — E_f and T_m both vary with A_H, so a prefactor carrying them cannot be
@@ -144,7 +144,7 @@ trapz_weights(x) = [i == 1 ? (x[2]-x[1])/2 : i == length(x) ? (x[end]-x[end-1])/
                     (x[i+1]-x[i-1])/2 for i in eachindex(x)]
 
 function main()
-    # per-mass TXE, TKE and Y(A) from the yield matrix, exactly as the 2018
+    # per-mass TXE, TKE and Y(A) from the yield matrix, exactly as the original
     # file built them, so the mass average below is over the same quantities
     y = load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR"))
     masses = load_masses(joinpath(DATA, "Defecte_masa", "AUDI2021.csv"))
@@ -178,10 +178,10 @@ function main()
     bad = mass_averaged_spectrum(E, fragments; correct = false)
     w = trapz_weights(E)
 
-    @printf("Madland–Nix prefactor: correct 1/(3√(E_f·T_m)), 2018 (1/3)√(E_f·T_m)\n")
+    @printf("Madland–Nix prefactor: correct 1/(3√(E_f·T_m)), original (1/3)√(E_f·T_m)\n")
     E_mean_good = sum(w .* E .* good) / sum(w .* good)
     E_mean_bad = sum(w .* E .* bad) / sum(w .* bad)
-    @printf("mass-averaged <E>:  correct %.4f MeV,  2018 prefactor %.4f MeV\n",
+    @printf("mass-averaged <E>:  correct %.4f MeV,  original prefactor %.4f MeV\n",
             E_mean_good, E_mean_bad)
     @printf("equivalent Maxwellian (2/3)<E>: %.4f vs %.4f MeV\n",
             2E_mean_good/3, 2E_mean_bad/3)
@@ -229,7 +229,7 @@ function main()
     ylims!(ax2, 0.6, 1.5)
 
     Legend(fig[1, 1:2], [[l_g, l_b]; handles],
-        [["Madland–Nix, correct", "Madland–Nix, 2018 prefactor"];
+        [["Madland–Nix, correct", "Madland–Nix, original prefactor"];
          [@sprintf("%s, T=%.2f", r.name, r.T) for r in results]],
         orientation = :horizontal, framevisible = false, labelsize = 14,
         nbanks = 2, colgap = 14)

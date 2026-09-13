@@ -1,4 +1,4 @@
-# Cosmology — Dubna 2019
+# Cosmology — JINR Dubna, July 2019
 
 Joint work with [Alexandru Crăciun](https://github.com/Craciun-Alexandru),
 presented as *"Numerical simulation of homogeneous and isotropic universe given

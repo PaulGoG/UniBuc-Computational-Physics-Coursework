@@ -77,7 +77,7 @@ function main()
     println("wrote ", savefigure(fig, FIGURES, "bayesian_coin_updating"))
 
     # animation: every fifth toss, 640x420, which keeps it near 1 MB rather
-    # than the 14.6 MB of the 2018 version
+    # than the 14.6 MB of the 2021 version
     mkpath(FIGURES)
     gif_path = joinpath(FIGURES, "bayesian_coin_updating.gif")
     frames = 1:5:N_TOSSES

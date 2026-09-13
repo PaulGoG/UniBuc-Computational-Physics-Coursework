@@ -1,4 +1,4 @@
-# The pendulum, linearised and full, and what the 2018 RK4 actually integrated.
+# The pendulum, linearised and full, and what the original RK4 actually integrated.
 #
 #   θ̈ = -(g/L) sin θ - q θ̇ + F_D sin(Ω_D t)
 #
@@ -52,13 +52,13 @@ function rk4_step(θ, ω, t, Δt, p, f)
 end
 
 """
-    rk4_step_2018(θ, ω, t, Δt, p, f)
+    rk4_step_original(θ, ω, t, Δt, p, f)
 
-The stage coupling exactly as written in 2018, kept so its order can be
+The stage coupling exactly as written in the original, kept so its order can be
 measured. `k1` is dω/dt but advances both components, and the θ-stages
 propagate ω as though dω/dt = ω.
 """
-function rk4_step_2018(θ, ω, t, Δt, p, f)
+function rk4_step_original(θ, ω, t, Δt, p, f)
     k1 = f(θ, ω, t, p)
     k2 = f(θ + Δt*k1/2, ω + Δt*k1/2, t + Δt/2, p)
     k3 = f(θ + Δt*k2/2, ω + Δt*k2/2, t + Δt/2, p)
@@ -117,9 +117,9 @@ function main()
     # a mild, non-chaotic parameter set for the order study
     mild = (g_over_L = 1.0, q = 0.5, F_D = 0.2, Ω_D = 2/3)
     p_correct, hs, e_correct = observed_order(rk4_step, mild, accel, 5.0)
-    p_2018, _, e_2018 = observed_order(rk4_step_2018, mild, accel, 5.0)
+    p_original, _, e_original = observed_order(rk4_step_original, mild, accel, 5.0)
     @printf("observed order, correct RK4 = %.2f\n", p_correct)
-    @printf("observed order, 2018 stages = %.2f\n", p_2018)
+    @printf("observed order, original stages = %.2f\n", p_original)
 
     # small-angle against full nonlinear, undriven and undamped.
     # Pendul_simplu.m used L = 1 m with g = 9.8, so g/L = 9.8 — not the g/L = 1
@@ -150,7 +150,7 @@ function main()
                   [L"10^{-13}", L"10^{-10}", L"10^{-7}", L"10^{-4}"]))
     ax1.xticklabelrotation = π/4
     l_c = scatterlines!(ax1, hs, e_correct, color = PALETTE.blue, markersize = 8)
-    l_o = scatterlines!(ax1, hs, e_2018, color = PALETTE.red, markersize = 8, marker = :rect)
+    l_o = scatterlines!(ax1, hs, e_original, color = PALETTE.red, markersize = 8, marker = :rect)
 
     ax2 = Axis(fig[2, 2], xlabel = L"Time $t$", ylabel = L"Angle $\theta$ [rad]")
     l_f = lines!(ax2, t, θ_full, color = PALETTE.blue, linewidth = 1.3)
@@ -163,7 +163,7 @@ function main()
     Legend(fig[1, 1:3],
         [l_c, l_o, l_f, l_l],
         [L"RK4, order $%$(round(p_correct, digits = 2))$",
-         L"2018 stages, order $%$(round(p_2018, digits = 2))$",
+         L"Original stages, order $%$(round(p_original, digits = 2))$",
          "Full pendulum", "Small-angle"],
         orientation = :horizontal, framevisible = false, labelsize = 16,
         colgap = 18, nbanks = 1)

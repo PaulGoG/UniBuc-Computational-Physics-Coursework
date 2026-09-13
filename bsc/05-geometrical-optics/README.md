@@ -1,4 +1,4 @@
-# Geometrical optics
+# Geometrical optics — BSc, year not recorded
 
 Paraxial lens design and prism dispersion, ported from Octave and from measured
 laboratory data.
@@ -44,7 +44,7 @@ Corrections to the originals:
   object at the front focal plane sends the image to infinity — but never
   guarded it. `conjugate` returns `Inf` explicitly here.
 
-Both remain strictly paraxial, as in 2018: no real ray trace, no aberrations,
+Both remain strictly paraxial, as in the original: no real ray trace, no aberrations,
 and a single refractive index per glass. That last point is the real limitation,
 because the cemented doublet in the Tessar and the cemented doublet and triplet
 in the Erfle exist precisely to achromatise, and without dispersion data that
@@ -59,7 +59,7 @@ Refractive index against wavelength for a prism, measured by minimum deviation
 on a goniometer: six lines from 4050 to 6700 Å, with both goniometer readings,
 the minimum deviation and the index the student derived. The data come from the
 first- and second-year Origin lab project `PrismaOptica.opj`; **there was no
-companion code — this analysis did not exist in 2018.**
+companion code — this analysis did not exist in the original.**
 
 It is written now because `msc/02-experimental-methods/hg_spectroscope_calibration.jl`
 has to *assume* that a spectroscope's drum reading is linear in refractive

@@ -106,7 +106,7 @@ linear interpolation of [`SCISSION_BETA`](@ref).
 
 The two zeros sit at the closed shells: Z = 28 and Z = 50 are spherical at
 scission, and deformation peaks in between. This is the parameterisation the
-2018 file encoded as slopes and intercepts.
+original file encoded as slopes and intercepts.
 """
 function scission_deformation(Z)
     Z <= first(SCISSION_BETA)[1] && return first(SCISSION_BETA)[2]
@@ -161,7 +161,7 @@ function main()
 
     # charge range from the data, not from the shell-correction table index
     @printf("Z_H present in the yield matrix: %d–%d\n", minimum(y.Z_H), maximum(y.Z_H))
-    @printf("the 2018 loop bound ran Z_H from %d to %d, the index column of SZSN.GC\n\n",
+    @printf("the original loop bound ran Z_H from %d to %d, the index column of SZSN.GC\n\n",
             minimum(keys(gc)), maximum(keys(gc)))
 
     A_list = Int[]; ν_H = Float64[]; ν_L = Float64[]; ν_tot = Float64[]

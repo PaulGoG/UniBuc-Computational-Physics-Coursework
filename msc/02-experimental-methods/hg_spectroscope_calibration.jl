@@ -71,10 +71,10 @@ function main()
             maximum(abs, residuals), λ[argmax(abs.(residuals))])
 
     # what the uncorrected 5789.66 value would have done
-    λ_2018 = copy(λ); λ_2018[6] = 5789.66
-    _, _, res_2018, R²_2018 = cauchy_fit(λ_2018, x)
-    @printf("with the 2018 value 5789.66 Å: R² = %.6f, RMS residual = %.3f\n",
-            R²_2018, sqrt(mean(abs2, res_2018)))
+    λ_original = copy(λ); λ_original[6] = 5789.66
+    _, _, res_original, R²_original = cauchy_fit(λ_original, x)
+    @printf("with the original value 5789.66 Å: R² = %.6f, RMS residual = %.3f\n",
+            R²_original, sqrt(mean(abs2, res_original)))
 
     fig = Figure(size = (900, 520))
 

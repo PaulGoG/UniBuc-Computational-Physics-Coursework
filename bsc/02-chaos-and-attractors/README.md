@@ -1,4 +1,4 @@
-# Chaos and attractors — 2018
+# Chaos and attractors — BSc year 1 (2017–2018)
 
 The Lorenz and Rössler systems, integrated with RK4, and the measurement of
 their largest Lyapunov exponent from the divergence of neighbouring

@@ -1,4 +1,4 @@
-# Numerical methods
+# Numerical methods — BSc, year not recorded
 
 Octave coursework on multistep methods, Runge–Kutta, and the pendulum. Ported to
 Julia. Every script here is checked against a closed-form solution, which none of
@@ -22,7 +22,7 @@ the true global error across the whole interval.
 
 ![Pendulum integrators](figures/pendulum_integrators.png)
 
-**The 2018 "RK4" was first-order.** For the coupled system `θ̇ = ω`,
+**The original "RK4" was first-order.** For the coupled system `θ̇ = ω`,
 `ω̇ = F(θ, ω, t)`, the θ-stage increments must use the θ-slopes. The original
 wrote
 
@@ -39,7 +39,7 @@ against a fine reference:
 | Stage coupling | Observed order |
 |---|---|
 | Correct RK4 | **3.83** |
-| As written in 2018 | **1.01** |
+| As written originally | **1.01** |
 
 The middle panel contrasts the full pendulum `θ̈ = -(g/L) sin θ` with the
 small-angle approximation from θ₀ = 2.5 rad — they diverge by up to 4.9 rad,
@@ -50,7 +50,7 @@ g/L = 1 of the Poincaré panel. `Pendul_simplu.m` is headed
 
 The right panel is the Poincaré section of the driven damped pendulum at
 Giordano's chaotic parameters (q = 0.5, F_D = 1.2, Ω_D = 2/3), sampled once per
-drive period after discarding the transient. The 2018 files plotted the wrapped
+drive period after discarding the transient. The original files plotted the wrapped
 angle against time and never took a section, which is what this parameter set
 exists for.
 

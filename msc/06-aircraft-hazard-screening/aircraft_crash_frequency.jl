@@ -3,20 +3,18 @@
 # calculation, to be compared against the 10⁻⁵ and 10⁻⁷ yr⁻¹ design-basis
 # thresholds.
 #
-# **Provenance.** This was not a course assignment. The internship report for
-# the RATEN–CITON placement of September 2021 to February 2022 (coordinator
-# Ing. Doina Eugenia Pantazi, academic supervisor Prof. Alexandru Jipa) lists
-# among the work completed "modelarea matematică (cu scop pedagogic) a unei
-# analize de risc prin metoda statistică, în speță studiul statistic al riscului
-# prăbușirii unei aeronave de pasageri asupra unui amplasament nuclear folosind
-# distribuții Poisson" — a deliberately pedagogical Poisson risk model, written
-# at CITON rather than for a class.
+# **Provenance.** This was not a course assignment. It is "modelarea matematică
+# (cu scop pedagogic) a unei analize de risc prin metoda statistică, în speță
+# studiul statistic al riscului prăbușirii unei aeronave de pasageri asupra unui
+# amplasament nuclear folosind distribuții Poisson" — a deliberately pedagogical
+# Poisson risk model, written in late 2023 as professional rather than academic
+# work.
 #
 # That matters for how the result should be read. The quantity computed is a
 # Poisson rate, so the probability of at least one impact in t years is
 # 1 − e^{−Ft}; for the frequencies here, F t ≪ 1 and the two coincide. The
 # values of N, P, g and y₀ are not recorded in anything that survives, so they
-# remain as the 2018 file set them and the absolute frequency should be read as
+# remain as the original file set them and the absolute frequency should be read as
 # an exercise, not as a screening result for any real site.
 #
 # The formulation below follows the standard structure of DOE-STD-3014 and
@@ -41,7 +39,7 @@
 #   f(r) = p(r) / (2πr) = g e^{-gr} / (2πr)   [km⁻²]
 #
 # It is the 1/(2πr) that converts a radial density into an areal one, and its
-# absence is what made the 2018 version dimensionally unsound.
+# absence is what made the original version dimensionally unsound.
 #
 # Ported from Frecventa_accident_aviatic.jl, which computed two estimators:
 #

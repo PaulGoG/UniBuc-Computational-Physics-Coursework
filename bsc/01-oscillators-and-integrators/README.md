@@ -1,4 +1,4 @@
-# Oscillators and integrators — 2018
+# Oscillators and integrators — BSc year 1 (2017–2018)
 
 First-year and second-year work, originally written in C++ and ported to Julia.
 Three programs on the harmonic oscillator and on the accuracy of the elementary

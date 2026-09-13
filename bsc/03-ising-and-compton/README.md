@@ -1,4 +1,4 @@
-# Ising model and Compton scattering — 2018
+# Ising model and Compton scattering — BSc year 1 (2017–2018)
 
 Two Monte Carlo programs from the second year, ported from C++ to Julia.
 

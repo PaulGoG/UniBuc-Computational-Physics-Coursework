@@ -17,23 +17,29 @@ that run, say what they compute, and check themselves against something.
 ├── activate.jl                     activates and instantiates it
 ├── theme.jl                        shared figure style and colourblind-safe palette
 ├── bsc/
-│   ├── 01-oscillators-and-integrators/   2018, from C++
-│   ├── 02-chaos-and-attractors/          2018, from C++ and Octave
-│   ├── 03-ising-and-compton/             2018, from C++
-│   ├── 04-numerical-methods/             from Octave
-│   ├── 05-geometrical-optics/            from Octave and Origin lab data
-│   ├── 06-cosmology/                     2019, JINR Dubna (LIT)
-│   ├── 07-numerical-methods-ii/          2021
-│   ├── 08-bayesian-statistics/           2021
-│   └── 09-remote-sensing-doas/           2021
+│   ├── 01-oscillators-and-integrators/   year 1, 2017–2018, from C++
+│   ├── 02-chaos-and-attractors/          year 1, 2017–2018, from C++ and Octave
+│   ├── 03-ising-and-compton/             year 1, 2017–2018, from C++
+│   ├── 04-numerical-methods/             year not recorded, from Octave
+│   ├── 05-geometrical-optics/            year not recorded, Octave and Origin lab data
+│   ├── 06-cosmology/                     July 2019, JINR Dubna (LIT)
+│   ├── 07-numerical-methods-ii/          year 4, 2020–2021
+│   ├── 08-bayesian-statistics/           year 4, 2020–2021
+│   └── 09-remote-sensing-doas/           year 4, 2020–2021
 └── msc/
-    ├── 01-radiation-matter-interaction/
-    ├── 02-experimental-methods/
-    ├── 03-radionuclides/
-    ├── 04-fission-observables/
-    ├── 05-nuclear-particle-physics/
-    └── 06-aircraft-hazard-screening/     RATEN–CITON internship
+    ├── 01-radiation-matter-interaction/  year 1, 2021–2022
+    ├── 02-experimental-methods/          year 1, 2021–2022
+    ├── 03-radionuclides/                 year 1, 2021–2022
+    ├── 04-fission-observables/           year 2, 2022–2023
+    ├── 05-nuclear-particle-physics/      year 2, 2022–2023
+    └── 06-aircraft-hazard-screening/     late 2023, not a course assignment
 ```
+
+The BSc is Engineering Physics, four years and 240 ECTS, so BSc year 4 is the
+2020–2021 academic year and the MSc runs 2021–2023. Years come from the archive
+folder names, which carry the year of study (`Old_2018`, `…_L_4`, `…_M_1`,
+`…_M_2`); the two modules whose folders carry no marker say so rather than
+guess.
 
 Each directory has its own README with the figures, the results, and what was
 wrong with the original.
@@ -52,11 +58,12 @@ happened. Several subjects span that ordering, so they are indexed here too.
 | **Nuclear structure and reactions** | `msc/01` (radiation–matter), `msc/03` (masses, separation, pairing), `msc/04` (fission observables) |
 | **Radiological assessment** | `bsc/09` (DOAS retrieval), `msc/06` (external-hazard screening), and [AtmosphericDispersion.jl](https://github.com/PaulGoG/AtmosphericDispersion.jl) |
 
-The numerical-methods pair, `bsc/04` and `bsc/07`, is one course taught twice —
-the first in Octave in the third year, the second in Mathematica and Octave in
-the fourth. They are kept apart because the degree-then-date ordering puts them
-apart, and because what they show is different: `04` is about the schemes
-themselves, `07` about what happens when a problem is ill-posed.
+The numerical-methods pair, `bsc/04` and `bsc/07`, is one course taught twice:
+the first in Octave, the second in Mathematica and Octave in the fourth year.
+Only the second is dated — its archive folder is marked `L_4` — so the first is
+placed before it by the course numbering alone. They are kept apart because what
+they show is different: `04` is about the schemes themselves, `07` about what
+happens when a problem is ill-posed.
 
 ## Running it
 
@@ -93,7 +100,7 @@ changed results:
 And one that is a property of the problem rather than the code:
 `ODE_RK4.jl` states the initial-value problem `y' = √|sin y|, y(0) = 0`, which is
 **not well posed** — √|sin y| is not Lipschitz at the origin, so uniqueness
-fails. A perturbation of 10⁻¹² changes y(100) from 0 to 59.7. The 2018 file set
+fails. A perturbation of 10⁻¹² changes y(100) from 0 to 59.7. The 2021 file set
 `y[1] = 1`, contradicting its own comment.
 
 ## Some results

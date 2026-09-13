@@ -1,4 +1,4 @@
-# Remote sensing — DOAS, 2021
+# Remote sensing — DOAS, BSc year 4 (2020–2021)
 
 ![NO2 intercomparison](figures/doas_no2_intercomparison.png)
 

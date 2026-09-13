@@ -48,7 +48,7 @@ end
     step_rk4!(Ψ, work, dx, dt)
 
 One RK4 step of the semi-discrete system. Stages are formed on the full vector,
-which is the point the 2018 version missed.
+which is the point the 2021 version missed.
 """
 function step_rk4!(Ψ, work, dx, dt)
     k1, k2, k3, k4, tmp = work
