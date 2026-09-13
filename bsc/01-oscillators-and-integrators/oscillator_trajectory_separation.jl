@@ -100,19 +100,25 @@ function fitted_decay_rate(t, d)
     return -slope
 end
 
-# (label, ω₀, δ, F, ω, colour, linestyle)
+# (label, ω₀, δ, F, ω, colour, linestyle, linewidth)
 #
 # The first three are the parameter sets of OscilatorArmonique.cpp,
 # OscilatorAmortizat.cpp and OscilatorFortat.cpp exactly as written. Two of them
 # are degenerate: δ = ω₀ = 1 is critical damping, which does not oscillate, and
 # the driven case has δ = 0, so it never reaches a steady state and its damping
 # term is dead code. The last two are non-degenerate replacements.
+#
+# The undamped and driven 2018 cases have *identical* separation to every digit,
+# so one curve would otherwise be buried under the other. They are drawn broad
+# solid and narrow dashed, in that order, so that both are visible: the blue
+# shows through the gaps in the purple. That coincidence is the result, and a
+# figure that hid it would be hiding the point.
 const CASES = (
-    ("Undamped (2018)",            1.0, 0.0,  0.0,  0.0, PALETTE.blue,   :solid),
-    ("Critically damped (2018)",   1.0, 1.0,  0.0,  0.0, PALETTE.red,    :solid),
-    ("Driven, δ = 0 (2018)",       1.0, 0.0, 10.0,  3.0, PALETTE.purple, :solid),
-    ("Under-damped, δ = 0.15",     1.0, 0.15, 0.0,  0.0, PALETTE.orange, :dash),
-    ("Driven, δ = 0.3, ω = 1.6",   1.0, 0.3,  1.0,  1.6, PALETTE.green,  :dash),
+    ("Undamped (2018)",            1.0, 0.0,  0.0,  0.0, PALETTE.blue,   :solid, 4.0),
+    ("Critically damped (2018)",   1.0, 1.0,  0.0,  0.0, PALETTE.red,    :solid, 1.6),
+    ("Driven, δ = 0 (2018)",       1.0, 0.0, 10.0,  3.0, PALETTE.purple, :dash,  1.8),
+    ("Under-damped, δ = 0.15",     1.0, 0.15, 0.0,  0.0, PALETTE.orange, :dash,  1.6),
+    ("Driven, δ = 0.3, ω = 1.6",   1.0, 0.3,  1.0,  1.6, PALETTE.green,  :dash,  1.6),
 )
 
 function main()
@@ -123,12 +129,16 @@ function main()
     ax = Axis(fig[2, 1],
         xlabel = L"Time $t$",
         ylabel = L"Phase-space separation $|\Delta(x, v)|$",
-        yscale = log10)
+        yscale = log10, yticks = logticks(-30, -5; step = 5))
+
+    # the reference goes down first and stays thin, so that the two curves
+    # sitting exactly on it are not overdrawn by their own guide
+    h_ref = hlines!(ax, [D₀], color = (PALETTE.black, 0.45), linewidth = 0.8)
 
     handles = []
-    for (label, ω₀, δ, F, ω, colour, ls) in CASES
+    for (label, ω₀, δ, F, ω, colour, ls, lw) in CASES
         t, d = separation((ω₀, δ, F, ω), 1.0, 0.0, D₀, Δt, n)
-        push!(handles, lines!(ax, t, d, color = colour, linewidth = 1.4, linestyle = ls))
+        push!(handles, lines!(ax, t, d, color = colour, linewidth = lw, linestyle = ls))
 
         @printf("%-26s |Δ(%.0f)| = %.3e   fitted decay rate = %.5f   input δ = %.5f\n",
                 label, t_end, last(d), fitted_decay_rate(t, d), δ)
@@ -139,10 +149,17 @@ function main()
     println("OscilatorFortat.cpp could not have learned anything from it even if")
     println("its file handles had worked.")
 
-    h_ref = hlines!(ax, [D₀], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
     text!(ax, 0.02, 0.04;
-        text = L"The difference obeys the homogeneous equation: envelope $e^{-\delta t}$, never growth.",
+        text = rich("The difference obeys the homogeneous equation: it decays inside the envelope ",
+                    it("e"), superscript(rich("−δt", font = :italic)), " and never grows."),
         space = :relative, align = (:left, :bottom), fontsize = 15)
+    # Headroom above d₀ so that the note sits beside the two curves it is about
+    # rather than across the ones it is not.
+    ylims!(ax, 1e-33, 1e-4)
+    text!(ax, 0.98, 0.99;
+        text = "The two 2018 δ = 0 cases coincide to every digit: the driving\nis the same along both trajectories and cancels in their difference",
+        space = :relative, align = (:right, :top), fontsize = 15,
+        color = PALETTE.purple)
 
     Legend(fig[1, 1], [handles; h_ref],
         [[c[1] for c in CASES]; L"Initial separation $d_0 = 10^{-7}$"],
