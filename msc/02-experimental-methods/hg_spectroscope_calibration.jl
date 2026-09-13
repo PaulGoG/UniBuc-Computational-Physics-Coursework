@@ -78,20 +78,30 @@ function main()
 
     fig = Figure(size = (900, 520))
 
-    ax1 = Axis(fig[2, 1], ylabel = "Drum reading [divisions]")
+    ax1 = Axis(fig[2, 1], ylabel = "Drum reading [div]")
     λf = range(minimum(λ) * 0.97, maximum(λ) * 1.03, length = 400)
     l_fit = lines!(ax1, λf, p[1] .+ p[2] ./ λf .^ 2, color = PALETTE.blue, linewidth = 1.5)
-    l_dat = scatter!(ax1, λ, x, color = PALETTE.orange, markersize = 10)
+    l_dat = scatter!(ax1, λ, x, color = PALETTE.orange, markersize = MARKERSIZE.data)
     hidexdecorations!(ax1, grid = false)
+    # B carries units and an exponent; @sprintf("%e") wrote it 4.321e+09.
     text!(ax1, 0.97, 0.93;
-        text = @sprintf("A = %.2f,  B = %.3e,  R² = %.5f", p[1], p[2], R²),
-        space = :relative, align = (:right, :top), fontsize = 15)
+        text = rich(it("A"), replace(@sprintf(" = %.2f div,   ", p[1]), "-" => "−"),
+                    it("B"), " = ",
+                    rsci(p[2]; digits = 3), " Å²,   ", it("R"), superscript("2"),
+                    @sprintf(" = %.3f", R²)),
+        space = :relative, align = (:right, :top), fontsize = 15, color = PALETTE.blue)
 
     ax2 = Axis(fig[3, 1], xlabel = L"Wavelength $\lambda$ [Å]",
         ylabel = "Residual [div]")
+    # One zero line, not two: the stem baseline drew a second on top of this.
     hlines!(ax2, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
-    stem!(ax2, λ, residuals, color = PALETTE.orange,
-          stemcolor = PALETTE.orange, markersize = 9)
+    stem!(ax2, λ, residuals, color = PALETTE.orange, stemcolor = PALETTE.orange,
+          trunkcolor = :transparent, markersize = MARKERSIZE.data)
+    text!(ax2, 0.97, 0.06;
+        text = @sprintf("RMS residual %.1f div on a 2–200 div range",
+                        sqrt(mean(abs2, residuals))),
+        space = :relative, align = (:right, :bottom), fontsize = 15,
+        color = PALETTE.orange)
 
     linkxaxes!(ax1, ax2)
     Legend(fig[1, 1], [l_dat, l_fit],
