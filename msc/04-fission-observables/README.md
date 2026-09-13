@@ -28,10 +28,10 @@ must.
 | Y(A) peak | A_H = **140**, 6.71 % |
 | Y(Z) peak | Z_H = **54** (Xe) |
 | Even–odd staggering δ | 0.121 |
-| ⟨TKE⟩ | **170.55 MeV** |
-| ⟨A_H⟩ / ⟨A_L⟩ | **139.32 / 96.68** |
-| ⟨Q⟩ | **187.13 MeV** |
-| ⟨TXE⟩ | **23.13 MeV** |
+| ⟨TKE⟩ | **170.549 MeV** |
+| ⟨A_H⟩ / ⟨A_L⟩ | **139.323 / 96.677** |
+| ⟨Q⟩ | **186.624 MeV** |
+| ⟨TXE⟩ | **22.621 MeV** |
 | S_n(²³⁶U) | **6.546 MeV** |
 | TXE(A) | 20.7–44.0 MeV |
 | KE_L(A) | 77.9–101.1 MeV |
@@ -46,6 +46,40 @@ uncertainty propagated by the course's formula
 δ²⟨q⟩ = Σ((qᵢ − ⟨q⟩)δYᵢ/ΣY)², which carries the yield errors; the AME
 mass-excess errors behind Q and TXE are not propagated, because the mass loader
 does not retain them.
+
+### Checked against the submitted portfolio
+
+The portfolio submitted for this course survives in the private archive. Its
+results are raster images inside the document, so they were read by OCR. Four of
+the five totals agree to every digit the OCR resolves:
+
+| | Portfolio | This repository |
+|---|---|---|
+| ⟨A_H⟩ | 139.32 ± 0.01319 | **139.323 ± 0.013** |
+| ⟨A_L⟩ | 96.68 ± 0.01319 | **96.677 ± 0.013** |
+| ⟨TKE⟩ | 170.549 ± 0.03179 | **170.549 ± 0.015** |
+| ⟨Q⟩ | 186.6 ± 0.016 | **186.624 ± 0.016** |
+| ⟨TXE⟩ | 22.6 ± 0.019 | **22.621 ± 0.002** |
+
+**⟨Q⟩ and ⟨TXE⟩ only agree after a fix the portfolio exposed.** This file was
+taking the single most probable charge for each mass split, where the assignment
+specifies averaging over the three nearest charges on the isobaric Gaussian —
+which `fission_q_value.jl` was already doing. The mass surface curves across
+those three, so the charge nearest Z_p is not the charge whose Q equals the
+distribution's mean: taking it raised ⟨Q⟩ by 0.50 MeV and carried the same error
+straight into ⟨TXE⟩. Averaging brings both onto the portfolio's values.
+
+### An open discrepancy
+
+The portfolio also gives **⟨ν⟩ = 2.538 ± 0.00041** per fragment pair.
+`neutron_multiplicity.jl` gives **2.826** on what is meant to be the same energy
+balance. The charge-averaging fix above moved it from 2.883 to 2.826, so it is
+part of the story and not the whole of it; 11 % remains unexplained. The
+portfolio's value is also much the closer to the evaluated 2.42. This is
+recorded rather than resolved — the portfolio's intermediate steps are images of
+formulae, not numbers that can be diffed.
+
+### Against the published values
 
 Against the values Straede publishes for this same matrix — the yield file is
 Ch. Straede, C. Budtz-Jørgensen, H.-H. Knitter, *Nucl. Phys. A* **462** (1987)

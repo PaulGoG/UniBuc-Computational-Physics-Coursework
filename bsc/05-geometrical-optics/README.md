@@ -1,7 +1,7 @@
 # Geometrical optics
 
-Paraxial lens design and a spectroscope calibration, ported from Octave and
-Julia.
+Paraxial lens design and prism dispersion, ported from Octave and from measured
+laboratory data.
 
 ## `paraxial_systems.jl`
 
@@ -51,31 +51,47 @@ in the Erfle exist precisely to achromatise, and without dispersion data that
 cannot be evaluated at all. Neither is an aperture stop modelled, so the Tessar
 has no f-number.
 
-## `hg_spectroscope_calibration.jl`
+## `prism_dispersion.jl`
 
-![Hg calibration](figures/hg_spectroscope_calibration.png)
+![Prism dispersion](figures/prism_dispersion.png)
 
-Prism spectroscope calibrated against eleven Hg I lines under the Cauchy
-relation `x = A + B/λ²`.
+Refractive index against wavelength for a prism, measured by minimum deviation
+on a goniometer: six lines from 4050 to 6700 Å, with both goniometer readings,
+the minimum deviation and the index the student derived. The data come from the
+first- and second-year Origin lab project `PrismaOptica.opj`; **there was no
+companion code — this analysis did not exist in 2018.**
 
-**A transcription error in the reference data.** The original listed 5789.66 Å
-beside 5790.65 Å at adjacent drum divisions 35 and 36. No Hg I line exists at
-5789.66; the second member of the yellow doublet is **5769.60 Å**, and a 1 Å
-splitting across one division is impossible at the ~13 Å/division local
-dispersion. Corrected here — though in fairness it barely moves the fit
-(R² 0.97174 against 0.97205), since it is one point of eleven and the two drum
-readings differ by one division. It is worth fixing because it is a wrong
-physical constant, not because it changed the answer.
+It is written now because `msc/02-experimental-methods/hg_spectroscope_calibration.jl`
+has to *assume* that a spectroscope's drum reading is linear in refractive
+index, and fits a Cauchy relation to the drum on that assumption. Here the index
+is measured directly, so the relation can be tested against `n` itself.
 
-What does matter is that the fit is mediocre: R² = 0.972 with an RMS residual of
-11.2 divisions on a 2–200 division range, and the residual panel shows clear
-systematic structure rather than scatter. The assumption that the drum reading
-is linear in refractive index holds only near minimum deviation, and a
-two-parameter Cauchy relation is evidently not enough across 4000–7100 Å. The
-original reported none of this: it computed A and B, never printed them, never
-displayed the figure and had its `savefig` commented out, so running it as a
-script produced nothing whatsoever.
+Three internal checks, all of which the data pass:
 
-It also used Levenberg–Marquardt with a finite-difference Jacobian from
-`p0 = [1, 1]`, nine orders of magnitude away from B ≈ 4×10⁹, for a model that is
-linear in its parameters and solves in one least-squares step.
+| Check | Result |
+|---|---|
+| δ_min = (α₂ − α₁)/2 | holds to 1.4 × 10⁻¹⁴ ° |
+| apex angle from each line | **59.9000 ± 0.0001°**, spread 3.6 × 10⁻⁴ ° |
+| n falls with λ (normal dispersion) | yes |
+
+The second is the strong one: the apex angle is a property of the prism, not of
+the light, so six lines give six independent determinations of one number — and
+they agree to the fourth decimal.
+
+The Cauchy fit gives **A = 1.5071, B = 0.00354 µm², R² = 0.909**. A lands within
+0.5 % of BK7 borosilicate crown (1.5046), so the glass is identified. But R² =
+0.909 on six points is poor, and the residuals do not scatter: they run
++ + − − + + across the series, a smooth arc of amplitude 2 × 10⁻³. A
+two-parameter Cauchy relation is too few across this range.
+
+That is the answer to the question the spectroscope calibration could not
+settle. Its residuals show the same systematic structure, and this says the
+cause is the dispersion model rather than the linearity assumption or the
+instrument.
+
+## Moved out
+
+`hg_spectroscope_calibration.jl` lived here until its source file turned up in
+the MSc *Metode Experimentale in Fizica* directory, beside the submitted reports
+for that course's interferometry and polarimetry labs. It is
+`msc/02-experimental-methods/` now.

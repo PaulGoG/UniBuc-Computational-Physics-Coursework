@@ -53,6 +53,34 @@ const FIGURES = joinpath(@__DIR__, "figures")
 const DATA = joinpath(@__DIR__, "data")
 const A₀, Z₀ = 236, 92
 
+"Charge polarisation of the isobaric distribution, as in `fission_q_value.jl`."
+const ΔZ_POL = -0.5
+"Rms width of the isobaric charge distribution."
+const σ_Z = 0.6
+
+"""
+    charge_averaged_q(masses, Δ₀, A_H)
+
+Q value for the mass split `A_H`, averaged over the three charges nearest
+Z_p(A) with a Gaussian weight of rms 0.6 — the treatment the assignment
+specifies and that `fission_q_value.jl` and `fragment_yields.jl` both use. Using
+the single most probable charge instead raises ⟨Q⟩, and so TXE, by about
+0.5 MeV.
+"""
+function charge_averaged_q(masses, Δ₀, A_H)
+    Zp = Z₀ * A_H / A₀ + ΔZ_POL
+    centre = round(Int, Zp)
+    num = 0.0; den = 0.0
+    for z in (centre - 1, centre, centre + 1)
+        δH = Δ(masses, z, A_H); δL = Δ(masses, Z₀ - z, A₀ - A_H)
+        (δH === nothing || δL === nothing) && continue
+        w = exp(-(z - Zp)^2 / (2σ_Z^2))
+        num += w * (Δ₀ - δH - δL) / 1000
+        den += w
+    end
+    return den > 0 ? num / den : nothing
+end
+
 "Gilbert–Cameron level-density parameter in MeV⁻¹."
 function level_density(A, Z, gc)
     haskey(gc, Z) && haskey(gc, A - Z) || return nothing
@@ -144,9 +172,9 @@ function main()
         tke = sum(sub.TKE .* sub.Y) / sum(sub.Y)
         Zp = round(Int, Z₀ * a / A₀ - 0.5)
         aL = A₀ - a; ZL = Z₀ - Zp
-        δH = Δ(masses, Zp, a); δL = Δ(masses, ZL, aL)
-        (δH === nothing || δL === nothing) && continue
-        TXE = (Δ₀ - δH - δL) / 1000 + S_n_compound - tke
+        q = charge_averaged_q(masses, Δ₀, a)
+        q === nothing && continue
+        TXE = q + S_n_compound - tke
         TXE > 0 || continue
 
         aH_ld = level_density(a, Zp, gc); aL_ld = level_density(aL, ZL, gc)

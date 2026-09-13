@@ -6,6 +6,13 @@
 # under the working assumption that the drum reading is linear in the refractive
 # index, which holds near minimum deviation.
 #
+# **This is MSc coursework, not BSc.** It was filed under geometrical optics
+# until the source file turned up as `CALIBRARE.jl` in the Metode Experimentale
+# in Fizica directory of MSc year 1, alongside the submitted reports for the
+# interferometry and polarimetry labs of the same course. Its own title line,
+# "Etalonarea spectroscopului cu lampa de Hg", is a standard experimental-methods
+# lab rather than an optical-design exercise. Moved here.
+#
 # Ported from Calibrare_Hg.jl. Three corrections.
 #
 #   1. **A transcription error in the reference data.** The original listed

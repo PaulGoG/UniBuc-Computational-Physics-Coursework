@@ -20,6 +20,15 @@
 #      1.5×10⁻⁴ to 1.8×10⁻² for MAX-DOAS, 3.0×10⁻⁴ to 3.5×10⁻² for SWING — and
 #      high-residual fits were plotted on equal footing with good ones. Standard
 #      DOAS practice rejects above an RMS threshold; one is applied here.
+#
+#      This one is not hypothetical. The lab report the original was written for
+#      names an unusual NO2 peak at 48 deg and 60 deg around 11:20 as its
+#      headline observation on the SWING series. Those two points are the two
+#      largest dSCD in that window and carry the worst residuals in the whole
+#      file — RMS 0.035 and 0.025 against 5e-4 for the good fits beside them —
+#      so the filter deletes them. The elevated NO2 there is real and shows in
+#      the 18 deg and 24 deg points, which survive; the named peak is a
+#      retrieval failure that was read as physics.
 #   4. `88 .- servo_byte` was an undocumented magic constant, and the column kept
 #      the name `…position_byte` after being converted to degrees. It is
 #      empirically exact — the bytes {28, 34, …, 82} map onto a clean 6° grid

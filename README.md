@@ -21,17 +21,18 @@ that run, say what they compute, and check themselves against something.
 │   ├── 02-chaos-and-attractors/          2018, from C++ and Octave
 │   ├── 03-ising-and-compton/             2018, from C++
 │   ├── 04-numerical-methods/             from Octave
-│   ├── 05-geometrical-optics/            from Octave
+│   ├── 05-geometrical-optics/            from Octave and Origin lab data
 │   ├── 06-cosmology/                     2019, JINR Dubna
 │   ├── 07-numerical-methods-ii/          2021
 │   ├── 08-bayesian-statistics/           2021
 │   └── 09-remote-sensing-doas/           2021
 └── msc/
     ├── 01-radiation-matter-interaction/
-    ├── 02-radionuclides/
-    ├── 03-fission-observables/
-    ├── 04-nuclear-particle-physics/
-    └── 05-aircraft-hazard-screening/
+    ├── 02-experimental-methods/
+    ├── 03-radionuclides/
+    ├── 04-fission-observables/
+    ├── 05-nuclear-particle-physics/
+    └── 06-aircraft-hazard-screening/     RATEN–CITON internship
 ```
 
 Each directory has its own README with the figures, the results, and what was

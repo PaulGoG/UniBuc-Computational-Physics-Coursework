@@ -36,7 +36,40 @@ Corrections to `SWING_DOAS.jl`:
   rows; `savefig` used a Windows separator into a directory that does not exist,
   so on Linux it silently wrote files literally named `Grafice\MaxDoas.png`
 
-A caveat the original did not state: MAX-DOAS looks up from the ground and SWING
-looks down from a UAV, so at equal nominal elevation they are not sampling the
-same air mass. Turning dSCD into a vertical column needs differential air-mass
-factors, which is not attempted here.
+## What the quality cut removes
+
+The lab report this code was written for survives, and its headline observation
+is worth recording because the filter above deletes it.
+
+Reporting on the SWING series, it singles out *"excepție făcând unghiurile de 48
+și 60 de grade în jurul orei 11:20 unde se observă un pic neobișnuit al
+concentrației de NO₂"* — an unusual NO₂ peak at 48° and 60° around 11:20. The
+feature is real in the data, and it is an artefact:
+
+| Time | Elevation | dSCD [molec cm⁻²] | RMS | |
+|---|---|---|---|---|
+| 11:20:35 | 60° | 6.16 × 10¹⁶ | 0.0350 | **rejected** |
+| 11:16:14 | 48° | 4.17 × 10¹⁶ | 0.0254 | **rejected** |
+| 11:13:31 | 18° | 1.96 × 10¹⁶ | 0.000792 | kept |
+| 11:18:57 | 18° | 1.71 × 10¹⁶ | 0.000758 | kept |
+| 11:12:59 | 24° | 1.05 × 10¹⁶ | 0.000506 | kept |
+
+The two points singled out are the two largest dSCD in that window and they
+carry the worst spectral residuals in the entire SWING file, five to seven times
+the 5 × 10⁻³ threshold and thirty to seventy times the residuals of the good
+fits beside them. Four of the twenty-two spectra in the window are rejected;
+these are two of them.
+
+There *is* elevated NO₂ around 11:10–11:25 — the 18° and 24° points at
+1–2 × 10¹⁶ are three to four times their own medians, they survive the cut, and
+low elevations look through more polluted air, which is what one expects. The
+peak the report named is not it. That is the whole case for quality filtering,
+made concrete: without it a retrieval failure reads as a physical signal, and
+the report drew exactly that conclusion.
+
+## Caveat
+
+MAX-DOAS looks up from the ground and SWING looks down from a UAV, so at equal
+nominal elevation they are not sampling the same air mass. Turning dSCD into a
+vertical column needs differential air-mass factors, which is not attempted
+here.

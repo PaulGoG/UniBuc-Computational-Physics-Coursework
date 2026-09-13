@@ -56,6 +56,38 @@ function even_odd_staggering(Z, Y)
     return (even - odd) / (even + odd)
 end
 
+"Charge polarisation of the isobaric distribution, as in `fission_q_value.jl`."
+const ΔZ_POL = -0.5
+"Rms width of the isobaric charge distribution."
+const σ_Z = 0.6
+
+"""
+    charge_averaged_q(masses, Δ₀, A_H)
+
+Q value for the mass split `A_H`, averaged over the isobaric charge
+distribution: the three charges nearest Z_p(A) = Z_UCD(A) + ΔZ, weighted by a
+Gaussian of rms 0.6, which is what the assignment specifies and what
+`fission_q_value.jl` already does.
+
+Taking the single most probable charge instead — as this file did — raises ⟨Q⟩
+by about 0.5 MeV, and carries that straight into ⟨TXE⟩. The charge nearest Z_p
+is not the charge whose Q value equals the distribution's mean, because the mass
+surface curves across the three.
+"""
+function charge_averaged_q(masses, Δ₀, A_H)
+    Zp = Z₀ * A_H / A₀ + ΔZ_POL
+    centre = round(Int, Zp)
+    num = 0.0; den = 0.0
+    for z in (centre - 1, centre, centre + 1)
+        δH = Δ(masses, z, A_H); δL = Δ(masses, Z₀ - z, A₀ - A_H)
+        (δH === nothing || δL === nothing) && continue
+        w = exp(-(z - Zp)^2 / (2σ_Z^2))
+        num += w * (Δ₀ - δH - δL) / 1000
+        den += w
+    end
+    return den > 0 ? num / den : nothing
+end
+
 """
     yield_weighted_average(q, Y, σY)
 
@@ -120,10 +152,8 @@ function main()
         sub = y[y.A_H .== a, :]
         sum(sub.Y) > 0 || continue
         tke = sum(sub.TKE .* sub.Y) / sum(sub.Y)
-        Zp = round(Int, Z₀ * a / A₀ - 0.5)
-        δH = Δ(masses, Zp, a); δL = Δ(masses, Z₀ - Zp, A₀ - a)
-        (δH === nothing || δL === nothing) && continue
-        q = (Δ₀ - δH - δL) / 1000
+        q = charge_averaged_q(masses, Δ₀, a)
+        q === nothing && continue
         push!(A_keep, a); push!(TKE_A, tke); push!(TXE_A, q + S_n - tke)
         push!(KE_L, tke * a / A₀); push!(KE_H, tke * (A₀ - a) / A₀)
     end
