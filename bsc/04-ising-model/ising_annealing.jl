@@ -84,7 +84,8 @@ first drops below each temperature in `snapshot_at`.
 """
 function anneal(rng, L::Int, J::Real, T_initial::Real, T_final::Real,
                 sweeps::Int, boundary::Boundary;
-                snapshot_at::Vector{Float64} = Float64[])
+                snapshot_at::Vector{Float64} = Float64[],
+                on_sweep = nothing)
     s = rand(rng, Int8[-1, 1], L, L)
     cooling = (T_final / T_initial)^(1 / (sweeps - 1))
 
@@ -109,6 +110,8 @@ function anneal(rng, L::Int, J::Real, T_initial::Real, T_final::Real,
         if !isempty(pending) && T <= first(pending)
             push!(snapshots, popfirst!(pending) => copy(s))
         end
+        on_sweep === nothing ||
+            on_sweep(sweep, T, s, energies[sweep], magnetisations[sweep])
         T *= cooling
     end
     return s, temperatures, energies, magnetisations, snapshots
@@ -174,6 +177,84 @@ function main()
     rowgap!(fig.layout, 14)
     path = savefigure(fig, FIGURES, "ising_annealing")
     println("wrote ", path)
+    println("wrote ", animate_anneal())
+end
+
+"""
+    animate_anneal(; every = 20)
+
+Animate the anneal: the spin lattice beside the energy and magnetisation traced
+out so far, sampled every `every` sweeps.
+
+This is the figure the static one cannot be. The three snapshots show the
+disordered, critical and ordered states; the animation shows the domains
+actually forming — small and short-lived well above `T_c`, growing and merging
+as the temperature passes through it, and freezing into one or two spanning
+domains below.
+"""
+function animate_anneal(; every::Int = 20)
+    rng = StableRNG(SEED)
+    frames = Tuple{Float64,Matrix{Int8},Float64,Float64}[]
+    anneal(rng, L, J, T_INITIAL, T_FINAL, SWEEPS, periodic;
+        on_sweep = (sweep, T, s, E, m) ->
+            (sweep % every == 0 || sweep == 1) &&
+                push!(frames, (T, copy(s), E, abs(m))))
+
+    sweeps_at = [k * every for k in eachindex(frames)]
+    lattice = Observable(frames[1][2]')
+    trace_x = Observable([Float64(sweeps_at[1])])
+    trace_E = Observable([frames[1][3]])
+    trace_m = Observable([frames[1][4]])
+    caption = Observable("")
+
+    # The sweep at which the geometric cooling passes the Onsager temperature.
+    cooling = (T_FINAL / T_INITIAL)^(1 / (SWEEPS - 1))
+    sweep_tc = 1 + log(T_CRITICAL / T_INITIAL) / log(cooling)
+
+    fig = Figure(size = (980, 460))
+    axl = Axis(fig[2, 1], aspect = DataAspect())
+    heatmap!(axl, lattice, colormap = [PALETTE.orange, PALETTE.blue], colorrange = (-1, 1))
+    hidedecorations!(axl)
+    hidespines!(axl)
+
+    # Against sweep number, not temperature: the cooling is monotonic, so this
+    # reads left to right, and it avoids a reversed logarithmic axis whose
+    # limits fight the animation.
+    axe = Axis(fig[2, 2], xlabel = "Sweep", ylabel = L"Energy per spin $E/N$ [$J$]")
+    lines!(axe, trace_x, trace_E, color = PALETTE.blue, linewidth = 2)
+    hlines!(axe, [-2.0 * J], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
+    vlines!(axe, [sweep_tc], color = PALETTE.red, linestyle = :dot, linewidth = 1.4)
+    text!(axe, sweep_tc, -0.35; text = L" $T_\mathrm{c}$", align = (:left, :center),
+        fontsize = 15, color = PALETTE.red)
+    xlims!(axe, 0, SWEEPS)
+    ylims!(axe, -2.15, -0.25)
+
+    axm = Axis(fig[2, 2], ylabel = L"Magnetisation $|m|$",
+        yaxisposition = :right, ygridvisible = false, xgridvisible = false,
+        yticklabelcolor = PALETTE.orange, ylabelcolor = PALETTE.orange,
+        ytickcolor = PALETTE.orange)
+    hidexdecorations!(axm)
+    lines!(axm, trace_x, trace_m, color = PALETTE.orange, linewidth = 2)
+    xlims!(axm, 0, SWEEPS)
+    ylims!(axm, -0.03, 1.08)
+
+    Label(fig[1, 1:2], caption, fontsize = 17, tellwidth = false)
+    colsize!(fig.layout, 1, Relative(0.42))
+    rowgap!(fig.layout, 6)
+
+    path = joinpath(FIGURES, "ising_annealing.gif")
+    mkpath(FIGURES)
+    record(fig, path, eachindex(frames); framerate = 14) do k
+        T, config, E, m = frames[k]
+        lattice[] = config'
+        trace_x[] = Float64.(sweeps_at[1:k])
+        trace_E[] = [f[3] for f in frames[1:k]]
+        trace_m[] = [f[4] for f in frames[1:k]]
+        phase = T > T_CRITICAL ? "above" : "below"
+        caption[] = @sprintf("T = %.2f J/k_B, %s T_c     E/N = %+.3f J     |m| = %.3f",
+            T, phase, E, m)
+    end
+    return path
 end
 
 main()

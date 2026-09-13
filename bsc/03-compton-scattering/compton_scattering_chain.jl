@@ -112,16 +112,21 @@ function main()
     end
     h_thr = hlines!(ax1, [E_THRESHOLD], color = PALETTE.black,
         linestyle = :dash, linewidth = 1.0)
-    text!(ax1, 0.97, 0.06; text = "40 of $(n_photons) histories",
-        space = :relative, align = (:right, :bottom), fontsize = 15, color = PALETTE.blue)
+    # Top right: the bottom right corner is where the chains converge onto the
+    # threshold line, and the label sat on top of both.
+    text!(ax1, 0.97, 0.97; text = "40 of $(n_photons) histories",
+        space = :relative, align = (:right, :top), fontsize = 15, color = PALETTE.blue)
 
     ax2 = Axis(fig[2, 2], xlabel = "Scatterings to threshold", ylabel = "Photons")
     hist!(ax2, n_scatters, bins = range(-0.5, maximum(n_scatters) + 0.5,
           length = maximum(n_scatters) + 2), color = (PALETTE.blue, 0.7),
           strokewidth = 0.5, strokecolor = PALETTE.blue)
     vlines!(ax2, [mean(n_scatters)], color = PALETTE.red, linestyle = :dash, linewidth = 1.2)
-    text!(ax2, 0.96, 0.9; text = @sprintf("Mean %.2f", mean(n_scatters)),
-        space = :relative, align = (:right, :top), color = PALETTE.red, fontsize = 15)
+    # Headroom for the label, which otherwise sits on the tallest bars.
+    ylims!(ax2, 0, maximum(counts(n_scatters)) * 1.2)
+    # Top left, clear of both the mean line and the bars it labels.
+    text!(ax2, 0.03, 0.97; text = @sprintf("Mean %.2f scatterings", mean(n_scatters)),
+        space = :relative, align = (:left, :top), color = PALETTE.red, fontsize = 15)
 
     ax3 = Axis(fig[2, 3], xlabel = L"Scattering angle $\theta$ [deg]",
         ylabel = "Normalised density",
@@ -140,6 +145,67 @@ function main()
     rowsize!(fig.layout, 2, Relative(0.86))
     path = savefigure(fig, FIGURES, "compton_scattering_chain")
     println("wrote ", path)
+    println("wrote ", animate_degradation(chains, rng))
+end
+
+"""
+    animate_degradation(chains, rng)
+
+Animate the ensemble degrading: the photon-energy distribution after each
+scattering, beside the Klein-Nishina distribution at the surviving mean energy.
+
+The second panel is the point. Klein-Nishina is strongly forward-peaked at
+1 MeV and relaxes towards the symmetric Thomson form as the photons lose energy,
+so the angular distribution the sampler must draw from changes at every step —
+which is exactly what a single fixed uniform draw cannot represent.
+"""
+function animate_degradation(chains, rng)
+    steps = 0:2:40
+    edges = 10 .^ range(log10(E_THRESHOLD), log10(E₀), length = 45)
+    centres = sqrt.(edges[1:(end - 1)] .* edges[2:end])     # geometric, for a log axis
+    counts_obs = Observable(zeros(length(centres)))
+    angles = Observable(Point2f[])
+    caption = Observable("")
+
+    fig = Figure(size = (900, 420))
+    ax1 = Axis(fig[2, 1], xlabel = L"Photon energy $E$ [keV]", ylabel = "Photons",
+        xscale = log10, xticks = ([20, 50, 100, 200, 500, 1000],
+            ["20", "50", "100", "200", "500", "1000"]))
+    # The counts are computed here rather than by `hist!`, which does not
+    # recompute its bins when handed an Observable vector.
+    barplot!(ax1, centres, counts_obs, color = (PALETTE.blue, 0.75),
+        strokewidth = 0.5, strokecolor = PALETTE.blue, gap = 0.05)
+    vlines!(ax1, [E_THRESHOLD], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
+    xlims!(ax1, E_THRESHOLD * 0.85, E₀ * 1.25)
+    ylims!(ax1, 0, 3600)
+
+    ax2 = Axis(fig[2, 2], xlabel = L"Scattering angle $\theta$ [deg]",
+        ylabel = L"$\mathrm{d}\sigma/\mathrm{d}(\cos\theta)$, scaled",
+        xticks = ([0, 45, 90, 135, 180], ["0", "45", "90", "135", "180"]))
+    lines!(ax2, angles, color = PALETTE.green, linewidth = 2)
+    xlims!(ax2, 0, 180)
+    ylims!(ax2, 0, 2.15)
+    Label(fig[1, 1:2], caption, fontsize = 16, tellwidth = false)
+    rowgap!(fig.layout, 6)
+
+    path = joinpath(FIGURES, "compton_degradation.gif")
+    mkpath(FIGURES)
+    record(fig, path, steps; framerate = 6) do n
+        alive = [c[n + 1] for c in chains if length(c) > n + 1]
+        w = zeros(length(centres))
+        for E in alive
+            k = searchsortedlast(edges, E)
+            1 <= k <= length(w) && (w[k] += 1)
+        end
+        counts_obs[] = w
+        Ē = isempty(alive) ? E_THRESHOLD : mean(alive)
+        θ = range(0, 180, length = 181)
+        kn = [klein_nishina(Ē, cosd(t)) for t in θ]
+        angles[] = Point2f.(θ, 2 .* kn ./ maximum(kn))
+        caption[] = @sprintf("After %d scatterings: %d of %d photons above threshold, mean %.0f keV",
+            n, length(alive), length(chains), Ē)
+    end
+    return path
 end
 
 main()

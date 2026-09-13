@@ -26,7 +26,7 @@ systematic structure rather than scatter. The linearity assumption holds only
 near minimum deviation, and a two-parameter Cauchy relation is evidently not
 enough across 4000–7100 Å.
 
-`bsc/05-geometrical-optics/prism_dispersion.jl` fits the same Cauchy relation to
+`bsc/06-geometrical-optics/prism_dispersion.jl` fits the same Cauchy relation to
 *measured* refractive indices from a prism goniometer, which is the direct test
 of the assumption this calibration has to make.
 
@@ -40,7 +40,7 @@ that is linear in its parameters and solves in one least-squares step.
 
 ## Provenance
 
-Filed under `bsc/05-geometrical-optics/` until the source turned up as
+Filed under `bsc/06-geometrical-optics/` until the source turned up as
 `CALIBRARE.jl` in this course's directory, beside the submitted reports for its
 interferometry and polarimetry labs. The repository orders modules by degree and
 then chronologically, so it belongs here, in MSc year 1 semester 1.

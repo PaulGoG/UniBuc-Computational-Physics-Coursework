@@ -19,13 +19,14 @@ that run, say what they compute, and check themselves against something.
 ├── bsc/
 │   ├── 01-oscillators-and-integrators/   year 1, 2017–2018, from C++
 │   ├── 02-chaos-and-attractors/          year 1, 2017–2018, from C++ and Octave
-│   ├── 03-ising-and-compton/             year 1, 2017–2018, from C++
-│   ├── 04-numerical-methods/             year not recorded, from Octave
-│   ├── 05-geometrical-optics/            year not recorded, Octave and Origin lab data
-│   ├── 06-cosmology/                     July 2019, JINR Dubna (LIT)
-│   ├── 07-numerical-methods-ii/          year 4, 2020–2021
-│   ├── 08-bayesian-statistics/           year 4, 2020–2021
-│   └── 09-remote-sensing-doas/           year 4, 2020–2021
+│   ├── 03-compton-scattering/            year 1 semester 2, 2018, from C++
+│   ├── 04-ising-model/                   summer internship, 2018, from C++
+│   ├── 05-numerical-methods/             year not recorded, from Octave
+│   ├── 06-geometrical-optics/            year not recorded, Octave and Origin lab data
+│   ├── 07-cosmology/                     July 2019, JINR Dubna (LIT)
+│   ├── 08-numerical-methods-ii/          year 4, 2020–2021
+│   ├── 09-bayesian-statistics/           year 4, 2020–2021
+│   └── 10-remote-sensing-doas/           year 4, 2020–2021
 └── msc/
     ├── 01-radiation-matter-interaction/  year 1, 2021–2022
     ├── 02-experimental-methods/          year 1, 2021–2022
@@ -51,25 +52,25 @@ happened. Several subjects span that ordering, so they are indexed here too.
 
 | Subject | Where |
 |---|---|
-| **Numerical integration of ODEs** | `bsc/01` (integrator order, symplectic vs explicit), `bsc/02` (applied to chaotic flows), `bsc/04` (Adams, RK4, pendulum), `bsc/07` (non-unique IVPs, method of lines) |
-| **Cosmology** | `bsc/06` (Friedmann, the Hubble diagram, the acceleration discovery), `msc/05` (`hubble_parameter.jl`, H₀ from galaxy recession) |
-| **Optics** | `bsc/05` (paraxial ray transfer, prism dispersion), `msc/02` (prism spectroscope calibration) — the two halves of the same Cauchy relation, one assumed and one measured |
-| **Monte Carlo and statistics** | `bsc/03` (Ising, Metropolis), `bsc/08` (Bayesian updating, rejection sampling) |
+| **Numerical integration of ODEs** | `bsc/01` (integrator order, symplectic vs explicit), `bsc/02` (applied to chaotic flows), `bsc/05` (Adams, RK4, pendulum), `bsc/08` (non-unique IVPs, method of lines) |
+| **Cosmology** | `bsc/07` (Friedmann, the Hubble diagram, the acceleration discovery), `msc/05` (`hubble_parameter.jl`, H₀ from galaxy recession) |
+| **Optics** | `bsc/06` (paraxial ray transfer, prism dispersion), `msc/02` (prism spectroscope calibration) — the two halves of the same Cauchy relation, one assumed and one measured |
+| **Monte Carlo and statistics** | `bsc/03` (Compton chain, Klein–Nishina sampling), `bsc/04` (Ising, Metropolis), `bsc/09` (Bayesian updating, rejection sampling) |
 | **Nuclear structure and reactions** | `msc/01` (radiation–matter), `msc/03` (masses, separation, pairing), `msc/04` (fission observables) |
-| **Radiological assessment** | `bsc/09` (DOAS retrieval), `msc/06` (external-hazard screening), and [AtmosphericDispersion.jl](https://github.com/PaulGoG/AtmosphericDispersion.jl) |
+| **Radiological assessment** | `bsc/10` (DOAS retrieval), `msc/06` (external-hazard screening), and [AtmosphericDispersion.jl](https://github.com/PaulGoG/AtmosphericDispersion.jl) |
 
-The numerical-methods pair, `bsc/04` and `bsc/07`, is one course taught twice:
+The numerical-methods pair, `bsc/05` and `bsc/08`, is one course taught twice:
 the first in Octave, the second in Mathematica and Octave in the fourth year.
 Only the second is dated — its archive folder is marked `L_4` — so the first is
 placed before it by the course numbering alone. They are kept apart because what
-they show is different: `04` is about the schemes themselves, `07` about what
+they show is different: `05` is about the schemes themselves, `08` about what
 happens when a problem is ill-posed.
 
 ## Running it
 
 ```bash
 julia activate.jl                                    # instantiate the environment
-julia --project=. bsc/03-ising-and-compton/ising_annealing.jl
+julia --project=. bsc/04-ising-model/ising_annealing.jl
 ```
 
 Any script runs the same way. Each writes its figures into its own `figures/`
@@ -132,7 +133,7 @@ true of the EXFOR retrieval and fragment-temperature work it leans on.
 
 ## Attribution
 
-`bsc/06-cosmology/` is joint work with
+`bsc/07-cosmology/` is joint work with
 [Alexandru Crăciun](https://github.com/Craciun-Alexandru), presented together at
 JINR Dubna in 2019. Its `sn_ia_distance_moduli.csv` is his reduction of the
 project's raw catalogue and is used here with that attribution.
