@@ -59,17 +59,34 @@ function main()
 
     fig = Figure(size = (1000, 430))
 
-    ax1 = Axis(fig[1, 1], xlabel = L"x", ylabel = L"z",
-        title = L"Lorenz: $\sigma = 10$, $\rho = 28$, $\beta = 8/3$", titlesize = 18)
+    # The system name and its parameters go inside the axes, in the colour of
+    # the trajectory, as they already do in the animation. As titles they were
+    # a second naming of panels the labels below already identify.
+    ax1 = Axis(fig[1, 1], xlabel = L"x", ylabel = L"z")
     lines!(ax1, xL, zL, color = PALETTE.blue, linewidth = 0.25)
-    scatter!(ax1, [fp[1][1], fp[2][1]], [fp[1][3], fp[2][3]],
-        color = PALETTE.red, markersize = 11, marker = :xcross)
-    text!(ax1, 0.5, 0.02; text = L"Fixed points $(\pm\sqrt{\beta(\rho-1)},\ \rho-1)$",
-        space = :relative, align = (:center, :bottom), color = PALETTE.red, fontsize = 15)
+    text!(ax1, 0.02, 0.98;
+        text = rich("Lorenz: ", it("σ"), " = 10, ", it("ρ"), " = 28, ", it("β"), " = 8/3"),
+        space = :relative, align = (:left, :top), color = PALETTE.blue, fontsize = 17)
 
-    ax2 = Axis(fig[1, 2], xlabel = L"x", ylabel = L"y",
-        title = L"Rössler: $a = b = 0.2$, $c = 5.7$", titlesize = 18)
+    # The fixed points sit inside the lobes, so their label cannot. It goes in
+    # the notch between the two wings, which is the only region of this
+    # projection no strand enters, and the markers are large enough to be found
+    # from it. Placed below the attractor it was crossed by the strands running
+    # down to the lower vertex.
+    scatter!(ax1, [fp[1][1], fp[2][1]], [fp[1][3], fp[2][3]],
+        color = PALETTE.red, markersize = MARKERSIZE.emphasis, marker = :xcross)
+    text!(ax1, 0.5, 0.88;
+        text = rich("✕  Fixed points\n(±8.4853, 27)"),
+        space = :relative, align = (:center, :top), color = PALETTE.red,
+        fontsize = 15, justification = :center)
+    ylims!(ax1, 0, 53)
+
+    ax2 = Axis(fig[1, 2], xlabel = L"x", ylabel = L"y")
     lines!(ax2, xR, yR, color = PALETTE.green, linewidth = 0.25)
+    text!(ax2, 0.02, 0.98;
+        text = rich("Rössler: ", it("a"), " = ", it("b"), " = 0.2, ", it("c"), " = 5.7"),
+        space = :relative, align = (:left, :top), color = PALETTE.green, fontsize = 17)
+    ylims!(ax2, nothing, 12)
 
     path = savefigure(fig, FIGURES, "lorenz_rossler_attractors")
     println("wrote ", path)
@@ -99,24 +116,26 @@ function animate_attractors(xL, zL, xR, yR, h)
     headR = Observable(Point2f[])
     dotL = Observable(Point2f[])
     dotR = Observable(Point2f[])
-    caption = Observable("")
+    caption = Observable{Any}("")   # the frame captions are rich text, not String
 
     fig = Figure(size = (940, 420))
     ax1 = Axis(fig[2, 1], xlabel = L"x", ylabel = L"z")
     lines!(ax1, headL, color = PALETTE.blue, linewidth = 0.4)
-    scatter!(ax1, dotL, color = PALETTE.red, markersize = 9)
+    # black for the moving state: red names the fixed points in the static
+    # figure, and one colour cannot mean both across a pair of figures
+    scatter!(ax1, dotL, color = PALETTE.black, markersize = MARKERSIZE.dense)
     xlims!(ax1, minimum(xL) - 2, maximum(xL) + 2)
-    ylims!(ax1, minimum(zL) - 2, maximum(zL) + 2)
-    text!(ax1, 0.5, 0.02; text = "Lorenz", space = :relative,
-        align = (:center, :bottom), fontsize = 16, color = PALETTE.blue)
+    ylims!(ax1, minimum(zL) - 2, maximum(zL) + 6)
+    text!(ax1, 0.02, 0.98; text = "Lorenz", space = :relative,
+        align = (:left, :top), fontsize = 16, color = PALETTE.blue)
 
     ax2 = Axis(fig[2, 2], xlabel = L"x", ylabel = L"y")
     lines!(ax2, headR, color = PALETTE.green, linewidth = 0.4)
-    scatter!(ax2, dotR, color = PALETTE.red, markersize = 9)
+    scatter!(ax2, dotR, color = PALETTE.black, markersize = MARKERSIZE.dense)
     xlims!(ax2, minimum(xR) - 2, maximum(xR) + 2)
-    ylims!(ax2, minimum(yR) - 2, maximum(yR) + 2)
-    text!(ax2, 0.5, 0.02; text = "Rössler", space = :relative,
-        align = (:center, :bottom), fontsize = 16, color = PALETTE.green)
+    ylims!(ax2, minimum(yR) - 2, maximum(yR) + 4)
+    text!(ax2, 0.02, 0.98; text = "Rössler", space = :relative,
+        align = (:left, :top), fontsize = 16, color = PALETTE.green)
 
     Label(fig[1, 1:2], caption, fontsize = 17, tellwidth = false)
     rowgap!(fig.layout, 6)
@@ -130,7 +149,7 @@ function animate_attractors(xL, zL, xR, yR, h)
         headR[] = Point2f.(view(xR, i:j), view(yR, i:j))
         dotL[] = [Point2f(xL[j], zL[j])]
         dotR[] = [Point2f(xR[j], yR[j])]
-        caption[] = @sprintf("t = %.1f", j * h)
+        caption[] = rich(it("t"), @sprintf(" = %.1f", j * h))
     end
     return path
 end

@@ -107,18 +107,19 @@ function main()
     fig = Figure(size = (1020, 480))
     ax1 = Axis(fig[2, 1], xlabel = L"Time $t$",
         ylabel = L"Separation $|\Delta\mathbf{u}|$", yscale = log10,
-        yticks = ([1e-9, 1e-6, 1e-3, 1.0, 1e3],
-                  [L"10^{-9}", L"10^{-6}", L"10^{-3}", L"1", L"10^{3}"]))
-    ax2 = Axis(fig[2, 2], xlabel = "Interval between separation maxima",
+        yticks = logticks(-9, 3; step = 3))
+    ax2 = Axis(fig[2, 2], xlabel = L"Interval between separation maxima $[t]$",
         ylabel = "Count")
 
     handles = []
+    measured = Float64[]
     for (f, p, u₀, name, colour, reference) in CASES
         t, d = separation_history(f, u₀, p, h, 40_000, D₀; transient = transient)
         push!(handles, lines!(ax1, t, d, color = colour, linewidth = 1.2))
 
         running = benettin_lyapunov(f, u₀, p, h, 4000, 50, D₀; transient = transient)
         λ = last(running)
+        push!(measured, λ)
         @printf("%-8s  lambda_1 = %.4f   literature %.4f   ratio %.3f\n",
                 name, λ, reference, λ / reference)
 
@@ -133,16 +134,24 @@ function main()
                linestyle = :dash, linewidth = 1.1)
     end
 
-    ylims!(ax1, 1e-10, 1e3)
-    text!(ax1, 0.03, 0.95;
-        text = L"Dashed: $d_0 e^{\lambda_1 t}$ from the Benettin estimate",
-        space = :relative, align = (:left, :top), fontsize = 15)
-    text!(ax1, 0.97, 0.80;
-        text = "Saturation at the\nattractor diameter",
-        space = :relative, align = (:right, :top), color = PALETTE.blue, fontsize = 15)
+    # Headroom above the saturated Lorenz trace: the note below sat inside the
+    # trace's own excursions and was struck through by them, in its own colour.
+    ylims!(ax1, 1e-10, 3e5)
+    text!(ax1, 0.97, 0.03;
+        text = rich("Dashed: ", it("d"), subscript("0"), it("e"),
+                    superscript(rich("λ", subscript("1"), it("t"))),
+                    " from the Benettin estimate"),
+        space = :relative, align = (:right, :bottom), fontsize = 15)
+    text!(ax1, 0.97, 0.99;
+        text = "Saturation at the attractor diameter",
+        space = :relative, align = (:right, :top), color = PALETTE.black, fontsize = 15)
 
-    Legend(fig[1, 1:2], handles, [c[4] for c in CASES],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 26)
+    # The measurement the 2018 project existed to make belongs on the figure.
+    Legend(fig[1, 1:2], handles,
+        [latexstring(@sprintf("\\text{%s, } \\lambda_1 = %.4f \\text{ (literature %.4f)}",
+                              c[4], m, c[6]))
+         for (c, m) in zip(CASES, measured)],
+        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 26)
 
     rowsize!(fig.layout, 2, Relative(0.86))
     path = savefigure(fig, FIGURES, "lyapunov_and_return_times")
