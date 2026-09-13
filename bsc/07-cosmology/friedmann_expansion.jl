@@ -243,7 +243,7 @@ function main()
     # different "flat ΛCDM fit" entries, as if they meant the same thing.
     fig = Figure(size = (1150, 740))
 
-    Ho(v, e) = rich("H", subscript("0"), @sprintf(" = %.1f ± %.1f", v, e))
+    Ho(v, e) = rich(it("H"), subscript("0"), @sprintf(" = %.1f ± %.1f", v, e))
     Om(v, e) = rich("Ω", subscript("m"), @sprintf(" = %.2f ± %.2f", v, e))
 
     ax1 = Axis(fig[1, 1], xlabel = L"Redshift $z$",
@@ -252,7 +252,7 @@ function main()
     lines!(ax1, zf, hz_model(zf, hfit.param), color = PALETTE.blue, linewidth = 1.8,
         label = "Flat ΛCDM fit")
     errorbars!(ax1, hz.z, hz.H, hz.σH, color = PALETTE.orange, whiskerwidth = 8)
-    scatter!(ax1, hz.z, hz.H, color = PALETTE.orange, markersize = 9,
+    scatter!(ax1, hz.z, hz.H, color = PALETTE.orange, markersize = MARKERSIZE.dense,
         label = L"$H(z)$ measurements")
     text!(ax1, 0.04, 0.96; text = Ho(H₀_hz, σ_hz[1]), space = :relative,
         align = (:left, :top), fontsize = 15, color = PALETTE.blue)
@@ -262,50 +262,58 @@ function main()
 
     ax2 = Axis(fig[1, 2], xlabel = L"Time from now $t$ [Gyr]",
         ylabel = L"Scale factor $a(t)$")
-    for (Ωc, ΩΛc, col, name) in ((0.315, 0.685, PALETTE.blue, L"$\Omega_m = 0.315$"),
-                                 (1.0, 0.0, PALETTE.orange, L"$\Omega_m = 1$"),
-                                 (0.05, 0.95, PALETTE.green, L"$\Omega_\Lambda$-dominated"))
+    Ωlab(v) = rich("Ω", subscript("m"), " = $v")
+    for (Ωc, ΩΛc, col, name) in ((0.315, 0.685, PALETTE.blue, Ωlab("0.315")),
+                                 (1.0, 0.0, PALETTE.orange, Ωlab("1, Einstein–de Sitter")),
+                                 (0.05, 0.95, PALETTE.green, Ωlab("0.05, Λ-dominated")))
         lines!(ax2, scale_factor(Ωc, ΩΛc)..., color = col, linewidth = 1.8, label = name)
     end
     vlines!(ax2, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
-    scatter!(ax2, [0.0], [1.0], color = PALETTE.black, markersize = 9)
-    text!(ax2, 0.54, 0.04; text = "Now", space = :relative,
-        align = (:left, :bottom), fontsize = 15)
+    scatter!(ax2, [0.0], [1.0], color = PALETTE.black, markersize = MARKERSIZE.dense)
+    # in data coordinates: placed by relative position this sat six Gyr to the
+    # right of the line it labels
+    text!(ax2, 0.6, 0.06; text = "Now", align = (:left, :bottom), fontsize = 15)
     ylims!(ax2, 0, 3)
     axislegend(ax2; position = :lt, framevisible = false, labelsize = 14, padding = 4)
 
     ax3 = Axis(fig[2, 1], xlabel = L"Redshift $z$",
         ylabel = L"Distance modulus $m - M$ [mag]", xscale = log10,
-        xticks = ([0.001, 0.01, 0.1, 1.0], ["0.001", "0.01", "0.1", "1"]))
-    scatter!(ax3, z, μ, color = (PALETTE.sky, 0.18), markersize = 3)
+        xticks = logticks(-3, 0))
+    # blue is the flat LambdaCDM fit and orange the measurements in the H(z)
+    # panel, and the two were swapped here, so one figure gave each colour two
+    # meanings.
+    scatter!(ax3, z, μ, color = (PALETTE.orange, 0.18), markersize = MARKERSIZE.cloud)
     zfit = 10 .^ range(log10(minimum(z)), log10(maximum(z)), length = 250)
     lines!(ax3, zfit, distance_moduli(zfit, full.H₀, full.Ωm; zmax = maximum(z) * 1.02),
-        color = PALETTE.red, linewidth = 2)
+        color = PALETTE.blue, linewidth = 2)
     bz, bμ = binned_medians(z, μ)
-    scatter!(ax3, bz, bμ, color = PALETTE.black, markersize = 9)
+    scatter!(ax3, bz, bμ, color = PALETTE.black, markersize = MARKERSIZE.dense)
     text!(ax3, 0.04, 0.96; text = Ho(full.H₀, full.σH₀), space = :relative,
-        align = (:left, :top), fontsize = 15, color = PALETTE.red)
+        align = (:left, :top), fontsize = 15, color = PALETTE.blue)
     text!(ax3, 0.04, 0.87; text = @sprintf("RMS %.2f mag", full.rms), space = :relative,
-        align = (:left, :top), fontsize = 15, color = PALETTE.red)
+        align = (:left, :top), fontsize = 15, color = PALETTE.blue)
     # Built by hand: the data are drawn at markersize 3 and 18 % opacity, which
     # is right for 2376 overlapping points and invisible in a legend swatch.
     axislegend(ax3,
-        [MarkerElement(color = PALETTE.sky, marker = :circle, markersize = 10),
-         MarkerElement(color = PALETTE.black, marker = :circle, markersize = 9),
-         LineElement(color = PALETTE.red, linewidth = 2)],
+        [MarkerElement(color = PALETTE.orange, marker = :circle,
+                       markersize = MARKERSIZE.key),
+         MarkerElement(color = PALETTE.black, marker = :circle,
+                       markersize = MARKERSIZE.key),
+         LineElement(color = PALETTE.blue, linewidth = 2)],
         ["SN Ia", "Binned medians", "Flat ΛCDM fit"];
         position = :rb, framevisible = false, labelsize = 14, padding = 4)
 
     ax4 = Axis(fig[2, 2], xlabel = L"Redshift floor $z_{\mathrm{min}}$",
-        ylabel = L"Fitted $\Omega_m$")
+        ylabel = rich("Fitted Ω", subscript("m")))
     Ωs = [f[2].Ωm for f in sweep]
     rail = [f[2].railed for f in sweep]
-    hlines!(ax4, [Ωm_BOUNDS[2]], color = PALETTE.black, linestyle = :dot, linewidth = 1.2)
+    hlines!(ax4, [Ωm_BOUNDS[2]], color = PALETTE.black, linestyle = :dot, linewidth = 1.2,
+        label = rich("Fit bound Ω", subscript("m"), " = 1"))
     lines!(ax4, cuts, Ωs, color = PALETTE.purple, linewidth = 1.8)
-    scatter!(ax4, cuts[.!rail], Ωs[.!rail], color = PALETTE.purple, markersize = 11,
-        label = L"Fitted $\Omega_m$")
+    scatter!(ax4, cuts[.!rail], Ωs[.!rail], color = PALETTE.purple,
+        markersize = MARKERSIZE.data, label = rich("Fitted Ω", subscript("m")))
     scatter!(ax4, cuts[rail], Ωs[rail], color = PALETTE.red, marker = :xcross,
-        markersize = 14, label = "At the bound")
+        markersize = MARKERSIZE.emphasis, label = "At the bound")
     hlines!(ax4, [0.315], color = PALETTE.green, linestyle = :dash, linewidth = 1.6,
         label = "Planck 2018")
     text!(ax4, 0.96, 0.52;

@@ -153,26 +153,40 @@ function main()
         Σd = sum(r.sys.d)
         span = maximum(abs, [r.c.zf1, r.c.zf2, r.c.zH1, r.c.zH2, Σd]) * 1.25
 
+        # These panels carry no ordinate, so a y-axis and its gridlines would be
+        # decoration: only the axial coordinate means anything.
         ax = Axis(fig[row, 1], xlabel = row == 2 ? "Axial position [mm]" : "",
-            ylabel = r.sys.name, yticksvisible = false, yticklabelsvisible = false)
+            ylabel = r.sys.name, yticksvisible = false, yticklabelsvisible = false,
+            ygridvisible = false)
         hlines!(ax, [0.0], color = PALETTE.black, linewidth = 1.0)
 
-        # the glass block
+        # the glass block, from the first vertex to the last
         poly!(ax, Point2f[(0, -0.5), (Σd, -0.5), (Σd, 0.5), (0, 0.5)],
               color = (PALETTE.sky, 0.25))
+        text!(ax, Σd / 2, -0.62;
+            text = rich("Glass, ", it("V"), subscript("1"), " to ", it("V"), subscript("2")),
+            color = PALETTE.sky,
+            align = (:center, :top), fontsize = 14)
 
         # H₁ and H₂ can sit within a millimetre of each other, so their labels
         # are staggered vertically rather than allowed to collide
-        for (x, lab, col, dy) in ((0.0, "V₁", PALETTE.black, 0.62), (Σd, "V₂", PALETTE.black, 0.62),
-                              (-r.c.zf1, "F₁", PALETTE.blue, 0.62), (Σd + r.c.zf2, "F₂", PALETTE.blue, 0.62),
-                              (-r.c.zH1, "H₁", PALETTE.green, 1.05), (Σd + r.c.zH2, "H₂", PALETTE.green, 0.62))
-            scatter!(ax, [x], [0.0], color = col, markersize = 10)
-            text!(ax, x, dy; text = lab, color = col, align = (:center, :bottom), fontsize = 16)
+        cardinal(sym, k) = rich(it(sym), subscript(k))
+        for (x, sym, k, col, dy) in ((0.0, "V", "1", PALETTE.black, 0.62),
+                                     (Σd, "V", "2", PALETTE.black, 0.62),
+                                     (-r.c.zf1, "F", "1", PALETTE.blue, 0.62),
+                                     (Σd + r.c.zf2, "F", "2", PALETTE.blue, 0.62),
+                                     (-r.c.zH1, "H", "1", PALETTE.green, 1.05),
+                                     (Σd + r.c.zH2, "H", "2", PALETTE.green, 0.62))
+            scatter!(ax, [x], [0.0], color = col, markersize = MARKERSIZE.data)
+            text!(ax, x, dy; text = cardinal(sym, k), color = col,
+                align = (:center, :bottom), fontsize = 16)
         end
         xlims!(ax, -span, Σd + span)
-        ylims!(ax, -1.2, 1.6)
+        ylims!(ax, -1.35, 1.6)
         text!(ax, 0.99, 0.05;
-            text = @sprintf("f = %.2f mm,  H₁H₂ = %.2f mm", r.c.f, r.c.interstice),
+            text = rich(it("f"), @sprintf(" = %.2f mm,   ", r.c.f), it("H"),
+                        subscript("1"), it("H"), subscript("2"),
+                        @sprintf(" = %.2f mm", r.c.interstice)),
             space = :relative, align = (:right, :bottom), fontsize = 15)
     end
 

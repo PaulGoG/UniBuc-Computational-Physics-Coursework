@@ -137,15 +137,19 @@ function main()
 
     zf = 10 .^ range(log10(0.01), log10(0.95), length = 300)
     ax1 = Axis(fig[2, 1], ylabel = L"Effective $m_B$ [mag]", xscale = log10,
-        xticks = ([0.01, 0.1, 1.0], ["0.01", "0.1", "1"]),
-        xticklabelsvisible = false)
+        xticks = logticks(-2, 0), xticklabelsvisible = false)
     l_lcdm = lines!(ax1, zf, [apparent_magnitude(zi, lcdm.Ωm, lcdm.offset) for zi in zf],
         color = PALETTE.blue, linewidth = 2)
     l_eds = lines!(ax1, zf, [apparent_magnitude(zi, 1.0, eds.offset) for zi in zf],
         color = PALETTE.orange, linewidth = 2, linestyle = :dash)
-    errorbars!(ax1, z, m, σ, color = (PALETTE.black, 0.35), whiskerwidth = 5)
-    l_lo = scatter!(ax1, z[.!high], m[.!high], color = PALETTE.green, markersize = 9)
-    l_hi = scatter!(ax1, z[high], m[high], color = PALETTE.red, markersize = 9)
+    errorbars!(ax1, z[.!high], m[.!high], σ[.!high],
+        color = (PALETTE.green, 0.55), whiskerwidth = 7)
+    errorbars!(ax1, z[high], m[high], σ[high],
+        color = (PALETTE.red, 0.55), whiskerwidth = 7)
+    l_lo = scatter!(ax1, z[.!high], m[.!high], color = PALETTE.green,
+        markersize = MARKERSIZE.dense)
+    l_hi = scatter!(ax1, z[high], m[high], color = PALETTE.red,
+        markersize = MARKERSIZE.dense)
     text!(ax1, 0.03, 0.96;
         text = rich("Ω", subscript("M"), @sprintf(" = %.2f ± %.2f", lcdm.Ωm, lcdm.σΩm)),
         space = :relative, align = (:left, :top), fontsize = 15, color = PALETTE.blue)
@@ -154,22 +158,28 @@ function main()
 
     ax2 = Axis(fig[3, 1], xlabel = L"Redshift $z$",
         ylabel = L"$m_B$ − Einstein–de Sitter [mag]", xscale = log10,
-        xticks = ([0.01, 0.1, 1.0], ["0.01", "0.1", "1"]))
+        xticks = logticks(-2, 0))
     ref(zi) = apparent_magnitude(zi, 1.0, eds.offset)
     hlines!(ax2, [0.0], color = PALETTE.orange, linestyle = :dash, linewidth = 2)
     lines!(ax2, zf, [apparent_magnitude(zi, lcdm.Ωm, lcdm.offset) - ref(zi) for zi in zf],
         color = PALETTE.blue, linewidth = 2)
-    errorbars!(ax2, z, m .- ref.(z), σ, color = (PALETTE.black, 0.35), whiskerwidth = 5)
+    errorbars!(ax2, z[.!high], m[.!high] .- ref.(z[.!high]), σ[.!high],
+        color = (PALETTE.green, 0.55), whiskerwidth = 7)
+    errorbars!(ax2, z[high], m[high] .- ref.(z[high]), σ[high],
+        color = (PALETTE.red, 0.55), whiskerwidth = 7)
     scatter!(ax2, z[.!high], m[.!high] .- ref.(z[.!high]),
-        color = PALETTE.green, markersize = 9)
-    scatter!(ax2, z[high], m[high] .- ref.(z[high]), color = PALETTE.red, markersize = 9)
-    text!(ax2, 0.03, 0.06;
-        text = @sprintf("Δχ² = %.0f in favour of ΛCDM", Δχ²),
-        space = :relative, align = (:left, :bottom), fontsize = 15, color = PALETTE.blue)
+        color = PALETTE.green, markersize = MARKERSIZE.dense)
+    scatter!(ax2, z[high], m[high] .- ref.(z[high]), color = PALETTE.red,
+        markersize = MARKERSIZE.dense)
+    # right of the low-z whiskers, whose caps reached into the ascenders here
+    text!(ax2, 0.97, 0.05;
+        text = @sprintf("Δχ² = %.1f in favour of ΛCDM", Δχ²),
+        space = :relative, align = (:right, :bottom), fontsize = 15, color = PALETTE.blue)
 
     Legend(fig[1, 1], [l_hi, l_lo, l_lcdm, l_eds],
         ["High-z (Supernova Cosmology Project)", "Low-z (Calán/Tololo)",
-         L"Flat $\Lambda$CDM, fitted", L"Einstein–de Sitter ($\Omega_M = 1$)"],
+         L"Flat $\Lambda$CDM, fitted",
+         rich("Einstein–de Sitter (Ω", subscript("M"), " = 1)")],
         orientation = :horizontal, framevisible = false, labelsize = 15, nbanks = 2,
         colgap = 18)
 

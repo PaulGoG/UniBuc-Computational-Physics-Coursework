@@ -114,26 +114,36 @@ function main()
     fig = Figure(size = (1050, 520))
 
     ax1 = Axis(fig[1, 1], xlabel = L"Wavelength $\lambda$ [Å]",
-        ylabel = L"Refractive index $n$")
+        ylabel = L"Refractive index $n$",
+        xticks = ([4000, 5000, 6000, 7000], [L"4000", L"5000", L"6000", L"7000"]))
     λf = range(minimum(d.lambda_A) * 0.97, maximum(d.lambda_A) * 1.03, length = 300)
     lines!(ax1, λf, A_c .+ B_c ./ (λf ./ 1e4) .^ 2,
         color = PALETTE.blue, linewidth = 1.8, label = L"Cauchy $A + B/\lambda^2$")
-    scatter!(ax1, d.lambda_A, d.n, color = PALETTE.orange, markersize = 11,
-        label = "Measured")
+    scatter!(ax1, d.lambda_A, d.n, color = PALETTE.orange,
+        markersize = MARKERSIZE.data, label = "Measured")
     text!(ax1, 0.96, 0.94;
-        text = @sprintf("A = %.4f\nB = %.5f µm²\nR² = %.4f", A_c, B_c, R²),
-        space = :relative, align = (:right, :top), fontsize = 15, color = PALETTE.blue)
+        text = rich(it("A"), @sprintf(" = %.4f\n", A_c), it("B"),
+                    @sprintf(" = %.5f µm²\n", B_c), it("R"), superscript("2"),
+                    @sprintf(" = %.3f", R²)),
+        space = :relative, align = (:right, :top), fontsize = 15, color = PALETTE.blue,
+        justification = :right)
     axislegend(ax1; position = :lb, framevisible = false, labelsize = 14, padding = 4)
+    xlims!(ax1, 3850, 6950)
 
     ax2 = Axis(fig[1, 2], xlabel = L"Wavelength $\lambda$ [Å]",
-        ylabel = L"Residual $n - n_{\mathrm{Cauchy}}$ [$10^{-3}$]")
+        ylabel = L"Residual $n - n_{\mathrm{Cauchy}}$ [$10^{-3}$]",
+        xticks = ([4000, 5000, 6000, 7000], [L"4000", L"5000", L"6000", L"7000"]))
     hlines!(ax2, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
-    scatter!(ax2, d.lambda_A, resid .* 1e3, color = PALETTE.red, markersize = 11)
-    lines!(ax2, d.lambda_A, resid .* 1e3, color = (PALETTE.red, 0.5), linewidth = 1.2)
+    # The residual of the measured index keeps the measurement's colour and is
+    # distinguished by weight, rather than becoming a third quantity.
+    lines!(ax2, d.lambda_A, resid .* 1e3, color = (PALETTE.orange, 0.55), linewidth = 1.2)
+    scatter!(ax2, d.lambda_A, resid .* 1e3, color = PALETTE.orange,
+        markersize = MARKERSIZE.data)
     text!(ax2, 0.5, 0.04;
         text = "A smooth arc, not scatter:\nthe model is too simple here",
-        space = :relative, align = (:center, :bottom), fontsize = 14, color = PALETTE.red)
+        space = :relative, align = (:center, :bottom), fontsize = 14, color = PALETTE.orange)
 
+    xlims!(ax2, 3850, 6950)
     colgap!(fig.layout, 1, 30)
     println("\nwrote ", savefigure(fig, FIGURES, "prism_dispersion"))
 end
