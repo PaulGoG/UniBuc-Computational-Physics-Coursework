@@ -76,11 +76,18 @@ function main()
     xf = range(A, B, length = 500)
     l_t = lines!(ax, xf, target.(xf) ./ Z_trunc, color = PALETTE.red, linewidth = 2)
     vlines!(ax, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
-    text!(ax, 0.02, 0.93;
-        text = @sprintf("%d samples, acceptance %.1f %%", n, 100rate),
+    # headroom so that both notes clear the target curve, which peaks at 0.53
+    ylims!(ax, -0.015, 0.645)
+    text!(ax, 0.02, 0.98;
+        text = rich("Acceptance ", @sprintf("%.2f %%", 100rate), " measured against ",
+                    @sprintf("%.2f %%", 100 * Z_trunc / (B - A)), " analytic\nfrom ",
+                    rsci(float(n); digits = 0), " samples"),
         space = :relative, align = (:left, :top), fontsize = 15)
-    text!(ax, 0.98, 0.93; text = L"$\sigma = 1$ (left), $\sigma = 1/2$ (right)",
-        space = :relative, align = (:right, :top), fontsize = 15)
+    text!(ax, 0.98, 0.98;
+        text = rich(it("σ"), " = 1 below zero, ", it("σ"), " = 1/2 above\n",
+                    "truncated to [−3, 3], discarding ",
+                    @sprintf("%.2f %%", 100 * (1 - Z_trunc / Z_full)), " of the mass"),
+        space = :relative, align = (:right, :top), fontsize = 15, justification = :right)
 
     Legend(fig[1, 1], [h_s, l_t], ["Rejection samples", "Target, truncated and normalised"],
         orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24)

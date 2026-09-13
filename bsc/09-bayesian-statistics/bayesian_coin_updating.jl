@@ -59,19 +59,29 @@ function main()
         d = posterior(heads[n], n)
         push!(handles, lines!(ax1, θ, pdf.(d, θ), color = cols[k], linewidth = 1.6))
     end
-    vlines!(ax1, [P_TRUE], color = PALETTE.red, linestyle = :dash, linewidth = 1.2)
-    xlims!(ax1, 0.2, 0.8)
+    # black, not a palette colour: the true bias is a reference, and in orange
+    # it competed with the N = 20 posterior
+    vlines!(ax1, [P_TRUE], color = PALETTE.black, linestyle = :dash, linewidth = 1.2)
+    # at the top of the line: along the axis it lay under the broad early
+    # posteriors, which are widest exactly where the true bias is
+    text!(ax1, P_TRUE + 0.008, 29.6; text = rich("True bias ", it("θ"), " = 0.5"),
+        space = :data, align = (:left, :top), fontsize = 15, color = PALETTE.black)
+    limits!(ax1, 0.2, 0.8, -0.7, 30.5)
 
+    # Explicit ticks: over a range narrower than a decade Makie labels this axis
+    # 10^{-0.4}, 10^{-0.6}, ..., which is not a form a credible width is read in.
     ax2 = Axis(fig[2, 2], xlabel = L"Tosses $N$", ylabel = "95 % credible width",
         xscale = log10, yscale = log10,
-        xticks = ([10, 100, 1000], ["10", "100", "1000"]))
-    scatterlines!(ax2, ns, widths, color = PALETTE.blue, markersize = 9)
+        xticks = logticks(1, 3),
+        yticks = ([0.05, 0.1, 0.2, 0.4], [L"0.05", L"0.1", L"0.2", L"0.4"]))
+    scatterlines!(ax2, ns, widths, color = PALETTE.blue, markersize = MARKERSIZE.data,
+        label = latexstring(@sprintf("\\text{Measured, } N^{%.3f}", slope)))
     lines!(ax2, ns, widths[1] .* (ns ./ ns[1]) .^ (-0.5),
-        color = PALETTE.black, linestyle = :dash, linewidth = 1.2)
-    text!(ax2, 0.96, 0.92; text = L"$\propto N^{-1/2}$",
-        space = :relative, align = (:right, :top), fontsize = 16)
+        color = PALETTE.black, linestyle = :dash, linewidth = 1.2,
+        label = L"$N^{-1/2}$, the asymptotic rate")
+    axislegend(ax2, position = :lb, framevisible = false, labelsize = 15, padding = 2)
 
-    Legend(fig[1, 1:2], handles, [L"N = %$n" for n in checkpoints],
+    Legend(fig[1, 1:2], handles, [L"N = %$n" for n in checkpoints],  # noqa: kept as maths
         orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 22)
     rowsize!(fig.layout, 2, Relative(0.85))
     println("wrote ", savefigure(fig, FIGURES, "bayesian_coin_updating"))
@@ -84,15 +94,15 @@ function main()
     fa = Figure(size = (640, 420))
     axa = Axis(fa[1, 1], xlabel = L"Bias $\theta$", ylabel = "Posterior density")
     obs = Observable(pdf.(posterior(heads[1], 1), θ))
-    lines!(axa, θ, obs, color = PALETTE.green, linewidth = 2)
-    vlines!(axa, [P_TRUE], color = PALETTE.red, linestyle = :dash, linewidth = 1.2)
-    label = Observable("N = 1")
+    lines!(axa, θ, obs, color = PALETTE.blue, linewidth = 2)
+    vlines!(axa, [P_TRUE], color = PALETTE.black, linestyle = :dash, linewidth = 1.2)
+    label = Observable{Any}(rich(it("N"), " = 1"))
     text!(axa, 0.97, 0.93; text = label, space = :relative,
           align = (:right, :top), fontsize = 18)
     xlims!(axa, 0, 1); ylims!(axa, 0, 30)
     record(fa, gif_path, frames; framerate = 25) do n
         obs[] = pdf.(posterior(heads[n], n), θ)
-        label[] = "N = $n"
+        label[] = rich(it("N"), " = $n")
     end
     @printf("wrote %s (%.2f MB)\n", gif_path, filesize(gif_path) / 1024^2)
 end
