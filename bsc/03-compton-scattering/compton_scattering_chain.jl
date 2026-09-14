@@ -112,6 +112,8 @@ function main()
     end
     h_thr = hlines!(ax1, [E_THRESHOLD], color = PALETTE.black,
         linestyle = :dash, linewidth = 1.0)
+    # a clear band below the threshold, which no chain enters, for the label
+    ylims!(ax1, E_THRESHOLD * 0.55, E₀ * 1.3)
     # Top right: the bottom right corner is where the chains converge onto the
     # threshold line, and the label sat on top of both.
     text!(ax1, 0.97, 0.97; text = "40 of 20 000 histories",
