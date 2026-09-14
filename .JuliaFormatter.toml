@@ -1,0 +1,28 @@
+# Formatting rules for the whole archive. Chosen to match the style the scripts
+# were already written in rather than to impose a new one, so that running the
+# formatter over a file is a no-op unless something has drifted.
+#
+#   julia --project=. -e 'using JuliaFormatter; format(".")'
+
+indent = 4
+margin = 92
+
+# `f(x; color = :blue)` and `x[i + 1]`, as the scripts already write them.
+whitespace_in_kwargs = true
+whitespace_ops_in_indices = true
+
+# `for i in 1:n`, never `for i = 1:n`.
+always_for_in = true
+
+# Left alone deliberately: the docstrings are written to be read as prose and
+# reflowing them to the margin breaks the equations and tables inside them;
+# `x::Int` keeps its tight colons; and one-line definitions such as
+# `Z_p(A_H) = Z₀ * A_H / A₀ + ΔZ` stay one-liners.
+format_docstrings = false
+whitespace_typedefs = false
+short_to_long_function_def = false
+
+# The scripts are not a package: `using X` versus `import X` is not something to
+# rewrite, and a bare `return` is not always wanted.
+import_to_using = false
+always_use_return = false

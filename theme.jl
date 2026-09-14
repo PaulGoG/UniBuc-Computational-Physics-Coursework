@@ -50,7 +50,7 @@ const MARKERSIZE = (cloud = 5, dense = 10, data = 14, emphasis = 19, key = 16)
 _decimal_label(e::Integer) =
     e >= 0 ? latexstring(string(10^e)) : latexstring("0." * "0"^(-e - 1) * "1")
 
-_power_label(e::Integer) = e == 0 ? L"1" : e == 1 ? L"10" : latexstring("10^{$e}")
+_power_label(e::Integer) = latexstring("10^{$e}")
 
 """
     logticks(e_min, e_max; step = 1, style = :auto)
@@ -61,14 +61,22 @@ Explicit decade ticks for a base-10 logarithmic axis running from `10^e_min` to
 Spans of four decades or fewer are labelled as plain decimals (`0.01, 0.1, 1,
 10`) provided the decades themselves stay within `10^-4` to `10^4`, beyond which
 a decimal is a run of zeros and the power of ten is the readable form; wider
-spans use powers of ten, with `10^0` written `1` and `10^1` written `10`. Pass
-`style = :decimal` or `style = :power` to override the choice.
+spans use powers of ten throughout. Pass `style = :decimal` or `style = :power`
+to override the choice.
 
 Every logarithmic axis in this repository sets its ticks through this function.
 Left to itself Makie labels the unit decade as `10^0` on some axes and as `1` on
 others, and on ranges narrower than a decade it falls back to fractional
 exponents such as `10^{-0.4}`, which is not a form any of these quantities are
 read in.
+
+One style per axis, which is what settles the standing conflict between the two
+rules governing these labels: collapsing `10^0` to `1` and `10^1` to `10` is
+right on an axis of decimals, and on an axis of powers it produces the mixed
+`10^-4, 10^-2, 1, 10^2`. The collapse therefore belongs to the decimal style,
+where `1` and `10` *are* the decimals, and not to the power style. `sci` keeps
+the collapse unconditionally, an isolated quantity in running text having no
+axis to be consistent with.
 
 # Example
 
