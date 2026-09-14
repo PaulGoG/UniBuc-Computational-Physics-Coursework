@@ -39,7 +39,7 @@ function main()
     x = X[2:end]
     Δε = ε[1] .- ε[2:end]
     # full covariance: every point shares ε₀, so the off-diagonal is σ₀²
-    C = [i == j ? σε[1]^2 + σε[i+1]^2 : σε[1]^2 for i in eachindex(x), j in eachindex(x)]
+    C = [i == j ? σε[1]^2 + σε[i + 1]^2 : σε[1]^2 for i in eachindex(x), j in eachindex(x)]
 
     M = hcat(ones(length(x)), x)
     W = inv(C)
@@ -50,7 +50,7 @@ function main()
     χ² = residuals' * W * residuals
 
     @printf("intercept = %8.1f ± %.1f keV   (expected 0; that is %.2fσ away)\n",
-            p[1], σp[1], abs(p[1]) / σp[1])
+        p[1], σp[1], abs(p[1]) / σp[1])
     @printf("slope     = %8.1f ± %.1f keV per absorber unit\n", p[2], σp[2])
     @printf("χ² = %.2f on %d dof\n", χ², length(x) - 2)
     @printf("\nif the abscissa were µm this would be %.0f keV/µm; the tabulated\n", p[2])
@@ -64,22 +64,22 @@ function main()
     errorbars!(ax, x, Δε, sqrt.(diag(C)), color = PALETTE.orange, whiskerwidth = 10)
     l_dat = scatter!(ax, x, Δε, color = PALETTE.orange, markersize = MARKERSIZE.data)
     l_ref = scatter!(ax, [0.0], [0.0], color = PALETTE.black,
-        markersize = MARKERSIZE.data, marker = :diamond)
+        markersize = MARKERSIZE.data, marker = :diamond,)
     text!(ax, 0.03, 0.93;
         text = rich("slope = ",
-                    replace(@sprintf("%.0f ± %.0f", p[2], σp[2]), "-" => "−"),
-                    " keV per unit\nintercept = ",
-                    replace(@sprintf("%.0f ± %.0f", p[1], σp[1]), "-" => "−"),
-                    " keV, ", @sprintf("%.2fσ", abs(p[1]) / σp[1]),
-                    " from the zero it must be\n", it("χ"), superscript("2"),
-                    @sprintf(" = %.2f on %d degrees of freedom", χ², length(x) - 2)),
-        space = :relative, align = (:left, :top), fontsize = 15, color = PALETTE.blue)
+            replace(@sprintf("%.0f ± %.0f", p[2], σp[2]), "-" => "−"),
+            " keV per unit\nintercept = ",
+            replace(@sprintf("%.0f ± %.0f", p[1], σp[1]), "-" => "−"),
+            " keV, ", @sprintf("%.2fσ", abs(p[1]) / σp[1]),
+            " from the zero it must be\n", it("χ"), superscript("2"),
+            @sprintf(" = %.2f on %d degrees of freedom", χ², length(x) - 2)),
+        space = :relative, align = (:left, :top), fontsize = 15, color = PALETTE.blue,)
 
     Legend(fig[1, 1], [l_dat, l_ref, l_fit],
         ["Measured, correlated errors",
-         rich("Reference measurement ", it("ε"), subscript("0")),
-         "Weighted linear fit"],
-        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 22)
+            rich("Reference measurement ", it("ε"), subscript("0")),
+            "Weighted linear fit",],
+        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 22,)
     rowsize!(fig.layout, 2, Relative(0.86))
     println("wrote ", savefigure(fig, FIGURES, "alpha_attenuation_mylar"))
 end

@@ -91,7 +91,7 @@ function main()
 
     @printf("initial energy %.0f keV, threshold %.0f keV\n", E₀, E_THRESHOLD)
     @printf("scatterings to threshold: mean %.2f, median %d, range %d-%d\n",
-            mean(n_scatters), median(n_scatters), minimum(n_scatters), maximum(n_scatters))
+        mean(n_scatters), median(n_scatters), minimum(n_scatters), maximum(n_scatters))
 
     # first-scattering angular distribution, Klein-Nishina against the uniform-in-θ
     # sampling the 2018 code used
@@ -99,65 +99,68 @@ function main()
     θ_kn = acosd.(cosθ_kn)
     θ_uniform = 180 .* rand(rng, 200_000)
     @printf("mean scattering angle: Klein-Nishina %.1f deg, uniform-in-theta %.1f deg\n",
-            mean(θ_kn), mean(θ_uniform))
+        mean(θ_kn), mean(θ_uniform))
 
     fig = Figure(size = (1040, 460))
 
     ax1 = Axis(fig[2, 1], xlabel = "Scattering number",
         ylabel = L"Photon energy $E$ [keV]", yscale = log10,
         yticks = ([20, 50, 100, 200, 500, 1000],
-                  [L"20", L"50", L"100", L"200", L"500", L"1000"]))
+            [L"20", L"50", L"100", L"200", L"500", L"1000"],),)
     for c in chains[1:40]
         lines!(ax1, 0:(length(c) - 1), c, color = (PALETTE.blue, 0.35), linewidth = 1.0)
     end
     h_thr = hlines!(ax1, [E_THRESHOLD], color = PALETTE.black,
-        linestyle = :dash, linewidth = 1.0)
+        linestyle = :dash, linewidth = 1.0,)
     # a clear band below the threshold, which no chain enters, for the label
     ylims!(ax1, E_THRESHOLD * 0.55, E₀ * 1.3)
     # Top right: the bottom right corner is where the chains converge onto the
     # threshold line, and the label sat on top of both.
     text!(ax1, 0.97, 0.97; text = "40 of 20 000 histories",
-        space = :relative, align = (:right, :top), fontsize = 15, color = PALETTE.blue)
+        space = :relative, align = (:right, :top), fontsize = 15, color = PALETTE.blue,)
     # below the threshold line and at the left, the one band of this panel no
     # chain enters
     text!(ax1, 0.02, 0.02; text = "Absorption threshold, 20 keV",
-        space = :relative, align = (:left, :bottom), fontsize = 15, color = PALETTE.black)
+        space = :relative, align = (:left, :bottom), fontsize = 15, color = PALETTE.black,)
 
     ax2 = Axis(fig[2, 2], xlabel = "Scatterings to threshold", ylabel = "Photons")
-    hist!(ax2, n_scatters, bins = range(-0.5, maximum(n_scatters) + 0.5,
-          length = maximum(n_scatters) + 2), color = (PALETTE.blue, 0.7),
-          strokewidth = 0.5, strokecolor = PALETTE.blue)
+    hist!(ax2, n_scatters,
+        bins = range(-0.5, maximum(n_scatters) + 0.5,
+            length = maximum(n_scatters) + 2,),
+        color = (PALETTE.blue, 0.7),
+        strokewidth = 0.5, strokecolor = PALETTE.blue,)
     # The mean line stops below the headroom rather than running to the frame,
     # so that the band the label occupies is clear of it.
     peak = maximum(counts(n_scatters))
     lines!(ax2, fill(mean(n_scatters), 2), [0.0, 1.06 * peak],
-        color = PALETTE.red, linestyle = :dash, linewidth = 1.2)
+        color = PALETTE.red, linestyle = :dash, linewidth = 1.2,)
     ylims!(ax2, 0, peak * 1.2)
     # No photon reaches the threshold in under fifteen scatterings, so the left
     # half of the full range carried nothing; the axis starts where the
     # distribution does.
     xlims!(ax2, minimum(n_scatters) - 2, maximum(n_scatters) + 2)
     text!(ax2, 0.03, 0.98; text = @sprintf("Mean %.2f scatterings", mean(n_scatters)),
-        space = :relative, align = (:left, :top), color = PALETTE.red, fontsize = 15)
+        space = :relative, align = (:left, :top), color = PALETTE.red, fontsize = 15,)
 
     ax3 = Axis(fig[2, 3], xlabel = L"Scattering angle $\theta$ [deg]",
         ylabel = L"Normalised density [deg$^{-1}$]",
-        xticks = ([0, 45, 90, 135, 180], [L"0", L"45", L"90", L"135", L"180"]))
+        xticks = ([0, 45, 90, 135, 180], [L"0", L"45", L"90", L"135", L"180"]),)
     d_kn = StatsBase.normalize(fit(Histogram, θ_kn, range(0, 180, length = 60)), mode = :pdf)
     d_un = StatsBase.normalize(fit(Histogram, θ_uniform, range(0, 180, length = 60)), mode = :pdf)
     l_kn = stairs!(ax3, midpoints(d_kn.edges[1]), d_kn.weights,
-        color = PALETTE.green, linewidth = 1.8, step = :center)
+        color = PALETTE.green, linewidth = 1.8, step = :center,)
     l_un = stairs!(ax3, midpoints(d_un.edges[1]), d_un.weights,
-        color = PALETTE.orange, linewidth = 1.8, step = :center)
+        color = PALETTE.orange, linewidth = 1.8, step = :center,)
 
     text!(ax3, 0.97, 0.86;
-        text = rich("Mean angle\n", rich(@sprintf("%.1f°", mean(θ_kn)), color = PALETTE.green),
-                    " against ", rich(@sprintf("%.1f°", mean(θ_uniform)), color = PALETTE.orange)),
-        space = :relative, align = (:right, :top), fontsize = 15, justification = :right)
+        text = rich(
+            "Mean angle\n", rich(@sprintf("%.1f°", mean(θ_kn)), color = PALETTE.green),
+            " against ", rich(@sprintf("%.1f°", mean(θ_uniform)), color = PALETTE.orange),),
+        space = :relative, align = (:right, :top), fontsize = 15, justification = :right,)
 
     Legend(fig[1, 1:3], [h_thr, l_kn, l_un],
         ["Absorption threshold", L"Klein–Nishina at $E_0$", "Uniform in θ (2018)"],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 26)
+        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 26,)
 
     rowsize!(fig.layout, 2, Relative(0.86))
     path = savefigure(fig, FIGURES, "compton_scattering_chain")
@@ -189,20 +192,20 @@ function animate_degradation(chains, rng)
     fig = Figure(size = (900, 420))
     ax1 = Axis(fig[2, 1], xlabel = L"Photon energy $E$ [keV]", ylabel = "Photons",
         xscale = log10, xticks = ([20, 50, 100, 200, 500, 1000],
-            [L"20", L"50", L"100", L"200", L"500", L"1000"]))
+            [L"20", L"50", L"100", L"200", L"500", L"1000"],),)
     # The counts are computed here rather than by `hist!`, which does not
     # recompute its bins when handed an Observable vector.
     barplot!(ax1, centres, counts_obs, color = (PALETTE.blue, 0.75),
-        strokewidth = 0.5, strokecolor = PALETTE.blue, gap = 0.05)
+        strokewidth = 0.5, strokecolor = PALETTE.blue, gap = 0.05,)
     vlines!(ax1, [E_THRESHOLD], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
     text!(ax1, E_THRESHOLD * 1.06, 3450; text = "Absorption threshold",
-        align = (:left, :top), fontsize = 14, color = PALETTE.black)
+        align = (:left, :top), fontsize = 14, color = PALETTE.black,)
     xlims!(ax1, E_THRESHOLD * 0.85, E₀ * 1.25)
     ylims!(ax1, 0, 3600)
 
     ax2 = Axis(fig[2, 2], xlabel = L"Scattering angle $\theta$ [deg]",
         ylabel = L"$\mathrm{d}\sigma/\mathrm{d}(\cos\theta)$, scaled",
-        xticks = ([0, 45, 90, 135, 180], [L"0", L"45", L"90", L"135", L"180"]))
+        xticks = ([0, 45, 90, 135, 180], [L"0", L"45", L"90", L"135", L"180"]),)
     lines!(ax2, angles, color = PALETTE.green, linewidth = 2)
     xlims!(ax2, 0, 180)
     ylims!(ax2, 0, 2.15)

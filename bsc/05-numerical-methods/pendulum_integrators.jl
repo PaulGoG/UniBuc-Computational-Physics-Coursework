@@ -46,9 +46,9 @@ function rk4_step(θ, ω, t, Δt, p, f)
     k1θ, k1ω = ω, f(θ, ω, t, p)
     k2θ, k2ω = ω + Δt*k1ω/2, f(θ + Δt*k1θ/2, ω + Δt*k1ω/2, t + Δt/2, p)
     k3θ, k3ω = ω + Δt*k2ω/2, f(θ + Δt*k2θ/2, ω + Δt*k2ω/2, t + Δt/2, p)
-    k4θ, k4ω = ω + Δt*k3ω,   f(θ + Δt*k3θ,   ω + Δt*k3ω,   t + Δt,   p)
+    k4θ, k4ω = ω + Δt*k3ω, f(θ + Δt*k3θ, ω + Δt*k3ω, t + Δt, p)
     return (θ + Δt/6*(k1θ + 2k2θ + 2k3θ + k4θ),
-            ω + Δt/6*(k1ω + 2k2ω + 2k3ω + k4ω))
+        ω + Δt/6*(k1ω + 2k2ω + 2k3ω + k4ω),)
 end
 
 """
@@ -62,7 +62,7 @@ function rk4_step_original(θ, ω, t, Δt, p, f)
     k1 = f(θ, ω, t, p)
     k2 = f(θ + Δt*k1/2, ω + Δt*k1/2, t + Δt/2, p)
     k3 = f(θ + Δt*k2/2, ω + Δt*k2/2, t + Δt/2, p)
-    k4 = f(θ + Δt*k3,   ω + Δt*k3,   t + Δt,   p)
+    k4 = f(θ + Δt*k3, ω + Δt*k3, t + Δt, p)
     ω_new = ω + Δt/6*(k1 + 2k2 + 2k3 + k4)
 
     pk1 = ω
@@ -108,8 +108,8 @@ function integrate(step, θ₀, ω₀, Δt, n, p, f)
     ω = Vector{Float64}(undef, n + 1)
     t[1], θ[1], ω[1] = 0.0, θ₀, ω₀
     for i in 1:n
-        θ[i+1], ω[i+1] = step(θ[i], ω[i], t[i], Δt, p, f)
-        t[i+1] = i * Δt
+        θ[i + 1], ω[i + 1] = step(θ[i], ω[i], t[i], Δt, p, f)
+        t[i + 1] = i * Δt
     end
     return t, θ, ω
 end
@@ -131,7 +131,7 @@ function observed_order(step, p, f, t_end)
     end
     lx, ly = log.(hs), log.(errs)
     n = length(lx)
-    return (n*sum(lx.*ly) - sum(lx)*sum(ly)) / (n*sum(abs2, lx) - sum(lx)^2), hs, errs
+    return (n*sum(lx .* ly) - sum(lx)*sum(ly)) / (n*sum(abs2, lx) - sum(lx)^2), hs, errs
 end
 
 function main()
@@ -151,7 +151,7 @@ function main()
     t, θ_full, _ = integrate(rk4_step, 2.5, 0.0, Δt, n, free, accel)
     _, θ_lin, _ = integrate(rk4_step, 2.5, 0.0, Δt, n, free, accel_linear)
     @printf("free pendulum from θ₀ = 2.5 rad: full and linearised differ by up to %.3f rad\n",
-            maximum(abs.(θ_full .- θ_lin)))
+        maximum(abs.(θ_full .- θ_lin)))
 
     # chaotic attractor, Poincaré section sampled at the drive period
     Δt_c = 2π / CHAOTIC.Ω_D / 2000
@@ -163,11 +163,12 @@ function main()
 
     fig = Figure(size = (1040, 460))
 
-    ax1 = Axis(fig[2, 1], xlabel = L"Step size $\Delta t$ [s]", ylabel = "Global error [rad]",
+    ax1 = Axis(
+        fig[2, 1], xlabel = L"Step size $\Delta t$ [s]", ylabel = "Global error [rad]",
         xscale = log10, yscale = log10,
         xticks = ([0.00125, 0.0025, 0.005, 0.01, 0.02],
-                  [L"0.00125", L"0.0025", L"0.005", L"0.01", L"0.02"]),
-        yticks = logticks(-13, -4; step = 3))
+            [L"0.00125", L"0.0025", L"0.005", L"0.01", L"0.02"],),
+        yticks = logticks(-13, -4; step = 3),)
     ax1.xticklabelrotation = π/4
     # Each panel carries its own legend. One figure-level legend gave blue two
     # meanings -- the correct RK4 of the order study and the full pendulum of
@@ -175,20 +176,20 @@ function main()
     # no entry at all.
     scatterlines!(ax1, hs, e_correct, color = PALETTE.blue,
         markersize = MARKERSIZE.data,
-        label = latexstring(@sprintf("\\text{RK4, order } %.2f", p_correct)))
+        label = latexstring(@sprintf("\\text{RK4, order } %.2f", p_correct)),)
     scatterlines!(ax1, hs, e_original, color = PALETTE.red,
         markersize = MARKERSIZE.data, marker = :rect,
-        label = latexstring(@sprintf("\\text{Original stages, order } %.2f", p_original)))
+        label = latexstring(@sprintf("\\text{Original stages, order } %.2f", p_original)),)
     axislegend(ax1, position = :lt, framevisible = false, labelsize = 15, padding = 2)
 
     ax2 = Axis(fig[2, 2], xlabel = L"Time $t$ [s]", ylabel = L"Angle $\theta$ [rad]")
     lines!(ax2, t, θ_full, color = PALETTE.green, linewidth = 1.5,
-        label = "Full pendulum")
+        label = "Full pendulum",)
     # the takeaway as a legend entry: the panel is too narrow to carry it as a
     # separate annotation without running into the legend
     lines!(ax2, t, θ_lin, color = PALETTE.purple, linewidth = 1.5, linestyle = :dash,
         label = @sprintf("Small-angle, up to %.1f rad apart",
-                         maximum(abs.(θ_full .- θ_lin))))
+            maximum(abs.(θ_full .- θ_lin))))
     xlims!(ax2, 0, 12)
     ylims!(ax2, -2.9, 4.1)
     axislegend(ax2, position = :lt, framevisible = false, labelsize = 15, padding = 2)
@@ -196,16 +197,16 @@ function main()
     ax3 = Axis(fig[2, 3], xlabel = L"\theta \ \mathrm{[rad]}",
         ylabel = L"\omega \ \mathrm{[rad\ s^{-1}]}",
         xticks = ([-π, -π/2, 0, π/2, π],
-                  [L"-\pi", L"-\pi/2", L"0", L"\pi/2", L"\pi"]))
+            [L"-\pi", L"-\pi/2", L"0", L"\pi/2", L"\pi"],),)
     scatter!(ax3, wrap.(θc[keep]), ωc[keep], color = (PALETTE.orange, 0.6),
-        markersize = MARKERSIZE.cloud)
+        markersize = MARKERSIZE.cloud,)
     # built by hand: a legend entry taken from the plot would inherit the small
     # marker the section needs and be unreadable
     axislegend(ax3,
         [MarkerElement(color = PALETTE.orange, marker = :circle,
-                       markersize = MARKERSIZE.key)],
+            markersize = MARKERSIZE.key,)],
         ["Poincaré section"],
-        position = :lt, framevisible = false, labelsize = 15, padding = 2)
+        position = :lt, framevisible = false, labelsize = 15, padding = 2,)
 
     rowsize!(fig.layout, 2, Relative(0.92))
     path = savefigure(fig, FIGURES, "pendulum_integrators")
@@ -273,7 +274,7 @@ function animate_pendulum()
     ylims!(axt, -3.4, 3.4)
 
     Legend(fig[1, 1:2], [lc, lo], ["RK4, correct stages", "Original stage coupling"],
-        orientation = :horizontal, framevisible = false, labelsize = 16)
+        orientation = :horizontal, framevisible = false, labelsize = 16,)
     Label(fig[3, 1:2], caption, fontsize = 16, tellwidth = false)
     colsize!(fig.layout, 1, Relative(0.38))
     rowgap!(fig.layout, 6)
@@ -292,7 +293,7 @@ function animate_pendulum()
         trace_o[] = ow
         caption[] = rich(it("t"), @sprintf(" = %.2f s,  ", t[k]), "Δ", it("t"),
             @sprintf(" = %.2f s      ", Δt), "phase error ",
-            replace(@sprintf("%+.2f", θo[k] - θc[k]), "-" => "−"), " rad")
+            replace(@sprintf("%+.2f", θo[k] - θc[k]), "-" => "−"), " rad",)
     end
     return path
 end

@@ -99,7 +99,7 @@ function main()
 
     for (k, (step, name, colour)) in enumerate(SCHEMES)
         ax = Axis(top[1, k], aspect = DataAspect(),
-            xlabel = L"Position $x$", ylabel = k == 1 ? L"Velocity $v$" : "")
+            xlabel = L"Position $x$", ylabel = k == 1 ? L"Velocity $v$" : "",)
         for (x₀, v₀) in starts
             _, x, v, _ = integrate(step, x₀, v₀, Δt, n, Ω)
             lines!(ax, x, v, color = colour, linewidth = 0.9)
@@ -111,7 +111,7 @@ function main()
     # energy drift along one orbit
     ax_e = Axis(bottom[1, 1],
         xlabel = L"Time $t$", ylabel = L"Energy $E(t)/E(0)$", yscale = log10,
-        yticks = ([1, 2, 3, 5, 8], [L"1", L"2", L"3", L"5", L"8"]))
+        yticks = ([1, 2, 3, 5, 8], [L"1", L"2", L"3", L"5", L"8"]),)
     handles = []
     for (step, name, colour) in SCHEMES
         t, _, _, e = integrate(step, 1.0, -1.0, Δt, n, Ω)
@@ -119,12 +119,13 @@ function main()
     end
     hlines!(ax_e, [1.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
     text!(ax_e, 0.5, 1.075; text = L"Initial energy $E(0)$", space = :data,
-        align = (:left, :bottom), fontsize = 15, color = PALETTE.black)
+        align = (:left, :bottom), fontsize = 15, color = PALETTE.black,)
 
     # growth factor predicted for explicit Euler: (1 + Ω²Δt²)^(N/2) on the amplitude,
     # hence (1 + Ω²Δt²)^N on the energy
     predicted = (1 + Ω^2 * Δt^2)^n
-    @printf("explicit Euler energy growth over %.0f time units: predicted %.3f, ", T_END, predicted)
+    @printf("explicit Euler energy growth over %.0f time units: predicted %.3f, ", T_END,
+        predicted)
     _, _, _, e_ex = integrate(explicit_euler, 1.0, -1.0, Δt, n, Ω)
     observed = last(e_ex) / first(e_ex)
     @printf("observed %.3f\n", observed)
@@ -133,7 +134,7 @@ function main()
         text = latexstring(@sprintf("(1 + \\Omega^2 \\Delta t^2)^N = %.3f \\text{ predicted,~} \
                                      %.3f \\text{ measured}", predicted, observed)),
         space = :relative, align = (:right, :top),
-        fontsize = 15, color = PALETTE.red)
+        fontsize = 15, color = PALETTE.red,)
 
     # energy error against step count, the sweep PbEcDiffExamen.cpp attempted
     ax_n = Axis(bottom[1, 2],
@@ -141,7 +142,7 @@ function main()
         ylabel = L"$|E(10)/E(0) - 1|$",
         xscale = log10, yscale = log10,
         xticks = logticks(1, 4; style = :decimal),
-        yticks = logticks(-4, 2; step = 2))
+        yticks = logticks(-4, 2; step = 2),)
     Ns = [2^k for k in 4:16]
     for (step, name, colour) in SCHEMES
         errs = map(Ns) do N
@@ -149,11 +150,11 @@ function main()
             abs(last(e) / first(e) - 1)
         end
         scatterlines!(ax_n, Ns, errs, color = colour, linewidth = 1.3,
-            markersize = MARKERSIZE.dense)
+            markersize = MARKERSIZE.dense,)
     end
 
     Legend(fig[1, 1], handles, [s[2] for s in SCHEMES],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 26)
+        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 26,)
 
     colsize!(bottom, 1, Relative(0.66))
     rowsize!(fig.layout, 2, Relative(0.46))

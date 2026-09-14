@@ -31,19 +31,20 @@ const E_EVAL_EV = 0.25
 
 "Mass number, natural abundance in per cent, capture cross-section in barn."
 const CADMIUM = [
-    (A = 106, abundance = 1.25,  σ = 0.30),
-    (A = 108, abundance = 0.89,  σ = 0.34),
+    (A = 106, abundance = 1.25, σ = 0.30),
+    (A = 108, abundance = 0.89, σ = 0.34),
     (A = 110, abundance = 12.47, σ = 3.50),
     (A = 111, abundance = 12.80, σ = 6.80),
     (A = 112, abundance = 24.11, σ = 0.60),
     (A = 113, abundance = 12.23, σ = 18000.0),
     (A = 114, abundance = 28.75, σ = 0.05),
-    (A = 116, abundance = 7.51,  σ = 0.015),
+    (A = 116, abundance = 7.51, σ = 0.015),
 ]
 
 function main()
     total_abundance = sum(i.abundance for i in CADMIUM)
-    @printf("abundances sum to %.2f %% (tabulated values, not renormalised)\n", total_abundance)
+    @printf("abundances sum to %.2f %% (tabulated values, not renormalised)\n",
+        total_abundance)
 
     σ_nat = sum(i.abundance / 100 * i.σ for i in CADMIUM)
     @printf("\nσ_capture(natural Cd) at %.2f eV = %.1f b\n", E_EVAL_EV, σ_nat)
@@ -53,40 +54,42 @@ function main()
     for i in CADMIUM
         c = i.abundance / 100 * i.σ
         @printf("  Cd-%3d  a = %5.2f %%  σ = %9.3f b  ->  %8.3f b  (%5.2f %% of total)\n",
-                i.A, i.abundance, i.σ, c, 100c / σ_nat)
+            i.A, i.abundance, i.σ, c, 100c / σ_nat)
     end
     dominant = argmax([i.abundance / 100 * i.σ for i in CADMIUM])
     @printf("\nCd-%d alone supplies %.2f %% of the natural cross-section\n",
-            CADMIUM[dominant].A,
-            100 * CADMIUM[dominant].abundance / 100 * CADMIUM[dominant].σ / σ_nat)
+        CADMIUM[dominant].A,
+        100 * CADMIUM[dominant].abundance / 100 * CADMIUM[dominant].σ / σ_nat)
 
     fig = Figure(size = (820, 460))
     ax = Axis(fig[2, 1],
         xlabel = "Mass number A", ylabel = "Contribution to σ [b]",
         yscale = log10,
         xticks = ([i.A for i in CADMIUM], [latexstring(string(i.A)) for i in CADMIUM]),
-        yticks = logticks(-3, 4; step = 2))
+        yticks = logticks(-3, 4; step = 2),)
     contributions = [i.abundance / 100 * i.σ for i in CADMIUM]
     barplot!(ax, [i.A for i in CADMIUM], contributions, color = PALETTE.blue,
-             strokewidth = 0.5, strokecolor = PALETTE.black)
+        strokewidth = 0.5, strokecolor = PALETTE.black,)
     hlines!(ax, [σ_nat], color = PALETTE.red, linestyle = :dash, linewidth = 1.3)
     # Headroom above the total, with the note in it: centred at 93 % of the
     # panel its last word was drawn over the 113-Cd bar, orange on saturated
     # blue.
     ylims!(ax, nothing, σ_nat * 30)
     text!(ax, 0.98, 0.97;
-        text = rich(it("σ"), @sprintf("(natural Cd) = %.0f b at %.2f eV\n", σ_nat, E_EVAL_EV),
-                    @sprintf("%.2f %% of it from ", 100 * CADMIUM[dominant].abundance / 100 *
-                             CADMIUM[dominant].σ / σ_nat),
-                    superscript("113"), "Cd alone"),
+        text = rich(
+            it("σ"), @sprintf("(natural Cd) = %.0f b at %.2f eV\n", σ_nat, E_EVAL_EV),
+            @sprintf("%.2f %% of it from ",
+                100 * CADMIUM[dominant].abundance / 100 *
+                CADMIUM[dominant].σ / σ_nat),
+            superscript("113"), "Cd alone",),
         space = :relative, align = (:right, :top), color = PALETTE.red, fontsize = 16,
-        justification = :right)
+        justification = :right,)
 
     Legend(fig[1, 1],
         [PolyElement(color = PALETTE.blue),
-         LineElement(color = PALETTE.red, linestyle = :dash, linewidth = 1.3)],
+            LineElement(color = PALETTE.red, linestyle = :dash, linewidth = 1.3),],
         ["Isotopic contribution, abundance × σ", "Total, natural Cd"],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24)
+        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24,)
     rowsize!(fig.layout, 2, Relative(0.86))
     println("wrote ", savefigure(fig, FIGURES, "natural_cd_cross_section"))
 end

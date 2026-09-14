@@ -52,7 +52,8 @@ end
 
 "Even–odd staggering of the charge yield."
 function even_odd_staggering(Z, Y)
-    even = sum(Y[iseven.(Z)]); odd = sum(Y[isodd.(Z)])
+    even = sum(Y[iseven.(Z)])
+    odd = sum(Y[isodd.(Z)])
     return (even - odd) / (even + odd)
 end
 
@@ -77,9 +78,11 @@ surface curves across the three.
 function charge_averaged_q(masses, Δ₀, A_H)
     Zp = Z₀ * A_H / A₀ + ΔZ_POL
     centre = round(Int, Zp)
-    num = 0.0; den = 0.0
+    num = 0.0
+    den = 0.0
     for z in (centre - 1, centre, centre + 1)
-        δH = Δ(masses, z, A_H); δL = Δ(masses, Z₀ - z, A₀ - A_H)
+        δH = Δ(masses, z, A_H)
+        δL = Δ(masses, Z₀ - z, A₀ - A_H)
         (δH === nothing || δL === nothing) && continue
         w = exp(-(z - Zp)^2 / (2σ_Z^2))
         num += w * (Δ₀ - δH - δL) / 1000
@@ -110,9 +113,10 @@ function main()
     y = load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR"))
     masses = load_masses(joinpath(DATA, "Defecte_masa", "AUDI2021.csv"))
     @printf("Straede matrix: %d rows, A_H %d–%d, Z_H %d–%d, TKE %d–%d MeV\n",
-            nrow(y), minimum(y.A_H), maximum(y.A_H), minimum(y.Z_H), maximum(y.Z_H),
-            minimum(y.TKE), maximum(y.TKE))
-    @printf("total yield %.3f %% (heavy fragment only; ×2 for both fragments)\n\n", sum(y.Y))
+        nrow(y), minimum(y.A_H), maximum(y.A_H), minimum(y.Z_H), maximum(y.Z_H),
+        minimum(y.TKE), maximum(y.TKE))
+    @printf("total yield %.3f %% (heavy fragment only; ×2 for both fragments)\n\n",
+        sum(y.Y))
 
     A, Y_A, _ = marginal(y, r -> r.A_H)
     Z, Y_Z, _ = marginal(y, r -> r.Z_H)
@@ -120,7 +124,8 @@ function main()
     T, Y_T, _ = marginal(y, r -> r.TKE)
 
     @printf("Y(A) peaks at A_H = %d with %.3f %%\n", A[argmax(Y_A)], maximum(Y_A))
-    @printf("Y(Z) peaks at Z_H = %d,  Y(N) peaks at N = %d\n", Z[argmax(Y_Z)], N[argmax(Y_N)])
+    @printf("Y(Z) peaks at Z_H = %d,  Y(N) peaks at N = %d\n", Z[argmax(Y_Z)],
+        N[argmax(Y_N)])
     @printf("even–odd staggering of Y(Z): δ = %.4f\n", even_odd_staggering(Z, Y_Z))
     @printf("⟨TKE⟩ over the whole matrix = %.2f MeV\n", sum(y.TKE .* y.Y) / sum(y.Y))
 
@@ -137,32 +142,40 @@ function main()
     ks = sort(collect(keys(bad)))
     over = [bad[k] for k in ks]
     @printf("\noriginal Y(N) over-count: total %.1f vs %.3f, peak moves from N = %d to %d\n",
-            sum(over), sum(Y_N), N[argmax(Y_N)], ks[argmax(over)])
+        sum(over), sum(Y_N), N[argmax(Y_N)], ks[argmax(over)])
 
     # <TKE>(A) and TXE(A)
-    Δ₀ = Δ(masses, Z₀, A₀); Δn = Δ(masses, 0, 1); Δ_U235 = Δ(masses, 92, 235)
+    Δ₀ = Δ(masses, Z₀, A₀)
+    Δn = Δ(masses, 0, 1)
+    Δ_U235 = Δ(masses, 92, 235)
     S_n = (Δ_U235 + Δn - Δ₀) / 1000
     @printf("S_n(²³⁶U) = %.3f MeV\n", S_n)
 
     # single-fragment kinetic energies from momentum conservation,
     # KE_L = TKE·A_H/A₀ and KE_H = TKE·A_L/A₀ — computed by Fisiune_2.jl:KE_A
-    TKE_A = Float64[]; TXE_A = Float64[]; A_keep = Int[]
-    KE_L = Float64[]; KE_H = Float64[]
+    TKE_A = Float64[]
+    TXE_A = Float64[]
+    A_keep = Int[]
+    KE_L = Float64[]
+    KE_H = Float64[]
     for a in A
         sub = y[y.A_H .== a, :]
         sum(sub.Y) > 0 || continue
         tke = sum(sub.TKE .* sub.Y) / sum(sub.Y)
         q = charge_averaged_q(masses, Δ₀, a)
         q === nothing && continue
-        push!(A_keep, a); push!(TKE_A, tke); push!(TXE_A, q + S_n - tke)
-        push!(KE_L, tke * a / A₀); push!(KE_H, tke * (A₀ - a) / A₀)
+        push!(A_keep, a)
+        push!(TKE_A, tke)
+        push!(TXE_A, q + S_n - tke)
+        push!(KE_L, tke * a / A₀)
+        push!(KE_H, tke * (A₀ - a) / A₀)
     end
     @printf("KE_L ranges %.1f–%.1f MeV, KE_H ranges %.1f–%.1f MeV\n",
-            minimum(KE_L), maximum(KE_L), minimum(KE_H), maximum(KE_H))
+        minimum(KE_L), maximum(KE_L), minimum(KE_H), maximum(KE_H))
     @printf("  check: KE_L + KE_H = TKE to %.2e MeV\n",
-            maximum(abs.(KE_L .+ KE_H .- TKE_A)))
+        maximum(abs.(KE_L .+ KE_H .- TKE_A)))
     @printf("⟨TKE⟩(A) ranges %.1f–%.1f MeV, TXE(A) ranges %.1f–%.1f MeV\n",
-            minimum(TKE_A), maximum(TKE_A), minimum(TXE_A), maximum(TXE_A))
+        minimum(TKE_A), maximum(TKE_A), minimum(TXE_A), maximum(TXE_A))
 
     # The five yield-weighted totals the assignment asks for. Only ⟨TKE⟩ was
     # reported before.
@@ -171,10 +184,10 @@ function main()
     Q_A = TXE_A .- S_n .+ TKE_A
     println()
     for (name, q, unit) in (("⟨A_H⟩", Float64.(A_keep), ""),
-                            ("⟨A_L⟩", Float64.(A₀ .- A_keep), ""),
-                            ("⟨TKE⟩", TKE_A, " MeV"),
-                            ("⟨Q⟩", Q_A, " MeV"),
-                            ("⟨TXE⟩", TXE_A, " MeV"))
+        ("⟨A_L⟩", Float64.(A₀ .- A_keep), ""),
+        ("⟨TKE⟩", TKE_A, " MeV"),
+        ("⟨Q⟩", Q_A, " MeV"),
+        ("⟨TXE⟩", TXE_A, " MeV"))
         m, σ = yield_weighted_average(q, wA, σwA)
         @printf("  %-7s = %8.3f ± %.3f%s\n", name, m, σ, unit)
     end
@@ -206,8 +219,8 @@ function main()
     peak = A[argmax(Y_A)]
     text!(ax1, 0.97, 0.95;
         text = rich("Peak at ", it("A"), subscript("H"),
-                    @sprintf(" = %d, %.2f %%", peak, maximum(Y_A))),
-        space = :relative, align = (:right, :top), fontsize = 14, color = PALETTE.blue)
+            @sprintf(" = %d, %.2f %%", peak, maximum(Y_A))),
+        space = :relative, align = (:right, :top), fontsize = 14, color = PALETTE.blue,)
 
     ax2 = Axis(fig[1, 2], xlabel = L"$Z_H$", ylabel = L"Y($Z_H$) [%]")
     barplot!(ax2, Z, Y_Z, color = PALETTE.blue, strokewidth = 0.4)
@@ -223,19 +236,21 @@ function main()
     ax4 = Axis(fig[2, 2], xlabel = L"$A_H$", ylabel = "Energy [MeV]")
     l_tke = lines!(ax4, A_keep, TKE_A, color = PALETTE.blue, linewidth = 1.6)
     l_txe = lines!(ax4, A_keep, TXE_A, color = PALETTE.red, linewidth = 1.6)
-    l_kel = lines!(ax4, A_keep, KE_L, color = PALETTE.green, linewidth = 1.6, linestyle = :dash)
-    l_keh = lines!(ax4, A_keep, KE_H, color = PALETTE.purple, linewidth = 1.6, linestyle = :dash)
+    l_kel = lines!(
+        ax4, A_keep, KE_L, color = PALETTE.green, linewidth = 1.6, linestyle = :dash,)
+    l_keh = lines!(
+        ax4, A_keep, KE_H, color = PALETTE.purple, linewidth = 1.6, linestyle = :dash,)
     # Headroom: at :rt this legend sat on the ⟨TKE⟩ curve, which runs across the
     # top of the panel, and the curve crossed its KE_H swatch.
     ylims!(ax4, 0, maximum(TKE_A) * 1.42)
     ke = rich(it("KE"))
     axislegend(ax4, [l_tke, l_txe, l_kel, l_keh],
-               [rich("⟨", it("TKE"), "⟩(", it("A"), subscript("H"), ")"),
-                rich(it("TXE"), "(", it("A"), subscript("H"), ")"),
-                rich(ke, subscript("L"), "(", it("A"), subscript("H"), ")"),
-                rich(ke, subscript("H"), "(", it("A"), subscript("H"), ")")],
-               position = :lt, framevisible = false, labelsize = 14, nbanks = 2,
-               padding = 2)
+        [rich("⟨", it("TKE"), "⟩(", it("A"), subscript("H"), ")"),
+            rich(it("TXE"), "(", it("A"), subscript("H"), ")"),
+            rich(ke, subscript("L"), "(", it("A"), subscript("H"), ")"),
+            rich(ke, subscript("H"), "(", it("A"), subscript("H"), ")"),],
+        position = :lt, framevisible = false, labelsize = 14, nbanks = 2,
+        padding = 2,)
 
     println("\nwrote ", savefigure(fig, FIGURES, "fragment_yields"))
 end

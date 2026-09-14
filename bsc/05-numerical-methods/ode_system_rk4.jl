@@ -36,8 +36,8 @@ const C₃ = 3 + C₁ * sin(1) - C₂ * cos(1)
 
 "Exact solution, all three components."
 exact(t) = (C₁*cos(t) + C₂*sin(t) + 1 - exp(t),
-            -C₁*sin(t) + C₂*cos(t) - exp(t),
-            -C₁*sin(t) + C₂*cos(t) + C₃)
+    -C₁*sin(t) + C₂*cos(t) - exp(t),
+    -C₁*sin(t) + C₂*cos(t) + C₃,)
 
 """
     rk4_system(f, tspan, y₀, n)
@@ -55,8 +55,8 @@ function rk4_system(f, tspan, y₀, n)
         k₁ = f(t[i], u)
         k₂ = f(t[i] + h/2, u .+ h .* k₁ ./ 2)
         k₃ = f(t[i] + h/2, u .+ h .* k₂ ./ 2)
-        k₄ = f(t[i] + h,   u .+ h .* k₃)
-        y[:, i+1] .= u .+ (h/6) .* (k₁ .+ 2 .* k₂ .+ 2 .* k₃ .+ k₄)
+        k₄ = f(t[i] + h, u .+ h .* k₃)
+        y[:, i + 1] .= u .+ (h/6) .* (k₁ .+ 2 .* k₂ .+ 2 .* k₃ .+ k₄)
     end
     return collect(t), y
 end
@@ -69,7 +69,7 @@ function main()
     err = abs.(y .- ref)
     for k in 1:3
         @printf("component y%d: max |error| = %.3e,  final %.6f vs exact %.6f\n",
-                k, maximum(err[k, :]), y[k, end], ref[k, end])
+            k, maximum(err[k, :]), y[k, end], ref[k, end])
     end
 
     orders = map((25, 50, 100, 200, 400)) do n
@@ -94,35 +94,35 @@ function main()
     # here, so drawn at equal width the second simply erases the first
     push!(handles, lines!(ax1, t, ref[1, :], color = colours[1], linewidth = 4.0))
     push!(handles, lines!(ax1, t, ref[2, :], color = colours[2], linewidth = 1.6,
-        linestyle = :dash))
+        linestyle = :dash,))
     hidexdecorations!(ax1, grid = false)
     text!(ax1, 0.04, 0.06;
         text = rich(it("y"), subscript("1"), " and ", it("y"), subscript("2"),
-                    " are indistinguishable here:\nboth go as −", it("e"),
-                    superscript(rich("t", font = :italic)),
-                    ", and differ by the oscillatory part alone"),
-        space = :relative, align = (:left, :bottom), fontsize = 14)
+            " are indistinguishable here:\nboth go as −", it("e"),
+            superscript(rich("t", font = :italic)),
+            ", and differ by the oscillatory part alone",),
+        space = :relative, align = (:left, :bottom), fontsize = 14,)
 
     ax3 = Axis(top[2, 1], xlabel = L"t", ylabel = L"y_3(t)")
     lines!(ax3, t, ref[3, :], color = colours[3], linewidth = 1.4)
     push!(handles, scatter!(ax3, t[1:5:end], y[3, 1:5:end],
-          color = colours[3], markersize = MARKERSIZE.dense))
+        color = colours[3], markersize = MARKERSIZE.dense,))
     linkxaxes!(ax1, ax3)
     rowsize!(top, 1, Relative(0.62))
     rowgap!(top, 6)
 
     ax2 = Axis(fig[2, 2], xlabel = L"t", ylabel = "Absolute error",
-        yscale = log10, yticks = logticks(-8, -3; step = 2))
+        yscale = log10, yticks = logticks(-8, -3; step = 2),)
     for k in 1:3
         lines!(ax2, t[2:end], err[k, 2:end], color = colours[k], linewidth = 1.4)
     end
     text!(ax2, 0.04, 0.96;
         text = latexstring(@sprintf("\\text{Observed order } %.2f", slope)),
-        space = :relative, align = (:left, :top), fontsize = 15)
+        space = :relative, align = (:left, :top), fontsize = 15,)
 
     Legend(fig[1, 1:2], handles,
         [L"y_1", L"y_2", L"$y_3$, with the RK4 points"],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 26)
+        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 26,)
 
     rowsize!(fig.layout, 2, Relative(0.85))
     path = savefigure(fig, FIGURES, "ode_system_rk4")

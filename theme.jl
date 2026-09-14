@@ -21,6 +21,7 @@ set_theme!(Theme(
 ))
 
 "Okabe–Ito, colourblind-safe. One consistent colour per quantity across the repository."
+#! format: off
 const PALETTE = (
     blue   = "#0072B2",
     orange = "#E69F00",
@@ -31,6 +32,7 @@ const PALETTE = (
     yellow = "#F0E442",
     black  = "#000000",
 )
+#! format: on
 
 """
 Marker sizes, one scale for the whole repository, chosen against the shared
@@ -47,8 +49,8 @@ journal column width.
 """
 const MARKERSIZE = (cloud = 5, dense = 10, data = 14, emphasis = 19, key = 16)
 
-_decimal_label(e::Integer) =
-    e >= 0 ? latexstring(string(10^e)) : latexstring("0." * "0"^(-e - 1) * "1")
+_decimal_label(e::Integer) = e >= 0 ? latexstring(string(10^e)) :
+                             latexstring("0." * "0"^(-e - 1) * "1")
 
 _power_label(e::Integer) = latexstring("10^{$e}")
 

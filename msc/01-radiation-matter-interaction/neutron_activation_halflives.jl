@@ -59,7 +59,7 @@ its standard error, and the fitted values.
 function decay_fit(t, N)
     y = log.(N[1] ./ N[2:end])
     x = t[2:end]
-    C = [i == j ? 1/N[1] + 1/N[i+1] : 1/N[1] for i in eachindex(x), j in eachindex(x)]
+    C = [i == j ? 1/N[1] + 1/N[i + 1] : 1/N[1] for i in eachindex(x), j in eachindex(x)]
     M = hcat(ones(length(x)), x)
     W = inv(C)
     p = (M' * W * M) \ (M' * W * y)
@@ -78,9 +78,10 @@ function main()
     E_peak = pc[1] + pc[2] * peak_channel
     σ_peak = sqrt(σc[1]^2 + (peak_channel * σc[2])^2)
     @printf("NaI(Tl) calibration: E = %.2f + %.4f × channel\n", pc[1], pc[2])
-    @printf("studied peak at channel %.0f -> %.1f ± %.1f keV\n", peak_channel, E_peak, σ_peak)
+    @printf("studied peak at channel %.0f -> %.1f ± %.1f keV\n", peak_channel, E_peak,
+        σ_peak)
     @printf("  (an extrapolation: the lowest calibration point is channel %.0f)\n",
-            minimum(CAL_CHANNEL))
+        minimum(CAL_CHANNEL))
     @printf("  ¹²⁸I emits a γ at 442.9 keV\n\n")
 
     fig = Figure(size = (1000, 450))
@@ -90,17 +91,21 @@ function main()
     # not be read at all.
     ax2 = Axis(fig[2, 2], xlabel = "", ylabel = L"$T_{1/2}$ [min]", yscale = log10,
         yticks = ([2, 5, 10, 20, 30], [L"2", L"5", L"10", L"20", L"30"]),
-        xticks = (1:length(SERIES), [s[1] for s in SERIES]))
+        xticks = (1:length(SERIES), [s[1] for s in SERIES]),)
 
     handles = []
-    measured = Float64[]; errors = Float64[]; reference = Float64[]
+    measured = Float64[]
+    errors = Float64[]
+    reference = Float64[]
     for (k, (label, t, N, T_lit)) in enumerate(SERIES)
         λ, σλ, x, y, p = decay_fit(t, N)
         T½ = log(2) / λ / 60
         σT = log(2) / λ^2 / 60 * σλ
-        push!(measured, T½); push!(errors, σT); push!(reference, T_lit)
+        push!(measured, T½)
+        push!(errors, σT)
+        push!(reference, T_lit)
         @printf("%-5s  λ = %.3e ± %.1e s⁻¹   T½ = %6.3f ± %.3f min   literature %6.3f   (%.1fσ)\n",
-                label, λ, σλ, T½, σT, T_lit, abs(T½ - T_lit) / σT)
+            label, λ, σλ, T½, σT, T_lit, abs(T½ - T_lit) / σT)
 
         col = (PALETTE.blue, PALETTE.orange, PALETTE.green)[k]
         push!(handles, scatter!(ax1, x, y, color = col, markersize = MARKERSIZE.data))
@@ -109,24 +114,24 @@ function main()
     end
 
     errorbars!(ax2, 1:length(SERIES), measured, errors,
-        color = PALETTE.black, whiskerwidth = 14)
+        color = PALETTE.black, whiskerwidth = 14,)
     m_meas = scatter!(ax2, 1:length(SERIES), measured, color = PALETTE.black,
-        markersize = MARKERSIZE.data)
+        markersize = MARKERSIZE.data,)
     m_lit = scatter!(ax2, 1:length(SERIES), reference, color = PALETTE.red,
-        markersize = MARKERSIZE.emphasis + 8, marker = :hline)
+        markersize = MARKERSIZE.emphasis + 8, marker = :hline,)
     for (k, (label, _, _, T_lit)) in enumerate(SERIES)
         text!(ax2, k + 0.12, measured[k];
             text = @sprintf("%.2fσ", abs(measured[k] - T_lit) / errors[k]),
-            align = (:left, :center), fontsize = 14, color = PALETTE.black)
+            align = (:left, :center), fontsize = 14, color = PALETTE.black,)
     end
     xlims!(ax2, 0.5, length(SERIES) + 0.75)
     # A legend, not a sentence naming a colour: "red" fails in grey scale and
     # for a colour-blind reader, which is what the palette is chosen to avoid.
     axislegend(ax2, [m_meas, m_lit], ["Measured", "Evaluated"],
-        position = :lt, framevisible = false, labelsize = 15, padding = 2)
+        position = :lt, framevisible = false, labelsize = 15, padding = 2,)
 
     Legend(fig[1, 1:2], handles, [s[1] for s in SERIES],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 26)
+        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 26,)
     rowsize!(fig.layout, 2, Relative(0.85))
     println("\nwrote ", savefigure(fig, FIGURES, "neutron_activation_halflives"))
 end

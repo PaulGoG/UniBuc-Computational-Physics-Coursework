@@ -28,7 +28,7 @@ const FIGURES = joinpath(@__DIR__, "figures")
 
 "Constraints as (a₁, a₂, b) meaning a₁x₁ + a₂x₂ ≤ b, including the sign bounds."
 const CONSTRAINTS = [(1.0, 1.0, 3.0), (-1.0, 3.0, 1.0), (0.0, 1.0, 3.0),
-                     (-1.0, 0.0, 0.0), (0.0, -1.0, 0.0)]
+    (-1.0, 0.0, 0.0), (0.0, -1.0, 0.0),]
 objective(x₁, x₂) = x₁ + x₂
 
 "Is the point inside every constraint, to within `tol`?"
@@ -41,14 +41,17 @@ All feasible intersections of constraint pairs — the vertices of the polytope.
 """
 function vertices()
     pts = Tuple{Float64,Float64}[]
-    for i in 1:length(CONSTRAINTS), j in (i+1):length(CONSTRAINTS)
+    for i in 1:length(CONSTRAINTS), j in (i + 1):length(CONSTRAINTS)
+
         (a₁, a₂, b₁) = CONSTRAINTS[i]
         (c₁, c₂, b₂) = CONSTRAINTS[j]
         det = a₁*c₂ - a₂*c₁
         abs(det) < 1e-12 && continue
         p = ((b₁*c₂ - a₂*b₂) / det, (a₁*b₂ - b₁*c₁) / det)
-        feasible(p) && !any(q -> isapprox(q[1], p[1]; atol=1e-9) &&
-                                 isapprox(q[2], p[2]; atol=1e-9), pts) && push!(pts, p)
+        feasible(p) &&
+            !any(
+                q -> isapprox(q[1], p[1]; atol = 1e-9) &&
+                     isapprox(q[2], p[2]; atol = 1e-9), pts,) && push!(pts, p)
     end
     return pts
 end
@@ -62,10 +65,11 @@ function main()
     println("feasible vertices and objective:")
     for (p, v) in zip(V, values)
         @printf("  (%.4f, %.4f)  ->  %.4f%s\n", p[1], p[2], v,
-                isapprox(v, best; atol=1e-9) ? "   <- optimal" : "")
+            isapprox(v, best; atol = 1e-9) ? "   <- optimal" : "")
     end
     @printf("optimum = %.4f, attained at %d vertices\n", best, length(optimal))
-    length(optimal) > 1 && println("the optimal face is a segment: the solution is NOT unique")
+    length(optimal) > 1 &&
+        println("the optimal face is a segment: the solution is NOT unique")
 
     # is constraint 3 ever active at a feasible vertex?
     active3 = count(p -> isapprox(p[2], 3.0; atol = 1e-9), V)
@@ -76,13 +80,13 @@ function main()
 
     order = sortperm([atan(p[2] - 1, p[1] - 1) for p in V])
     l_feas = poly!(ax, Point2f[V[order]...], color = (PALETTE.sky, 0.35),
-          strokewidth = 1.5, strokecolor = PALETTE.blue)
+        strokewidth = 1.5, strokecolor = PALETTE.blue,)
     l_vert = scatter!(ax, first.(V), last.(V), color = PALETTE.blue,
-        markersize = MARKERSIZE.data)
+        markersize = MARKERSIZE.data,)
 
     seg = sort(optimal, by = first)
     l_opt = lines!(ax, [seg[1][1], seg[end][1]], [seg[1][2], seg[end][2]],
-        color = PALETTE.red, linewidth = 5)
+        color = PALETTE.red, linewidth = 5,)
 
     # The objective contours are the reason the optimum is a face and not a
     # vertex -- they are parallel to the binding constraint -- so they need
@@ -90,28 +94,28 @@ function main()
     local l_obj
     for c in -1:4
         l_obj = lines!(ax, [0, 3.6], [c - 0, c - 3.6], color = (PALETTE.black, 0.3),
-               linestyle = :dot, linewidth = 1.0)
+            linestyle = :dot, linewidth = 1.0,)
     end
 
     # x₂ ≤ 3 is redundant, and a panel that stops at x₂ = 2 cannot show it. The
     # axis reaches the constraint and draws it, so that "active at no feasible
     # vertex" is something the reader can check.
     l_red = hlines!(ax, [3.0], color = PALETTE.purple, linestyle = :dashdot,
-        linewidth = 1.6)
+        linewidth = 1.6,)
 
     limits!(ax, -0.2, 3.6, -0.2, 3.4)
     text!(ax, 3.55, 3.05; text = rich(it("x"), subscript("2"), " ≤ 3, redundant"),
-        align = (:right, :top), color = PALETTE.purple, fontsize = 15)
+        align = (:right, :top), color = PALETTE.purple, fontsize = 15,)
     text!(ax, 0.97, 0.62;
         text = @sprintf("Optimum %.0f on the whole segment\n(3, 0) – (2, 1)", best),
-        space = :relative, align = (:right, :top), color = PALETTE.red, fontsize = 15)
+        space = :relative, align = (:right, :top), color = PALETTE.red, fontsize = 15,)
 
     Legend(fig[1, 1], [l_feas, l_vert, l_opt, l_obj],
         ["Feasible region", "Vertices", "Optimal face",
-         rich("Objective contours ", it("x"), subscript("1"), " + ", it("x"),
-              subscript("2"))],
+            rich("Objective contours ", it("x"), subscript("1"), " + ", it("x"),
+                subscript("2"),),],
         orientation = :horizontal, framevisible = false, labelsize = 15,
-        nbanks = 2, colgap = 18)
+        nbanks = 2, colgap = 18,)
     rowsize!(fig.layout, 2, Relative(0.84))
     path = savefigure(fig, FIGURES, "linear_program")
     println("wrote ", path)

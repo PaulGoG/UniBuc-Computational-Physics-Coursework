@@ -1,9 +1,13 @@
-# Formatting rules for the whole archive. Chosen to match the style the scripts
-# were already written in rather than to impose a new one, so that running the
-# formatter over a file is a no-op unless something has drifted.
+# Formatting rules for the whole archive. SciMLStyle rather than the default:
+# the default splits any call wider than the margin to one argument per line,
+# which turns `text!(ax, 0.5, 0.9; text = ..., align = ...)` into six lines and
+# `set_theme!(Theme(...))` into twenty, and reads far worse than what these
+# scripts were written as. SciMLStyle is built for hand-written scientific
+# Julia and keeps such calls together.
 #
 #   julia --project=. -e 'using JuliaFormatter; format(".")'
 
+style = "sciml"
 indent = 4
 margin = 92
 
@@ -13,6 +17,10 @@ whitespace_ops_in_indices = true
 
 # `for i in 1:n`, never `for i = 1:n`.
 always_for_in = true
+
+# Keep the comma on the last entry of a multi-line call or tuple, so that adding
+# an entry later touches one line rather than two.
+trailing_comma = true
 
 # Left alone deliberately: the docstrings are written to be read as prose and
 # reflowing them to the margin breaks the equations and tables inside them;

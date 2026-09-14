@@ -30,12 +30,12 @@ and return a `Dict{Tuple{Int,Int},Nuclide}` keyed on (Z, A).
 """
 function load_masses(path)
     df = CSV.read(path, DataFrame; header = ["Z", "A", "symbol", "Δ", "σΔ"],
-                  delim = ' ', ignorerepeated = true, silencewarnings = true)
+        delim = ' ', ignorerepeated = true, silencewarnings = true,)
     table = Dict{Tuple{Int,Int},Nuclide}()
     for row in eachrow(df)
         (ismissing(row.Z) || ismissing(row.A) || ismissing(row.Δ)) && continue
         table[(row.Z, row.A)] = Nuclide(row.Z, row.A, string(row.symbol),
-                                        row.Δ, ismissing(row.σΔ) ? 0.0 : row.σΔ)
+            row.Δ, ismissing(row.σΔ) ? 0.0 : row.σΔ,)
     end
     return table
 end

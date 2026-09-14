@@ -62,17 +62,17 @@ function main()
     Z_full, _ = quadgk(target, -Inf, Inf)
     Z_trunc, _ = quadgk(target, A, B)
     @printf("acceptance rate    = %.4f  (expected %.4f = Z_trunc / (b-a)·M)\n",
-            rate, Z_trunc / (B - A))
+        rate, Z_trunc / (B - A))
     @printf("normalisation      full line %.6f, truncated to [%.0f, %.0f] %.6f\n",
-            Z_full, A, B, Z_trunc)
+        Z_full, A, B, Z_trunc)
     @printf("mass discarded by truncation = %.4f %%\n", 100 * (1 - Z_trunc / Z_full))
     @printf("sample mean %.5f vs analytic %.5f\n",
-            mean(x), quadgk(u -> u * target(u), A, B)[1] / Z_trunc)
+        mean(x), quadgk(u -> u * target(u), A, B)[1] / Z_trunc)
 
     fig = Figure(size = (820, 480))
     ax = Axis(fig[2, 1], xlabel = L"x", ylabel = "Density")
     h_s = hist!(ax, x, bins = range(A, B, length = 120), normalization = :pdf,
-        color = (PALETTE.blue, 0.6), strokewidth = 0.4, strokecolor = PALETTE.blue)
+        color = (PALETTE.blue, 0.6), strokewidth = 0.4, strokecolor = PALETTE.blue,)
     xf = range(A, B, length = 500)
     l_t = lines!(ax, xf, target.(xf) ./ Z_trunc, color = PALETTE.red, linewidth = 2)
     vlines!(ax, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
@@ -80,17 +80,18 @@ function main()
     ylims!(ax, -0.015, 0.645)
     text!(ax, 0.02, 0.98;
         text = rich("Acceptance ", @sprintf("%.2f %%", 100rate), " measured against ",
-                    @sprintf("%.2f %%", 100 * Z_trunc / (B - A)), " analytic\nfrom ",
-                    rsci(float(n); digits = 0), " samples"),
-        space = :relative, align = (:left, :top), fontsize = 15)
+            @sprintf("%.2f %%", 100 * Z_trunc / (B - A)), " analytic\nfrom ",
+            rsci(float(n); digits = 0), " samples",),
+        space = :relative, align = (:left, :top), fontsize = 15,)
     text!(ax, 0.98, 0.98;
         text = rich(it("σ"), " = 1 below zero, ", it("σ"), " = 1/2 above\n",
-                    "truncated to [−3, 3], discarding ",
-                    @sprintf("%.2f %%", 100 * (1 - Z_trunc / Z_full)), " of the mass"),
-        space = :relative, align = (:right, :top), fontsize = 15, justification = :right)
+            "truncated to [−3, 3], discarding ",
+            @sprintf("%.2f %%", 100 * (1 - Z_trunc / Z_full)), " of the mass",),
+        space = :relative, align = (:right, :top), fontsize = 15, justification = :right,)
 
-    Legend(fig[1, 1], [h_s, l_t], ["Rejection samples", "Target, truncated and normalised"],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24)
+    Legend(
+        fig[1, 1], [h_s, l_t], ["Rejection samples", "Target, truncated and normalised"],
+        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24,)
 
     rowsize!(fig.layout, 2, Relative(0.86))
     path = savefigure(fig, FIGURES, "rejection_sampling")

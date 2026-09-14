@@ -70,9 +70,11 @@ the single most probable charge instead raises ⟨Q⟩, and so TXE, by about
 function charge_averaged_q(masses, Δ₀, A_H)
     Zp = Z₀ * A_H / A₀ + ΔZ_POL
     centre = round(Int, Zp)
-    num = 0.0; den = 0.0
+    num = 0.0
+    den = 0.0
     for z in (centre - 1, centre, centre + 1)
-        δH = Δ(masses, z, A_H); δL = Δ(masses, Z₀ - z, A₀ - A_H)
+        δH = Δ(masses, z, A_H)
+        δL = Δ(masses, Z₀ - z, A₀ - A_H)
         (δH === nothing || δL === nothing) && continue
         w = exp(-(z - Zp)^2 / (2σ_Z^2))
         num += w * (Δ₀ - δH - δL) / 1000
@@ -84,7 +86,8 @@ end
 "Gilbert–Cameron level-density parameter in MeV⁻¹."
 function level_density(A, Z, gc)
     haskey(gc, Z) && haskey(gc, A - Z) || return nothing
-    S_Z = gc[Z][2]; S_N = gc[A - Z][1]
+    S_Z = gc[Z][2]
+    S_N = gc[A - Z][1]
     return A * (0.00917 * (S_Z + S_N) + 0.142)
 end
 
@@ -112,7 +115,8 @@ function scission_deformation(Z)
     Z <= first(SCISSION_BETA)[1] && return first(SCISSION_BETA)[2]
     Z >= last(SCISSION_BETA)[1] && return last(SCISSION_BETA)[2]
     for i in 1:(length(SCISSION_BETA) - 1)
-        (z1, b1) = SCISSION_BETA[i]; (z2, b2) = SCISSION_BETA[i+1]
+        (z1, b1) = SCISSION_BETA[i]
+        (z2, b2) = SCISSION_BETA[i + 1]
         z1 <= Z <= z2 && return b1 + (b2 - b1) * (Z - z1) / (z2 - z1)
     end
     return 0.0
@@ -147,8 +151,8 @@ end
 Energy in MeV stored in deforming a fragment from its ground-state β to its
 scission β, `E_LDM(β_sciss) − E_LDM(β_gs)`.
 """
-extra_deformation_energy(A, Z, β_gs) =
-    ldm_energy(A, Z, scission_deformation(Z)) - ldm_energy(A, Z, β_gs)
+extra_deformation_energy(A, Z, β_gs) = ldm_energy(A, Z, scission_deformation(Z)) -
+                                       ldm_energy(A, Z, β_gs)
 
 function main()
     y = load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR"))
@@ -162,23 +166,29 @@ function main()
     # charge range from the data, not from the shell-correction table index
     @printf("Z_H present in the yield matrix: %d–%d\n", minimum(y.Z_H), maximum(y.Z_H))
     @printf("the original loop bound ran Z_H from %d to %d, the index column of SZSN.GC\n\n",
-            minimum(keys(gc)), maximum(keys(gc)))
+        minimum(keys(gc)), maximum(keys(gc)))
 
-    A_list = Int[]; ν_H = Float64[]; ν_L = Float64[]; ν_tot = Float64[]
+    A_list = Int[]
+    ν_H = Float64[]
+    ν_L = Float64[]
+    ν_tot = Float64[]
     yield_A = Float64[]                    # mass yield, the weight for every average
-    R_ld = Float64[]; R_def = Float64[]
+    R_ld = Float64[]
+    R_def = Float64[]
     for a in sort(unique(y.A_H))
         sub = y[y.A_H .== a, :]
         sum(sub.Y) > 0 || continue
         tke = sum(sub.TKE .* sub.Y) / sum(sub.Y)
         Zp = round(Int, Z₀ * a / A₀ - 0.5)
-        aL = A₀ - a; ZL = Z₀ - Zp
+        aL = A₀ - a
+        ZL = Z₀ - Zp
         q = charge_averaged_q(masses, Δ₀, a)
         q === nothing && continue
         TXE = q + S_n_compound - tke
         TXE > 0 || continue
 
-        aH_ld = level_density(a, Zp, gc); aL_ld = level_density(aL, ZL, gc)
+        aH_ld = level_density(a, Zp, gc)
+        aL_ld = level_density(aL, ZL, gc)
         (aH_ld === nothing || aL_ld === nothing) && continue
         (aH_ld > 0 && aL_ld > 0) || continue
 
@@ -186,21 +196,27 @@ function main()
         a_tot = aH_ld + aL_ld
         T_m = sqrt(TXE / a_tot)
         ε_mean = 4 * T_m / 3
-        S_H = separation_cost(masses, Zp, a); S_L = separation_cost(masses, ZL, aL)
+        S_H = separation_cost(masses, Zp, a)
+        S_L = separation_cost(masses, ZL, aL)
         (S_H === nothing || S_L === nothing) && continue
         S_mean = (S_H + S_L) / 2
-        pp = p_term(A₀, Z₀); qq = q_term(A₀, Z₀)
+        pp = p_term(A₀, Z₀)
+        qq = q_term(A₀, Z₀)
         TXE > qq || continue
         ν_pair = (TXE - qq) / (ε_mean + S_mean + pp)
 
         # split by the level-density ratio, the statistical-equilibrium limit
         R = aH_ld / a_tot
-        push!(A_list, a); push!(ν_H, ν_pair * R); push!(ν_L, ν_pair * (1 - R))
-        push!(ν_tot, ν_pair); push!(yield_A, sum(sub.Y))
+        push!(A_list, a)
+        push!(ν_H, ν_pair * R)
+        push!(ν_L, ν_pair * (1 - R))
+        push!(ν_tot, ν_pair)
+        push!(yield_A, sum(sub.Y))
 
         # the deformation route, for comparison: the same statistical split of
         # what is left after each fragment pays for its own extra deformation
-        bH = get(β_gs, (Zp, a), nothing); bL = get(β_gs, (ZL, aL), nothing)
+        bH = get(β_gs, (Zp, a), nothing)
+        bL = get(β_gs, (ZL, aL), nothing)
         if bH !== nothing && bL !== nothing
             ΔH = extra_deformation_energy(a, Zp, bH)
             ΔL = extra_deformation_energy(aL, ZL, bL)
@@ -215,7 +231,7 @@ function main()
 
     @printf("ν computed for %d mass splits\n", length(A_list))
     @printf("systematics terms for ²³⁶U: p = %.3f MeV, q = %.3f MeV\n",
-            p_term(A₀, Z₀), q_term(A₀, Z₀))
+        p_term(A₀, Z₀), q_term(A₀, Z₀))
     ν_weighted = sum(ν_tot .* yield_A) / sum(yield_A)
     @printf("mean total multiplicity <nu_pair> = %.3f, yield-weighted\n", ν_weighted)
     @printf("  unweighted over mass splits      = %.3f\n", mean(ν_tot))
@@ -223,7 +239,7 @@ function main()
     @printf("  above the yield-weighted mean and a yield around 10^-4 of the peak,\n")
     @printf("  so counting them equally inflates the average.\n")
     @printf("evaluated value for ²³⁵U(n_th,f): 2.42 — the model is %+.0f %% off\n",
-            100 * (ν_weighted / 2.42 - 1))
+        100 * (ν_weighted / 2.42 - 1))
     @printf("the residual is the model: prompt γ emission competes for the same\n")
     @printf("excitation energy and carries off 6–7 MeV per fission, which this\n")
     @printf("balance does not account for.\n\n")
@@ -231,10 +247,10 @@ function main()
     @printf("excitation-energy share of the heavy fragment, R = E*_H/TXE:\n")
     @printf("  level-density ratio alone      <R> = %.3f\n", mean(R_ld))
     @printf("  with the scission deformation  <R> = %.3f   (%d splits)\n",
-            mean(R_def), length(R_def))
+        mean(R_def), length(R_def))
     @printf("They differ by %.3f, or %.0f %% — paying for the extra deformation\n",
-            abs(mean(R_def) - mean(R_ld)),
-            100 * abs(mean(R_def) - mean(R_ld)) / mean(R_ld))
+        abs(mean(R_def) - mean(R_ld)),
+        100 * abs(mean(R_def) - mean(R_ld)) / mean(R_ld))
     @printf("first moves the heavy fragment from just above half the excitation\n")
     @printf("energy to just below it. That is not negligible. ν(A) below is still\n")
     @printf("computed from the level-density ratio alone, because the deformation\n")
@@ -243,15 +259,15 @@ function main()
     @printf("The comparison is reported rather than chosen between.\n\n")
 
     sets = [("Göök", "U5NUAGOOK.DAT", PALETTE.blue),
-            ("Maslin", "U5NUAMASLIN.DAT", PALETTE.orange),
-            ("Nishio", "U5NUANISHIO.DAT", PALETTE.green),
-            ("Vorobyev", "U5NUAVORO.DAT", PALETTE.purple)]
+        ("Maslin", "U5NUAMASLIN.DAT", PALETTE.orange),
+        ("Nishio", "U5NUANISHIO.DAT", PALETTE.green),
+        ("Vorobyev", "U5NUAVORO.DAT", PALETTE.purple),]
     measured = map(sets) do (name, file, colour)
         d = load_measurement(joinpath(DATA, "Date_experimentale", "Multiplicitate_n", file))
         keep = d.y .> 0
         @printf("%-9s %3d points with ν > 0, A %d–%d, mean ν = %.3f\n",
-                name, count(keep), Int(minimum(d.x[keep])), Int(maximum(d.x[keep])),
-                mean(d.y[keep]))
+            name, count(keep), Int(minimum(d.x[keep])), Int(maximum(d.x[keep])),
+            mean(d.y[keep]))
         (name = name, A = d.x[keep], ν = d.y[keep], σ = d.σ[keep], colour = colour)
     end
 
@@ -260,49 +276,50 @@ function main()
     handles = []
     for m in measured
         push!(handles, scatter!(ax, m.A, m.ν, color = (m.colour, 0.75),
-              markersize = MARKERSIZE.cloud + 2))
+            markersize = MARKERSIZE.cloud + 2,))
     end
     l_model = lines!(ax, A_list, ν_H, color = PALETTE.red, linewidth = 2)
     # The light-fragment branch is the same model in a different line style and
     # had no legend entry, so the dashed orange curve was unexplained.
     l_model_L = lines!(ax, A₀ .- A_list, ν_L, color = PALETTE.red, linewidth = 2,
-        linestyle = :dash)
-    xlims!(ax, 70, 170); ylims!(ax, 0, 3.9)
+        linestyle = :dash,)
+    xlims!(ax, 70, 170)
+    ylims!(ax, 0, 3.9)
     text!(ax, 0.98, 0.97;
         text = rich("⟨", it("ν"), subscript("pair"), @sprintf("⟩ = %.3f", ν_weighted),
-                    " against 2.42 evaluated"),
-        space = :relative, align = (:right, :top), fontsize = 15, color = PALETTE.red)
+            " against 2.42 evaluated",),
+        space = :relative, align = (:right, :top), fontsize = 15, color = PALETTE.red,)
 
     Legend(fig[1, 1], [handles; [l_model, l_model_L]],
         [[m.name for m in measured];
          ["Energy balance, heavy fragment", "Energy balance, light fragment"]],
         orientation = :horizontal, framevisible = false, labelsize = 15,
-        nbanks = 2, colgap = 18)
+        nbanks = 2, colgap = 18,)
 
     # The assignment asks for β at scission and β in the ground state against Z.
     # Plotting them is also the check on the parameterisation: the two zeros
     # must fall on the closed shells at Z = 28 and Z = 50.
     ax2 = Axis(fig[2, 2], xlabel = L"Fragment charge $Z$",
-        ylabel = L"Quadrupole deformation $\beta_2$")
+        ylabel = L"Quadrupole deformation $\beta_2$",)
     Zs = sort(unique(vcat(y.Z_H, Z₀ .- y.Z_H)))
     Zgrid = range(minimum(Zs), maximum(Zs), length = 400)
     gs_pts = [(Z, b) for ((Z, A), b) in β_gs if Z in Zs]
     l_gs = scatter!(ax2, first.(gs_pts), last.(gs_pts),
-        color = (PALETTE.sky, 0.35), markersize = MARKERSIZE.cloud)
+        color = (PALETTE.sky, 0.35), markersize = MARKERSIZE.cloud,)
     l_sc = lines!(ax2, Zgrid, scission_deformation.(Zgrid),
-        color = PALETTE.red, linewidth = 2)
+        color = PALETTE.red, linewidth = 2,)
     vlines!(ax2, [28, 50], color = PALETTE.black, linestyle = :dot, linewidth = 1.2)
     text!(ax2, 28, -0.22; text = rich(it("Z"), " = 28"),
-        align = (:center, :bottom), fontsize = 13)
+        align = (:center, :bottom), fontsize = 13,)
     text!(ax2, 50, -0.22; text = rich(it("Z"), " = 50"),
-        align = (:center, :bottom), fontsize = 13)
+        align = (:center, :bottom), fontsize = 13,)
     ylims!(ax2, -0.28, 0.88)
     axislegend(ax2,
         [MarkerElement(color = PALETTE.sky, marker = :circle,
-                       markersize = MARKERSIZE.key),
-         LineElement(color = PALETTE.red, linewidth = 2)],
+                markersize = MARKERSIZE.key,),
+            LineElement(color = PALETTE.red, linewidth = 2),],
         ["Ground state, Möller–Nix", "At scission"];
-        position = :rt, framevisible = false, labelsize = 14, padding = 4)
+        position = :rt, framevisible = false, labelsize = 14, padding = 4,)
 
     rowsize!(fig.layout, 2, Relative(0.86))
     colgap!(fig.layout, 1, 30)
@@ -311,7 +328,9 @@ end
 
 "Neutron separation energy of the fragment, MeV."
 function separation_cost(masses, Z, A)
-    d1 = Δ(masses, Z, A); d2 = Δ(masses, Z, A - 1); dn = Δ(masses, 0, 1)
+    d1 = Δ(masses, Z, A)
+    d2 = Δ(masses, Z, A - 1)
+    dn = Δ(masses, 0, 1)
     (d1 === nothing || d2 === nothing) && return nothing
     return (d2 + dn - d1) / 1000
 end

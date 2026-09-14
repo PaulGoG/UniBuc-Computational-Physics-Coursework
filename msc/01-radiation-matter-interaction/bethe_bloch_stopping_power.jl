@@ -57,8 +57,9 @@ function main()
     γ = E / ALPHA.Mc² + 1
     β = sqrt(1 - 1/γ^2)
     @printf("target: silicon, Z = %d, A = %.3f, ρ = %.3f g/cm³\n",
-            SILICON.Z, SILICON.A, SILICON.ρ / 1e6)
-    @printf("mean excitation potential I = %.1f eV\n", excitation_potential(SILICON.Z) * 1e6)
+        SILICON.Z, SILICON.A, SILICON.ρ / 1e6)
+    @printf("mean excitation potential I = %.1f eV\n",
+        excitation_potential(SILICON.Z) * 1e6)
     @printf("5 MeV α: γ = %.6f, β = %.5f\n", γ, β)
     @printf("dE/dx = %.1f MeV/cm = %.1f MeV cm²/g\n", S, S / (SILICON.ρ / 1e6))
 
@@ -67,7 +68,8 @@ function main()
     range_cm, _ = quadgk(e -> 1 / stopping_power(e, ALPHA, SILICON), E_low, E)
     @printf("\nCSDA range from %.1f to %.1f MeV = %.2f µm\n", E_low, E, range_cm * 1e4)
     @printf("a 5 MeV α in silicon has a full range of about 25 µm, so the missing\n")
-    @printf("piece is the sub-%.1f MeV portion. Below roughly that energy the Bethe\n", E_low)
+    @printf("piece is the sub-%.1f MeV portion. Below roughly that energy the Bethe\n",
+        E_low)
     @printf("logarithm turns over and the formula stops describing the physics --\n")
     @printf("the shell and Barkas corrections it omits are no longer small.\n")
 
@@ -82,7 +84,7 @@ function main()
         xticks = logticks(-1, 2),
         # explicit: over a range narrower than a decade and a half Makie labels
         # this axis 10^{3.3}, 10^{3.0}, ..., which no stopping power is read in
-        yticks = ([200, 500, 1000, 2000], [L"200", L"500", L"1000", L"2000"]))
+        yticks = ([200, 500, 1000, 2000], [L"200", L"500", L"1000", L"2000"]),)
     l = lines!(ax, energies, S_curve, color = PALETTE.blue, linewidth = 1.8)
     vlines!(ax, [E], color = PALETTE.red, linestyle = :dash, linewidth = 1.2)
     scatter!(ax, [E], [S], color = PALETTE.red, markersize = MARKERSIZE.emphasis)
@@ -90,13 +92,13 @@ function main()
     # legend entry that repeated this line is gone.
     text!(ax, E * 1.3, S;
         text = rich(@sprintf("%.0f MeV cm", S), superscript("−1"), " at 5 MeV"),
-        color = PALETTE.red, align = (:left, :center), fontsize = 16)
+        color = PALETTE.red, align = (:left, :center), fontsize = 16,)
     text!(ax, 0.97, 0.93;
         text = "Shell and Barkas corrections omitted;\nBethe–Bloch breaks down below ≈0.5 MeV",
-        space = :relative, align = (:right, :top), fontsize = 15)
+        space = :relative, align = (:right, :top), fontsize = 15,)
 
     Legend(fig[1, 1], [l], [L"$\alpha$ in silicon"],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24)
+        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24,)
     rowsize!(fig.layout, 2, Relative(0.86))
     println("wrote ", savefigure(fig, FIGURES, "bethe_bloch_stopping_power"))
 end

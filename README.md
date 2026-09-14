@@ -76,6 +76,12 @@ julia --project=. bsc/04-ising-model/ising_annealing.jl
 Any script runs the same way. Each writes its figures into its own `figures/`
 directory and prints its numerical results to the terminal.
 
+Formatting is checked against the committed `.JuliaFormatter.toml`:
+
+```bash
+julia --project=. -e 'using JuliaFormatter; format(".")'
+```
+
 ## What the rewrite found
 
 Every script is now checked against something — a closed-form solution, a

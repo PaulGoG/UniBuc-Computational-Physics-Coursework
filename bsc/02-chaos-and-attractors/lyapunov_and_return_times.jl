@@ -90,7 +90,7 @@ Intervals between successive interior local maxima of `d`. This is the
 function maxima_intervals(t, d)
     peaks = Int[]
     for i in 2:(length(d) - 1)
-        d[i] > d[i-1] && d[i] > d[i+1] && push!(peaks, i)
+        d[i] > d[i - 1] && d[i] > d[i + 1] && push!(peaks, i)
     end
     return length(peaks) > 1 ? diff(t[peaks]) : Float64[]
 end
@@ -107,9 +107,9 @@ function main()
     fig = Figure(size = (1020, 480))
     ax1 = Axis(fig[2, 1], xlabel = L"Time $t$",
         ylabel = L"Separation $|\Delta\mathbf{u}|$", yscale = log10,
-        yticks = logticks(-9, 3; step = 3))
+        yticks = logticks(-9, 3; step = 3),)
     ax2 = Axis(fig[2, 2], xlabel = L"Interval between separation maxima $[t]$",
-        ylabel = "Count")
+        ylabel = "Count",)
 
     handles = []
     measured = Float64[]
@@ -121,17 +121,17 @@ function main()
         λ = last(running)
         push!(measured, λ)
         @printf("%-8s  lambda_1 = %.4f   literature %.4f   ratio %.3f\n",
-                name, λ, reference, λ / reference)
+            name, λ, reference, λ / reference)
 
         intervals = maxima_intervals(t, d)
         @printf("%-8s  %d separation maxima, mean interval %.4f\n",
-                name, length(intervals) + 1, sum(intervals) / max(length(intervals), 1))
+            name, length(intervals) + 1, sum(intervals) / max(length(intervals), 1))
         hist!(ax2, intervals, bins = range(0, 4.0, length = 45),
-              color = (colour, 0.55), strokewidth = 0.5, strokecolor = colour)
+            color = (colour, 0.55), strokewidth = 0.5, strokecolor = colour,)
 
         # growth predicted by the measured exponent, anchored at the start
         lines!(ax1, t, D₀ .* exp.(λ .* t), color = colour,
-               linestyle = :dash, linewidth = 1.1)
+            linestyle = :dash, linewidth = 1.1,)
     end
 
     # Headroom above the saturated Lorenz trace: the note below sat inside the
@@ -139,19 +139,19 @@ function main()
     ylims!(ax1, 1e-10, 3e5)
     text!(ax1, 0.97, 0.03;
         text = rich("Dashed: ", it("d"), subscript("0"), it("e"),
-                    superscript(rich("λ", subscript("1"), it("t"))),
-                    " from the Benettin estimate"),
-        space = :relative, align = (:right, :bottom), fontsize = 15)
+            superscript(rich("λ", subscript("1"), it("t"))),
+            " from the Benettin estimate",),
+        space = :relative, align = (:right, :bottom), fontsize = 15,)
     text!(ax1, 0.97, 0.99;
         text = "Saturation at the attractor diameter",
-        space = :relative, align = (:right, :top), color = PALETTE.black, fontsize = 15)
+        space = :relative, align = (:right, :top), color = PALETTE.black, fontsize = 15,)
 
     # The measurement the 2018 project existed to make belongs on the figure.
     Legend(fig[1, 1:2], handles,
         [latexstring(@sprintf("\\text{%s, } \\lambda_1 = %.4f \\text{ (literature %.4f)}",
-                              c[4], m, c[6]))
+             c[4], m, c[6]))
          for (c, m) in zip(CASES, measured)],
-        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 26)
+        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 26,)
 
     rowsize!(fig.layout, 2, Relative(0.86))
     path = savefigure(fig, FIGURES, "lyapunov_and_return_times")

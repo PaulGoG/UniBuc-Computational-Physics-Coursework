@@ -61,7 +61,7 @@ function rk4_step(t, x, v, Δt, p)
     k3x, k3v = rhs(t + Δt/2, x + Δt*k2x/2, v + Δt*k2v/2, p...)
     k4x, k4v = rhs(t + Δt, x + Δt*k3x, v + Δt*k3v, p...)
     return (x + Δt/6 * (k1x + 2k2x + 2k3x + k4x),
-            v + Δt/6 * (k1v + 2k2v + 2k3v + k4v))
+        v + Δt/6 * (k1v + 2k2v + 2k3v + k4v),)
 end
 
 """
@@ -114,11 +114,11 @@ end
 # shows through the gaps in the purple. That coincidence is the result, and a
 # figure that hid it would be hiding the point.
 const CASES = (
-    ("Undamped (2018)",            1.0, 0.0,  0.0,  0.0, PALETTE.blue,   :solid, 4.0),
-    ("Critically damped (2018)",   1.0, 1.0,  0.0,  0.0, PALETTE.red,    :solid, 1.6),
-    ("Driven, δ = 0 (2018)",       1.0, 0.0, 10.0,  3.0, PALETTE.purple, :dash,  1.8),
-    ("Under-damped, δ = 0.15",     1.0, 0.15, 0.0,  0.0, PALETTE.orange, :dash,  1.6),
-    ("Driven, δ = 0.3, ω = 1.6",   1.0, 0.3,  1.0,  1.6, PALETTE.green,  :dash,  1.6),
+    ("Undamped (2018)", 1.0, 0.0, 0.0, 0.0, PALETTE.blue, :solid, 4.0),
+    ("Critically damped (2018)", 1.0, 1.0, 0.0, 0.0, PALETTE.red, :solid, 1.6),
+    ("Driven, δ = 0 (2018)", 1.0, 0.0, 10.0, 3.0, PALETTE.purple, :dash, 1.8),
+    ("Under-damped, δ = 0.15", 1.0, 0.15, 0.0, 0.0, PALETTE.orange, :dash, 1.6),
+    ("Driven, δ = 0.3, ω = 1.6", 1.0, 0.3, 1.0, 1.6, PALETTE.green, :dash, 1.6),
 )
 
 function main()
@@ -129,7 +129,7 @@ function main()
     ax = Axis(fig[2, 1],
         xlabel = L"Time $t$",
         ylabel = L"Phase-space separation $|\Delta(x, v)|$",
-        yscale = log10, yticks = logticks(-30, -5; step = 5))
+        yscale = log10, yticks = logticks(-30, -5; step = 5),)
 
     # the reference goes down first and stays thin, so that the two curves
     # sitting exactly on it are not overdrawn by their own guide
@@ -141,7 +141,7 @@ function main()
         push!(handles, lines!(ax, t, d, color = colour, linewidth = lw, linestyle = ls))
 
         @printf("%-26s |Δ(%.0f)| = %.3e   fitted decay rate = %.5f   input δ = %.5f\n",
-                label, t_end, last(d), fitted_decay_rate(t, d), δ)
+            label, t_end, last(d), fitted_decay_rate(t, d), δ)
     end
     println()
     println("the driving cancels in the difference, so the δ = 0 driven case has")
@@ -150,21 +150,22 @@ function main()
     println("its file handles had worked.")
 
     text!(ax, 0.02, 0.04;
-        text = rich("The difference obeys the homogeneous equation: it decays inside the envelope ",
-                    it("e"), superscript(rich("−δt", font = :italic)), " and never grows."),
-        space = :relative, align = (:left, :bottom), fontsize = 15)
+        text = rich(
+            "The difference obeys the homogeneous equation: it decays inside the envelope ",
+            it("e"), superscript(rich("−δt", font = :italic)), " and never grows.",),
+        space = :relative, align = (:left, :bottom), fontsize = 15,)
     # Headroom above d₀ so that the note sits beside the two curves it is about
     # rather than across the ones it is not.
     ylims!(ax, 1e-33, 1e-4)
     text!(ax, 0.98, 0.99;
         text = "The two 2018 δ = 0 cases coincide to every digit: the driving\nis the same along both trajectories and cancels in their difference",
         space = :relative, align = (:right, :top), fontsize = 15,
-        color = PALETTE.purple)
+        color = PALETTE.purple,)
 
     Legend(fig[1, 1], [handles; h_ref],
         [[c[1] for c in CASES]; L"Initial separation $d_0 = 10^{-7}$"],
         orientation = :horizontal, framevisible = false, labelsize = 14,
-        colgap = 14, nbanks = 2)
+        colgap = 14, nbanks = 2,)
 
     rowsize!(fig.layout, 2, Relative(0.86))
     path = savefigure(fig, FIGURES, "oscillator_trajectory_separation")

@@ -54,26 +54,31 @@ function main()
     @printf("Δ(²³⁶U) = %.1f keV, from %d tabulated nuclides\n", Δ₀, length(masses))
 
     A_H_range = A_H_RANGE
-    Q = Float64[]; A_kept = Int[]
+    Q = Float64[]
+    A_kept = Int[]
     for A_H in A_H_range
         A_L = A₀ - A_H
-        num = 0.0; den = 0.0
+        num = 0.0
+        den = 0.0
         # three charge splits about the most probable charge, as in Fisiune_1.jl
         for Z_H in (round(Int, Z_p(A_H)) - 1):(round(Int, Z_p(A_H)) + 1)
             Z_L = Z₀ - Z_H
-            δH = Δ(masses, Z_H, A_H); δL = Δ(masses, Z_L, A_L)
+            δH = Δ(masses, Z_H, A_H)
+            δL = Δ(masses, Z_L, A_L)
             (δH === nothing || δL === nothing) && continue
             q = (Δ₀ - δH - δL) / 1000        # MeV
             q > 0 || continue
             w = charge_weight(Z_H, A_H)
-            num += w * q; den += w
+            num += w * q
+            den += w
         end
         den > 0 || continue
-        push!(A_kept, A_H); push!(Q, num / den)
+        push!(A_kept, A_H)
+        push!(Q, num / den)
     end
 
     @printf("Q(A_H) over %d mass splits: mean %.2f MeV, range %.2f to %.2f\n",
-            length(Q), mean(Q), minimum(Q), maximum(Q))
+        length(Q), mean(Q), minimum(Q), maximum(Q))
     @printf("maximum at A_H = %d\n", A_kept[argmax(Q)])
     sym = findfirst(==(118), A_kept)
     sym !== nothing && @printf("symmetric split A_H = 118: Q = %.2f MeV\n", Q[sym])
@@ -81,15 +86,15 @@ function main()
 
     fig = Figure(size = (800, 470))
     ax = Axis(fig[2, 1], xlabel = L"Heavy fragment mass $A_H$",
-        ylabel = L"$Q$ [MeV]")
+        ylabel = L"$Q$ [MeV]",)
     l = lines!(ax, A_kept, Q, color = PALETTE.blue, linewidth = 1.8)
     h = hlines!(ax, [mean(Q)], color = PALETTE.red, linestyle = :dash, linewidth = 1.2)
     text!(ax, 0.04, 0.06; text = @sprintf("mean %.1f MeV", mean(Q)),
-        space = :relative, align = (:left, :bottom), color = PALETTE.red, fontsize = 15)
+        space = :relative, align = (:left, :bottom), color = PALETTE.red, fontsize = 15,)
 
     Legend(fig[1, 1], [l, h],
         [L"$Q(A_H)$, charge-averaged", "Mean over mass splits"],
-        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 22)
+        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 22,)
     rowsize!(fig.layout, 2, Relative(0.86))
     println("wrote ", savefigure(fig, FIGURES, "fission_q_value"))
 end

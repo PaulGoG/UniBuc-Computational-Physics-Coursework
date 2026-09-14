@@ -40,7 +40,7 @@ const FIGURES = joinpath(@__DIR__, "figures")
 
 "Hg I air wavelengths in ångström, as read on the spectroscope."
 const λ = [7091.99, 7081.88, 6907.16, 6716.17, 5790.65, 5769.60,
-           5460.74, 4916.04, 4358.35, 4077.81, 4046.56]
+    5460.74, 4916.04, 4358.35, 4077.81, 4046.56,]
 "Drum divisions."
 const x = [2.0, 7, 15, 17, 35, 36, 60, 85, 120, 180, 200]
 
@@ -66,15 +66,16 @@ function main()
     @printf("A = %10.4f ± %.4f divisions\n", p[1], σ[1])
     @printf("B = %10.4e ± %.2e division·Å²\n", p[2], σ[2])
     @printf("R² = %.6f,  RMS residual = %.3f divisions\n",
-            R², sqrt(mean(abs2, residuals)))
+        R², sqrt(mean(abs2, residuals)))
     @printf("largest residual %.3f divisions at λ = %.2f Å\n",
-            maximum(abs, residuals), λ[argmax(abs.(residuals))])
+        maximum(abs, residuals), λ[argmax(abs.(residuals))])
 
     # what the uncorrected 5789.66 value would have done
-    λ_original = copy(λ); λ_original[6] = 5789.66
+    λ_original = copy(λ)
+    λ_original[6] = 5789.66
     _, _, res_original, R²_original = cauchy_fit(λ_original, x)
     @printf("with the original value 5789.66 Å: R² = %.6f, RMS residual = %.3f\n",
-            R²_original, sqrt(mean(abs2, res_original)))
+        R²_original, sqrt(mean(abs2, res_original)))
 
     fig = Figure(size = (900, 520))
 
@@ -86,27 +87,27 @@ function main()
     # B carries units and an exponent; @sprintf("%e") wrote it 4.321e+09.
     text!(ax1, 0.97, 0.93;
         text = rich(it("A"), replace(@sprintf(" = %.2f div,   ", p[1]), "-" => "−"),
-                    it("B"), " = ",
-                    rsci(p[2]; digits = 3), " Å²,   ", it("R"), superscript("2"),
-                    @sprintf(" = %.3f", R²)),
-        space = :relative, align = (:right, :top), fontsize = 15, color = PALETTE.blue)
+            it("B"), " = ",
+            rsci(p[2]; digits = 3), " Å²,   ", it("R"), superscript("2"),
+            @sprintf(" = %.3f", R²)),
+        space = :relative, align = (:right, :top), fontsize = 15, color = PALETTE.blue,)
 
     ax2 = Axis(fig[3, 1], xlabel = L"Wavelength $\lambda$ [Å]",
-        ylabel = "Residual [div]")
+        ylabel = "Residual [div]",)
     # One zero line, not two: the stem baseline drew a second on top of this.
     hlines!(ax2, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
     stem!(ax2, λ, residuals, color = PALETTE.orange, stemcolor = PALETTE.orange,
-          trunkcolor = :transparent, markersize = MARKERSIZE.data)
+        trunkcolor = :transparent, markersize = MARKERSIZE.data,)
     text!(ax2, 0.97, 0.06;
         text = @sprintf("RMS residual %.1f div on a 2–200 div range",
-                        sqrt(mean(abs2, residuals))),
+            sqrt(mean(abs2, residuals))),
         space = :relative, align = (:right, :bottom), fontsize = 15,
-        color = PALETTE.orange)
+        color = PALETTE.orange,)
 
     linkxaxes!(ax1, ax2)
     Legend(fig[1, 1], [l_dat, l_fit],
         ["Hg I lines", L"Cauchy $x = A + B/\lambda^2$"],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24)
+        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24,)
 
     rowsize!(fig.layout, 2, Relative(0.62))
     rowgap!(fig.layout, 8)

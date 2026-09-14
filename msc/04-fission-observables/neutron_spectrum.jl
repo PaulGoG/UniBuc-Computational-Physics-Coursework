@@ -106,8 +106,9 @@ integral by the trapezoid rule so that shape rather than scale is fitted.
 Returns T_M and the reduced χ².
 """
 function fit_maxwellian(E, N, σN)
-    area = sum((N[1:end-1] .+ N[2:end]) ./ 2 .* diff(E))
-    n = N ./ area; s = σN ./ area
+    area = sum((N[1:(end - 1)] .+ N[2:end]) ./ 2 .* diff(E))
+    n = N ./ area
+    s = σN ./ area
     χ²(T) = sum(((n .- maxwellian.(E, T)) ./ s) .^ 2)
     # bounded: the original allowed T_M = 0, where T^(-3/2) is infinite
     res = optimize(χ², 0.3, 3.0, Brent())
@@ -127,7 +128,8 @@ absorbed into an overall normalisation.
 function mass_averaged_spectrum(E_grid, fragments; correct = true)
     N = zeros(length(E_grid))
     for (i, E) in enumerate(E_grid)
-        num = 0.0; den = 0.0
+        num = 0.0
+        den = 0.0
         for f in fragments
             N_L = madland_nix(E, f.E_f_L, f.T_m; correct = correct)
             N_H = madland_nix(E, f.E_f_H, f.T_m; correct = correct)
@@ -140,8 +142,9 @@ function mass_averaged_spectrum(E_grid, fragments; correct = true)
 end
 
 "Trapezoid weights for a non-uniform grid."
-trapz_weights(x) = [i == 1 ? (x[2]-x[1])/2 : i == length(x) ? (x[end]-x[end-1])/2 :
-                    (x[i+1]-x[i-1])/2 for i in eachindex(x)]
+trapz_weights(x) = [i == 1 ? (x[2]-x[1])/2 :
+                    i == length(x) ? (x[end]-x[end - 1])/2 :
+                    (x[i + 1]-x[i - 1])/2 for i in eachindex(x)]
 
 function main()
     # per-mass TXE, TKE and Y(A) from the yield matrix, exactly as the original
@@ -155,23 +158,25 @@ function main()
     fragments = NamedTuple[]
     for a in sort(unique(y.A_H))
         sub = y[y.A_H .== a, :]
-        Y = sum(sub.Y); Y > 0 || continue
+        Y = sum(sub.Y)
+        Y > 0 || continue
         TKE = sum(sub.TKE .* sub.Y) / Y
         Zp = round(Int, Z₀ * a / A₀ - 0.5)
-        δH = Δ(masses, Zp, a); δL = Δ(masses, Z₀ - Zp, A₀ - a)
+        δH = Δ(masses, Zp, a)
+        δL = Δ(masses, Z₀ - Zp, A₀ - a)
         (δH === nothing || δL === nothing) && continue
         TXE = (Δ₀ - δH - δL) / 1000 + S_n - TKE
         TXE > 0 || continue
         efl, efh = E_f_pair(A₀, a, TKE)
         push!(fragments, (A_H = a, Y = Y, TKE = TKE, TXE = TXE,
-                          T_m = T_max(A₀, TXE), E_f_L = efl, E_f_H = efh))
+            T_m = T_max(A₀, TXE), E_f_L = efl, E_f_H = efh,))
     end
     @printf("mass average over %d fragment masses, A_H %d–%d\n",
-            length(fragments), fragments[1].A_H, fragments[end].A_H)
+        length(fragments), fragments[1].A_H, fragments[end].A_H)
     @printf("  T_m spans %.3f–%.3f MeV, E_f spans %.3f–%.3f MeV\n\n",
-            minimum(f.T_m for f in fragments), maximum(f.T_m for f in fragments),
-            minimum(min(f.E_f_L, f.E_f_H) for f in fragments),
-            maximum(max(f.E_f_L, f.E_f_H) for f in fragments))
+        minimum(f.T_m for f in fragments), maximum(f.T_m for f in fragments),
+        minimum(min(f.E_f_L, f.E_f_H) for f in fragments),
+        maximum(max(f.E_f_L, f.E_f_H) for f in fragments))
 
     E = 10 .^ range(-1.3, log10(20), length = 260)
     good = mass_averaged_spectrum(E, fragments)
@@ -182,52 +187,54 @@ function main()
     E_mean_good = sum(w .* E .* good) / sum(w .* good)
     E_mean_bad = sum(w .* E .* bad) / sum(w .* bad)
     @printf("mass-averaged <E>:  correct %.4f MeV,  original prefactor %.4f MeV\n",
-            E_mean_good, E_mean_bad)
+        E_mean_good, E_mean_bad)
     @printf("equivalent Maxwellian (2/3)<E>: %.4f vs %.4f MeV\n",
-            2E_mean_good/3, 2E_mean_bad/3)
+        2E_mean_good/3, 2E_mean_bad/3)
     @printf("evaluated value for ²³⁵U(n_th,f): 1.32 MeV\n")
     @printf("the two differ by %.2f %% in <E> — the prefactor carries E_f and T_m,\n",
-            100 * (E_mean_bad / E_mean_good - 1))
+        100 * (E_mean_bad / E_mean_good - 1))
     @printf("both of which vary with A_H, so it reweights the mass average and\n")
     @printf("cannot be absorbed into an overall normalisation.\n\n")
 
     files = [("Göök, lab", "U5SPGOOK.DAT", PALETTE.blue),
-             ("Vorobyev, lab", "U5SPVORO.DAT", PALETTE.orange),
-             ("Göök, CM light", "U5SPCMLF.DAT", PALETTE.green),
-             ("Göök, CM heavy", "U5SPCMHF.DAT", PALETTE.purple)]
+        ("Vorobyev, lab", "U5SPVORO.DAT", PALETTE.orange),
+        ("Göök, CM light", "U5SPCMLF.DAT", PALETTE.green),
+        ("Göök, CM heavy", "U5SPCMHF.DAT", PALETTE.purple),]
     results = map(files) do (name, file, colour)
         d = load_measurement(joinpath(DATA, "Date_experimentale", "Spectru_n", file))
         keep = d.σ .> 0
         T, χ²ν = fit_maxwellian(d.x[keep], d.y[keep], d.σ[keep])
         @printf("%-16s %3d points, T_M = %.4f MeV, χ²/ν = %.2f\n",
-                name, count(keep), T, χ²ν)
+            name, count(keep), T, χ²ν)
         (name = name, d = d, keep = keep, T = T, χ²ν = χ²ν, colour = colour)
     end
 
     fig = Figure(size = (1000, 460))
     ax1 = Axis(fig[2, 1], xlabel = L"Neutron energy $E$ [MeV]",
         ylabel = L"$N(E)$ [arb.]", xscale = log10, yscale = log10,
-        xticks = logticks(-1, 1), yticks = logticks(-4, 0))
+        xticks = logticks(-1, 1), yticks = logticks(-4, 0),)
     l_g = lines!(ax1, E, good ./ maximum(good), color = PALETTE.blue, linewidth = 1.8)
     l_b = lines!(ax1, E, bad ./ maximum(bad), color = PALETTE.red,
-        linewidth = 1.6, linestyle = :dash)
+        linewidth = 1.6, linestyle = :dash,)
     ylims!(ax1, 1e-4, 2)
     text!(ax1, 0.03, 0.06;
         text = "shapes coincide after normalising;\nthe error is in the weight each\nfragment mass carries",
-        space = :relative, align = (:left, :bottom), fontsize = 14)
+        space = :relative, align = (:left, :bottom), fontsize = 14,)
 
     ax2 = Axis(fig[2, 2], xlabel = L"Neutron energy $E$ [MeV]",
-        ylabel = "Spectrum / Maxwellian fit")
+        ylabel = "Spectrum / Maxwellian fit",)
     handles = []
     for r in results
-        area = sum((r.d.y[r.keep][1:end-1] .+ r.d.y[r.keep][2:end]) ./ 2 .* diff(r.d.x[r.keep]))
+        area = sum((r.d.y[r.keep][1:(end - 1)] .+ r.d.y[r.keep][2:end]) ./ 2 .*
+                   diff(r.d.x[r.keep]))
         ratio_data = (r.d.y[r.keep] ./ area) ./ maxwellian.(r.d.x[r.keep], r.T)
-        push!(handles, scatterlines!(ax2, r.d.x[r.keep], ratio_data,
-              color = r.colour, markersize = MARKERSIZE.cloud + 1, linewidth = 1.2))
+        push!(handles,
+            scatterlines!(ax2, r.d.x[r.keep], ratio_data,
+                color = r.colour, markersize = MARKERSIZE.cloud + 1, linewidth = 1.2,),)
     end
     hlines!(ax2, [1.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
     text!(ax2, 13.7, 1.02; text = "Maxwellian fit", space = :data,
-        align = (:right, :bottom), fontsize = 13, color = PALETTE.black)
+        align = (:right, :bottom), fontsize = 13, color = PALETTE.black,)
     ylims!(ax2, 0.6, 1.62)
     # The two centre-of-mass sets are counting-limited above about 6 MeV and
     # their excursions ran off the top of the panel; the ratio is only
@@ -237,10 +244,10 @@ function main()
     Legend(fig[1, 1:2], [[l_g, l_b]; handles],
         [["Madland–Nix, correct", "Madland–Nix, original prefactor"];
          [rich(r.name, ", ", it("T"), subscript("M"),
-               @sprintf(" = %.2f MeV, ", r.T), it("χ"), superscript("2"), "/",
-               it("ν"), @sprintf(" = %.2f", r.χ²ν)) for r in results]],
+              @sprintf(" = %.2f MeV, ", r.T), it("χ"), superscript("2"), "/",
+              it("ν"), @sprintf(" = %.2f", r.χ²ν)) for r in results]],
         orientation = :horizontal, framevisible = false, labelsize = 14,
-        nbanks = 2, colgap = 14)
+        nbanks = 2, colgap = 14,)
     rowsize!(fig.layout, 2, Relative(0.80))
     println("\nwrote ", savefigure(fig, FIGURES, "neutron_spectrum"))
 end

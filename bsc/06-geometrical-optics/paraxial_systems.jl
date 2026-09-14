@@ -54,8 +54,8 @@ function system_matrix(R, n, d)
     S = Matrix{Float64}(I, 2, 2)
     for i in eachindex(R)
         k = length(R) - i + 1
-        S = S * refraction(n[k], n[k+1], R[k])
-        k > 1 && (S = S * transfer(d[k-1], n[k]))
+        S = S * refraction(n[k], n[k + 1], R[k])
+        k > 1 && (S = S * transfer(d[k - 1], n[k]))
     end
     return S
 end
@@ -71,15 +71,15 @@ separation is `sum(d) + zH1 + zH2`, consistent with placing H₁ at `-zH1` from 
 and H₂ at `sum(d)+zH2` from V₂.
 """
 function cardinal(S, d)
-    A, B, C, D = S[1,1], S[1,2], S[2,1], S[2,2]
+    A, B, C, D = S[1, 1], S[1, 2], S[2, 1], S[2, 2]
     f = -1 / B
     return (f = f,
-            power = -B,
-            zf1 = -A / B,
-            zf2 = -D / B,
-            zH1 = (1 - A) / B,
-            zH2 = (1 - D) / B,
-            interstice = sum(d) + (1 - A)/B + (1 - D)/B)
+        power = -B,
+        zf1 = -A / B,
+        zf2 = -D / B,
+        zH1 = (1 - A) / B,
+        zH2 = (1 - D) / B,
+        interstice = sum(d) + (1 - A)/B + (1 - D)/B,)
 end
 
 """
@@ -89,7 +89,7 @@ Image position and transverse magnification for an object at `z₁` before the
 first vertex.
 """
 function conjugate(S, z₁)
-    A, B, C, D = S[1,1], S[1,2], S[2,1], S[2,2]
+    A, B, C, D = S[1, 1], S[1, 2], S[2, 1], S[2, 2]
     denom = A + z₁ * B
     abs(denom) < 1e-12 && return (z₂ = Inf, magnification = Inf)
     z₂ = -(z₁ * D + C) / denom
@@ -127,7 +127,7 @@ function check_thin_lens()
     S = system_matrix([R1, R2], [1.0, n_glass, 1.0], [0.0])
     c = cardinal(S, [0.0])
     @printf("thin-lens check: f = %.6f mm, lensmaker 1/P = %.6f mm, zH1 = %.2e, zH2 = %.2e\n",
-            c.f, 1/P, c.zH1, c.zH2)
+        c.f, 1/P, c.zH1, c.zH2)
     return isapprox(c.f, 1/P; rtol = 1e-10) && abs(c.zH1) < 1e-9 && abs(c.zH2) < 1e-9
 end
 
@@ -144,7 +144,7 @@ function main()
         @printf("  back  focal zf2      = %+9.4f mm from V%d\n", c.zf2, length(sys.R))
         @printf("  principal   zH1, zH2 = %+9.4f, %+9.4f mm\n", c.zH1, c.zH2)
         @printf("  interstice H1H2      = %+9.4f mm   (original formula gave %+9.4f)\n",
-                c.interstice, sum(sys.d) - abs(c.zH1) - abs(c.zH2))
+            c.interstice, sum(sys.d) - abs(c.zH1) - abs(c.zH2))
         (sys = sys, S = S, c = c)
     end
 
@@ -157,37 +157,38 @@ function main()
         # decoration: only the axial coordinate means anything.
         ax = Axis(fig[row, 1], xlabel = row == 2 ? "Axial position [mm]" : "",
             ylabel = r.sys.name, yticksvisible = false, yticklabelsvisible = false,
-            ygridvisible = false)
+            ygridvisible = false,)
         hlines!(ax, [0.0], color = PALETTE.black, linewidth = 1.0)
 
         # the glass block, from the first vertex to the last
         poly!(ax, Point2f[(0, -0.5), (Σd, -0.5), (Σd, 0.5), (0, 0.5)],
-              color = (PALETTE.sky, 0.25))
+            color = (PALETTE.sky, 0.25),)
         text!(ax, Σd / 2, -0.62;
-            text = rich("Glass, ", it("V"), subscript("1"), " to ", it("V"), subscript("2")),
+            text = rich(
+                "Glass, ", it("V"), subscript("1"), " to ", it("V"), subscript("2"),),
             color = PALETTE.sky,
-            align = (:center, :top), fontsize = 14)
+            align = (:center, :top), fontsize = 14,)
 
         # H₁ and H₂ can sit within a millimetre of each other, so their labels
         # are staggered vertically rather than allowed to collide
         cardinal(sym, k) = rich(it(sym), subscript(k))
         for (x, sym, k, col, dy) in ((0.0, "V", "1", PALETTE.black, 0.62),
-                                     (Σd, "V", "2", PALETTE.black, 0.62),
-                                     (-r.c.zf1, "F", "1", PALETTE.blue, 0.62),
-                                     (Σd + r.c.zf2, "F", "2", PALETTE.blue, 0.62),
-                                     (-r.c.zH1, "H", "1", PALETTE.green, 1.05),
-                                     (Σd + r.c.zH2, "H", "2", PALETTE.green, 0.62))
+            (Σd, "V", "2", PALETTE.black, 0.62),
+            (-r.c.zf1, "F", "1", PALETTE.blue, 0.62),
+            (Σd + r.c.zf2, "F", "2", PALETTE.blue, 0.62),
+            (-r.c.zH1, "H", "1", PALETTE.green, 1.05),
+            (Σd + r.c.zH2, "H", "2", PALETTE.green, 0.62))
             scatter!(ax, [x], [0.0], color = col, markersize = MARKERSIZE.data)
             text!(ax, x, dy; text = cardinal(sym, k), color = col,
-                align = (:center, :bottom), fontsize = 16)
+                align = (:center, :bottom), fontsize = 16,)
         end
         xlims!(ax, -span, Σd + span)
         ylims!(ax, -1.35, 1.6)
         text!(ax, 0.99, 0.05;
             text = rich(it("f"), @sprintf(" = %.2f mm,   ", r.c.f), it("H"),
-                        subscript("1"), it("H"), subscript("2"),
-                        @sprintf(" = %.2f mm", r.c.interstice)),
-            space = :relative, align = (:right, :bottom), fontsize = 15)
+                subscript("1"), it("H"), subscript("2"),
+                @sprintf(" = %.2f mm", r.c.interstice)),
+            space = :relative, align = (:right, :bottom), fontsize = 15,)
     end
 
     path = savefigure(fig, FIGURES, "paraxial_systems")

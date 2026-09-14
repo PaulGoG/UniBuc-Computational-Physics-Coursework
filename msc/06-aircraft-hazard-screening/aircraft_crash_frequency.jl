@@ -117,7 +117,7 @@ function main()
             verdict = F > THRESHOLDS[1] ? "EXCEEDS 1e-5" :
                       F > THRESHOLDS[2] ? "between 1e-7 and 1e-5" : "below 1e-7"
             @printf("y₀ = %5.1f km, R = %5.0f m:  Φ = %.3e yr⁻¹km⁻²,  F = %.3e yr⁻¹   (%s)\n",
-                    y₀, R, Φ, F, verdict)
+                y₀, R, Φ, F, verdict)
         end
     end
 
@@ -127,7 +127,7 @@ function main()
     for τ in THRESHOLDS
         R_crit = sqrt(τ / (Φ_min * π)) * 1e3
         @printf("\nat y₀ = %.0f km, the %.0e yr⁻¹ threshold needs a site radius of %.0f m\n",
-                y_min, τ, R_crit)
+            y_min, τ, R_crit)
     end
 
     y₀s = range(5, 50, length = 120)
@@ -138,30 +138,33 @@ function main()
     # so that each threshold falls on a labelled decade and can be read off.
     ax = Axis(fig[2, 1], xlabel = L"Distance from the route $y_0$ [km]",
         ylabel = L"Annual impact frequency $F$ [yr$^{-1}$]", yscale = log10,
-        yticks = logticks(-13, -5; step = 2))
+        yticks = logticks(-13, -5; step = 2),)
 
     handles = []
     for (k, R) in enumerate(Rs)
         F = impact_frequency.(y₀s, R)
-        push!(handles, lines!(ax, y₀s, F,
-              color = (PALETTE.blue, PALETTE.sky, PALETTE.green,
-                       PALETTE.orange, PALETTE.purple)[k], linewidth = 1.6))
+        push!(handles,
+            lines!(ax, y₀s, F,
+                color = (PALETTE.blue, PALETTE.sky, PALETTE.green,
+                    PALETTE.orange, PALETTE.purple,)[k], linewidth = 1.6,),)
     end
-    t1 = hlines!(ax, [THRESHOLDS[1]], color = PALETTE.red, linestyle = :dash, linewidth = 1.4)
-    t2 = hlines!(ax, [THRESHOLDS[2]], color = PALETTE.red, linestyle = :dot, linewidth = 1.4)
+    t1 = hlines!(
+        ax, [THRESHOLDS[1]], color = PALETTE.red, linestyle = :dash, linewidth = 1.4,)
+    t2 = hlines!(
+        ax, [THRESHOLDS[2]], color = PALETTE.red, linestyle = :dot, linewidth = 1.4,)
     # Each threshold labelled on its own line rather than by one note four to
     # seven decades below both of them, which the curves ran through.
     for (thr, lab) in ((THRESHOLDS[1], "10⁻⁵"), (THRESHOLDS[2], "10⁻⁷"))
         text!(ax, maximum(y₀s), thr * 1.5;
             text = rich("Screening threshold ", lab, " yr", superscript("−1")),
-            align = (:right, :bottom), color = PALETTE.red, fontsize = 15)
+            align = (:right, :bottom), color = PALETTE.red, fontsize = 15,)
     end
     ylims!(ax, nothing, THRESHOLDS[1] * 60)
 
     # the unit is upright: set in maths italic, "m" reads as a variable
     Legend(fig[1, 1], handles,
         [rich(it("R"), " = $(Int(R)) m") for R in Rs],
-        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 20)
+        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 20,)
     rowsize!(fig.layout, 2, Relative(0.85))
     println("\nwrote ", savefigure(fig, FIGURES, "aircraft_crash_frequency"))
 end

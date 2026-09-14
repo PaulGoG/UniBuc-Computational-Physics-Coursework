@@ -83,7 +83,8 @@ function main()
 
     steps = [2^k for k in 3:18]
     h = (x_end - x₀) ./ steps
-    err_euler = [abs(euler(rhs, x₀, y₀, h[i], steps[i]) - reference) for i in eachindex(steps)]
+    err_euler = [abs(euler(rhs, x₀, y₀, h[i], steps[i]) - reference)
+                 for i in eachindex(steps)]
     err_rk4 = [abs(rk4(rhs, x₀, y₀, h[i], steps[i]) - reference) for i in eachindex(steps)]
 
     p_euler = observed_order(h, err_euler)
@@ -119,12 +120,12 @@ function main()
         xlabel = L"Step size $h$",
         ylabel = L"Global error $|y_N - y(x_\mathrm{end})|$",
         xscale = log10, yscale = log10,
-        xticks = logticks(-4, 0), yticks = logticks(-15, 0; step = 5))
+        xticks = logticks(-4, 0), yticks = logticks(-15, 0; step = 5),)
 
     l_e = scatterlines!(ax, h, err_euler, color = PALETTE.blue,
-        linewidth = 1.4, markersize = MARKERSIZE.dense)
+        linewidth = 1.4, markersize = MARKERSIZE.dense,)
     l_r = scatterlines!(ax, h, err_rk4, color = PALETTE.orange,
-        linewidth = 1.4, markersize = MARKERSIZE.dense, marker = :rect)
+        linewidth = 1.4, markersize = MARKERSIZE.dense, marker = :rect,)
 
     # guide lines anchored on the coarsest step
     guide_e = err_euler[1] .* (h ./ h[1]) .^ 1
@@ -137,43 +138,44 @@ function main()
     text!(ax, 0.97, 0.04;
         text = L"RK4 reaches round-off near $h \approx 10^{-3}$",
         space = :relative, align = (:right, :bottom),
-        color = PALETTE.orange, fontsize = 15)
+        color = PALETTE.orange, fontsize = 15,)
     text!(ax, 0.04, 0.96;
         text = rich("Linear: ", it("y"), "′ = 3", it("e"),
-                    superscript(rich("−x", font = :italic)), " − 0.4", it("y"),
-                    ", against the exact solution"),
+            superscript(rich("−x", font = :italic)), " − 0.4", it("y"),
+            ", against the exact solution",),
         space = :relative, align = (:left, :top),
-        color = PALETTE.black, fontsize = 15)
+        color = PALETTE.black, fontsize = 15,)
 
     ax_nl = Axis(fig[2, 2],
         xlabel = L"Step size $h$", ylabel = "",
         xscale = log10, yscale = log10,
-        xticks = logticks(-3, 0), yticks = logticks(-15, 0; step = 5))
+        xticks = logticks(-3, 0), yticks = logticks(-15, 0; step = 5),)
     scatterlines!(ax_nl, h_nl, err_e_nl, color = PALETTE.blue,
-        linewidth = 1.4, markersize = MARKERSIZE.dense)
+        linewidth = 1.4, markersize = MARKERSIZE.dense,)
     scatterlines!(ax_nl, h_nl, err_r_nl, color = PALETTE.orange,
-        linewidth = 1.4, markersize = MARKERSIZE.dense, marker = :rect)
+        linewidth = 1.4, markersize = MARKERSIZE.dense, marker = :rect,)
     lines!(ax_nl, h_nl, err_e_nl[1] .* (h_nl ./ h_nl[1]) .^ 1,
-        color = PALETTE.blue, linestyle = :dash, linewidth = 1.0)
+        color = PALETTE.blue, linestyle = :dash, linewidth = 1.0,)
     lines!(ax_nl, h_nl, err_r_nl[1] .* (h_nl ./ h_nl[1]) .^ 4,
-        color = PALETTE.orange, linestyle = :dash, linewidth = 1.0)
+        color = PALETTE.orange, linestyle = :dash, linewidth = 1.0,)
     ylims!(ax_nl, 1e-17, 5.0)
     hideydecorations!(ax_nl, grid = false)
     text!(ax_nl, 0.04, 0.96;
         text = rich("Nonlinear: ", it("y"), "′ = ", it("y"), " + sin(0.4", it("y"), ")",
-                    ", against a fine RK4 reference"),
+            ", against a fine RK4 reference",),
         space = :relative, align = (:left, :top),
-        color = PALETTE.black, fontsize = 15)
+        color = PALETTE.black, fontsize = 15,)
 
     Legend(fig[1, 1:2],
         [l_e, l_r, g_e, g_r],
-        [latexstring(@sprintf("\\text{Forward Euler, slope } %.2f \\text{ and } %.2f",
-                              p_euler, p_euler_nl)),
-         latexstring(@sprintf("\\text{RK4, slope } %.2f \\text{ and } %.2f",
-                              p_rk4, p_rk4_nl)),
-         L"$\mathcal{O}(h)$ guide", L"$\mathcal{O}(h^4)$ guide"],
+        [
+            latexstring(@sprintf("\\text{Forward Euler, slope } %.2f \\text{ and } %.2f",
+                p_euler, p_euler_nl)),
+            latexstring(@sprintf("\\text{RK4, slope } %.2f \\text{ and } %.2f",
+                p_rk4, p_rk4_nl)),
+            L"$\mathcal{O}(h)$ guide", L"$\mathcal{O}(h^4)$ guide",],
         orientation = :horizontal, framevisible = false, nbanks = 2,
-        labelsize = 17, colgap = 20)
+        labelsize = 17, colgap = 20,)
 
     rowsize!(fig.layout, 2, Relative(0.84))
     colgap!(fig.layout, 14)

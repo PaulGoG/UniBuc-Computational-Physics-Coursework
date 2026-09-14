@@ -58,7 +58,8 @@ truncation error.
 """
 function adams_pece(rhs, xspan, y₀, h)
     x = collect(xspan[1]:h:xspan[2])
-    length(x) >= 4 || throw(ArgumentError("need at least four grid points, got $(length(x))"))
+    length(x) >= 4 ||
+        throw(ArgumentError("need at least four grid points, got $(length(x))"))
 
     y = Vector{Float64}(undef, length(x))
     y[1:4] .= rk4_start(rhs, x[1], y₀, h, 3)
@@ -109,18 +110,18 @@ function main()
     xlims!(ax1, -0.25, 6.25)
 
     ax2 = Axis(fig[2, 2], xlabel = L"x", ylabel = "Error", yscale = log10,
-        xticks = xticks, yticks = logticks(-8, -6))
+        xticks = xticks, yticks = logticks(-8, -6),)
     l_g = lines!(ax2, x[5:end], err[5:end], color = PALETTE.orange, linewidth = 1.5)
     l_p = lines!(ax2, x[5:end], pc[5:end], color = PALETTE.green, linewidth = 1.5)
     xlims!(ax2, -0.25, 6.25)
 
     Legend(fig[1, 1:2], [l_num, l_ex, l_g, l_p],
         ["Adams PECE", "Exact",
-         # the takeaway as a legend entry: the error panel has no band clear of
-         # both curves wide enough to hold it
-         latexstring(@sprintf("\\text{Global error, observed order } %.2f", slope)),
-         "Predictor–corrector Δ"],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24)
+            # the takeaway as a legend entry: the error panel has no band clear of
+            # both curves wide enough to hold it
+            latexstring(@sprintf("\\text{Global error, observed order } %.2f", slope)),
+            "Predictor–corrector Δ",],
+        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24,)
 
     rowsize!(fig.layout, 2, Relative(0.85))
     path = savefigure(fig, FIGURES, "adams_predictor_corrector")

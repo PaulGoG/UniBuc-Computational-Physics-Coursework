@@ -58,9 +58,12 @@ which is the point the 2021 version missed.
 function step_rk4!(Ψ, work, dx, dt)
     k1, k2, k3, k4, tmp = work
     rhs!(k1, Ψ, dx)
-    @. tmp = Ψ + dt/2 * k1;  rhs!(k2, tmp, dx)
-    @. tmp = Ψ + dt/2 * k2;  rhs!(k3, tmp, dx)
-    @. tmp = Ψ + dt   * k3;  rhs!(k4, tmp, dx)
+    @. tmp = Ψ + dt/2 * k1
+    rhs!(k2, tmp, dx)
+    @. tmp = Ψ + dt/2 * k2
+    rhs!(k3, tmp, dx)
+    @. tmp = Ψ + dt * k3
+    rhs!(k4, tmp, dx)
     @. Ψ += dt/6 * (k1 + 2k2 + 2k3 + k4)
     return Ψ
 end
@@ -71,7 +74,7 @@ function main()
     # carried about one grid point per soliton — far too coarse for a
     # second-order stencil to represent the shape at all.
     a, dx = 10.0, 0.02
-    x = collect(-a:dx:a)
+    x = collect((-a):dx:a)
     n = length(x)
     dt = 0.2 * dx^2                      # diffusive stability limit of the stencil
     t_end = 50.0
@@ -100,7 +103,7 @@ function main()
 
     @printf("grid %d points, dt = %.2e, %d steps to t = %.1f\n", n, dt, n_steps, t_end)
     @printf("norm ∫|Ψ|²dx: initial %.6f, final %.6f, relative drift %.2e\n",
-            norm0, last(norms), abs(last(norms) - norm0) / norm0)
+        norm0, last(norms), abs(last(norms) - norm0) / norm0)
 
     ρ = reduce(hcat, frames)
 
@@ -116,16 +119,16 @@ function main()
     ax2 = Axis(fig[1, 2], xlabel = L"x", ylabel = L"|\Psi|^2")
     for (k, idx) in enumerate((1, length(times) ÷ 2, length(times)))
         lines!(ax2, x, frames[idx],
-               color = (PALETTE.blue, PALETTE.orange, PALETTE.green)[k], linewidth = 1.5,
-               label = rich(it("t"), @sprintf(" = %.1f", times[idx])))
+            color = (PALETTE.blue, PALETTE.orange, PALETTE.green)[k], linewidth = 1.5,
+            label = rich(it("t"), @sprintf(" = %.1f", times[idx])),)
     end
     ylims!(ax2, -0.2, 5.1)   # headroom: the legend sat on the right-hand pulses
     axislegend(ax2, position = :rt, framevisible = false, labelsize = 15)
 
     ticks = [0, 1, 4, 9, 16]
     Colorbar(fig[1, 3], limits = (sqrt(minimum(ρ)), sqrt(maximum(ρ))),
-             colormap = :viridis, label = L"|\Psi|^2",
-             ticks = (sqrt.(ticks), [latexstring(string(t)) for t in ticks]))
+        colormap = :viridis, label = L"|\Psi|^2",
+        ticks = (sqrt.(ticks), [latexstring(string(t)) for t in ticks]),)
     colsize!(fig.layout, 3, Relative(0.03))
 
     path = savefigure(fig, FIGURES, "nonlinear_schrodinger_mol")
@@ -168,12 +171,12 @@ function animate_solitons(x, frames, times, norms, norm0)
     # and left to itself the axis crowded nine ticks into it.
     ax2 = Axis(fig[3, 1], xlabel = L"Time $t$",
         ylabel = L"Norm drift [$10^{-15}$]",
-        yticks = ([-10, -5, 0, 5, 10], [L"-10", L"-5", L"0", L"5", L"10"]))
+        yticks = ([-10, -5, 0, 5, 10], [L"-10", L"-5", L"0", L"5", L"10"]),)
     hlines!(ax2, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
     lines!(ax2, trace_t, trace_n, color = PALETTE.green, linewidth = 2)
     text!(ax2, 0.99, 0.95; text = L"$\int|\Psi|^2\mathrm{d}x$ exactly conserved",
         space = :relative,
-        align = (:right, :top), fontsize = 13, color = PALETTE.black)
+        align = (:right, :top), fontsize = 13, color = PALETTE.black,)
     xlims!(ax2, 0, last(times))
     ylims!(ax2, -12, 12)
 
@@ -188,7 +191,7 @@ function animate_solitons(x, frames, times, norms, norm0)
         trace_t[] = times[1:k]
         trace_n[] = (norms[1:k] ./ norm0 .- 1) .* 1e15
         caption[] = rich(it("t"), @sprintf(" = %.1f      ", times[k]), "norm drift ",
-            rsci(norms[k] / norm0 - 1; digits = 2))
+            rsci(norms[k] / norm0 - 1; digits = 2),)
     end
     return path
 end

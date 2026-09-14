@@ -51,7 +51,7 @@ function luminosity_distance(z, Ωm; n = 500)
     zs = range(0, z, length = n + 1)
     h = step(zs)
     f = [1 / E(zi, Ωm) for zi in zs]
-    I = h / 3 * (f[1] + f[end] + 4sum(f[2:2:end-1]) + 2sum(f[3:2:end-2]))
+    I = h / 3 * (f[1] + f[end] + 4sum(f[2:2:(end - 1)]) + 2sum(f[3:2:(end - 2)]))
     return (1 + z) * I
 end
 
@@ -61,8 +61,8 @@ apparent_magnitude(z, Ωm, offset) = 5 * log10(luminosity_distance(z, Ωm)) + of
 const Ωm_BOUNDS = (0.02, 1.5)
 
 "χ² of a model against the measured magnitudes."
-chi_squared(z, m, σ, Ωm, offset) =
-    sum(((m .- apparent_magnitude.(z, Ωm, offset)) ./ σ) .^ 2)
+chi_squared(z, m, σ, Ωm, offset) = sum(((m .- apparent_magnitude.(z, Ωm, offset)) ./ σ) .^
+                                       2)
 
 """
     fit_flat_lcdm(z, m, σ)
@@ -73,7 +73,7 @@ magnitude uncertainties.
 function fit_flat_lcdm(z, m, σ)
     model(zz, p) = [apparent_magnitude(zi, clamp(p[2], Ωm_BOUNDS...), p[1]) for zi in zz]
     fit = curve_fit(model, z, m, 1 ./ σ .^ 2, [24.0, 0.3];
-                    lower = [15.0, Ωm_BOUNDS[1]], upper = [30.0, Ωm_BOUNDS[2]])
+        lower = [15.0, Ωm_BOUNDS[1]], upper = [30.0, Ωm_BOUNDS[2]],)
     offset, Ωm = fit.param[1], clamp(fit.param[2], Ωm_BOUNDS...)
     σp = try
         stderror(fit)
@@ -81,7 +81,7 @@ function fit_flat_lcdm(z, m, σ)
         [NaN, NaN]
     end
     return (; Ωm, offset, σΩm = σp[2], σoffset = σp[1],
-            χ² = chi_squared(z, m, σ, Ωm, offset), dof = length(z) - 2)
+        χ² = chi_squared(z, m, σ, Ωm, offset), dof = length(z) - 2,)
 end
 
 """
@@ -103,20 +103,20 @@ function main()
     high = d.sample .== "high-z"
 
     @printf("Perlmutter et al. 1999: %d supernovae, %d high-z and %d low-z\n",
-            nrow(d), count(high), count(.!high))
+        nrow(d), count(high), count(.!high))
     @printf("z from %.3f to %.3f, effective m_B from %.2f to %.2f\n",
-            minimum(z), maximum(z), minimum(m), maximum(m))
+        minimum(z), maximum(z), minimum(m), maximum(m))
 
     lcdm = fit_flat_lcdm(z, m, σ)
     @printf("\nflat ΛCDM:  Ω_M = %.3f ± %.3f,  offset = %.3f ± %.3f mag\n",
-            lcdm.Ωm, lcdm.σΩm, lcdm.offset, lcdm.σoffset)
+        lcdm.Ωm, lcdm.σΩm, lcdm.offset, lcdm.σoffset)
     @printf("χ² = %.1f on %d dof  (χ²/dof = %.2f)\n", lcdm.χ², lcdm.dof, lcdm.χ² / lcdm.dof)
 
     # --- validation against the published value --------------------------------
     published, published_σ = 0.28, 0.085           # Perlmutter 1999, flat universe
     @printf("\nPublished by the paper for a flat universe: Ω_M = 0.28 (+0.09 −0.08)\n")
     @printf("Recovered here: %.3f. Difference %.2fσ of the published uncertainty.\n",
-            lcdm.Ωm, abs(lcdm.Ωm - published) / published_σ)
+        lcdm.Ωm, abs(lcdm.Ωm - published) / published_σ)
     @printf("Planck 2018, for context: Ω_m = 0.315 ± 0.007\n")
 
     # --- the discovery ---------------------------------------------------------
@@ -137,51 +137,51 @@ function main()
 
     zf = 10 .^ range(log10(0.01), log10(0.95), length = 300)
     ax1 = Axis(fig[2, 1], ylabel = L"Effective $m_B$ [mag]", xscale = log10,
-        xticks = logticks(-2, 0), xticklabelsvisible = false)
+        xticks = logticks(-2, 0), xticklabelsvisible = false,)
     l_lcdm = lines!(ax1, zf, [apparent_magnitude(zi, lcdm.Ωm, lcdm.offset) for zi in zf],
-        color = PALETTE.blue, linewidth = 2)
+        color = PALETTE.blue, linewidth = 2,)
     l_eds = lines!(ax1, zf, [apparent_magnitude(zi, 1.0, eds.offset) for zi in zf],
-        color = PALETTE.orange, linewidth = 2, linestyle = :dash)
+        color = PALETTE.orange, linewidth = 2, linestyle = :dash,)
     errorbars!(ax1, z[.!high], m[.!high], σ[.!high],
-        color = (PALETTE.green, 0.55), whiskerwidth = 7)
+        color = (PALETTE.green, 0.55), whiskerwidth = 7,)
     errorbars!(ax1, z[high], m[high], σ[high],
-        color = (PALETTE.red, 0.55), whiskerwidth = 7)
+        color = (PALETTE.red, 0.55), whiskerwidth = 7,)
     l_lo = scatter!(ax1, z[.!high], m[.!high], color = PALETTE.green,
-        markersize = MARKERSIZE.dense)
+        markersize = MARKERSIZE.dense,)
     l_hi = scatter!(ax1, z[high], m[high], color = PALETTE.red,
-        markersize = MARKERSIZE.dense)
+        markersize = MARKERSIZE.dense,)
     text!(ax1, 0.03, 0.96;
         text = rich("Ω", subscript("M"), @sprintf(" = %.2f ± %.2f", lcdm.Ωm, lcdm.σΩm)),
-        space = :relative, align = (:left, :top), fontsize = 15, color = PALETTE.blue)
+        space = :relative, align = (:left, :top), fontsize = 15, color = PALETTE.blue,)
     text!(ax1, 0.03, 0.885; text = "published 0.28 (+0.09 −0.08)",
-        space = :relative, align = (:left, :top), fontsize = 15, color = PALETTE.blue)
+        space = :relative, align = (:left, :top), fontsize = 15, color = PALETTE.blue,)
 
     ax2 = Axis(fig[3, 1], xlabel = L"Redshift $z$",
         ylabel = L"$m_B$ − Einstein–de Sitter [mag]", xscale = log10,
-        xticks = logticks(-2, 0))
+        xticks = logticks(-2, 0),)
     ref(zi) = apparent_magnitude(zi, 1.0, eds.offset)
     hlines!(ax2, [0.0], color = PALETTE.orange, linestyle = :dash, linewidth = 2)
     lines!(ax2, zf, [apparent_magnitude(zi, lcdm.Ωm, lcdm.offset) - ref(zi) for zi in zf],
-        color = PALETTE.blue, linewidth = 2)
+        color = PALETTE.blue, linewidth = 2,)
     errorbars!(ax2, z[.!high], m[.!high] .- ref.(z[.!high]), σ[.!high],
-        color = (PALETTE.green, 0.55), whiskerwidth = 7)
+        color = (PALETTE.green, 0.55), whiskerwidth = 7,)
     errorbars!(ax2, z[high], m[high] .- ref.(z[high]), σ[high],
-        color = (PALETTE.red, 0.55), whiskerwidth = 7)
+        color = (PALETTE.red, 0.55), whiskerwidth = 7,)
     scatter!(ax2, z[.!high], m[.!high] .- ref.(z[.!high]),
-        color = PALETTE.green, markersize = MARKERSIZE.dense)
+        color = PALETTE.green, markersize = MARKERSIZE.dense,)
     scatter!(ax2, z[high], m[high] .- ref.(z[high]), color = PALETTE.red,
-        markersize = MARKERSIZE.dense)
+        markersize = MARKERSIZE.dense,)
     # right of the low-z whiskers, whose caps reached into the ascenders here
     text!(ax2, 0.97, 0.05;
         text = @sprintf("Δχ² = %.1f in favour of ΛCDM", Δχ²),
-        space = :relative, align = (:right, :bottom), fontsize = 15, color = PALETTE.blue)
+        space = :relative, align = (:right, :bottom), fontsize = 15, color = PALETTE.blue,)
 
     Legend(fig[1, 1], [l_hi, l_lo, l_lcdm, l_eds],
         ["High-z (Supernova Cosmology Project)", "Low-z (Calán/Tololo)",
-         L"Flat $\Lambda$CDM, fitted",
-         rich("Einstein–de Sitter (Ω", subscript("M"), " = 1)")],
+            L"Flat $\Lambda$CDM, fitted",
+            rich("Einstein–de Sitter (Ω", subscript("M"), " = 1)"),],
         orientation = :horizontal, framevisible = false, labelsize = 15, nbanks = 2,
-        colgap = 18)
+        colgap = 18,)
 
     rowsize!(fig.layout, 2, Relative(0.55))
     rowgap!(fig.layout, 1, 10)

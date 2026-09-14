@@ -40,7 +40,6 @@ function trajectory(f, u₀, h, n, p; transient = 0)
     return xs, ys, zs
 end
 
-
 function main()
     h = 0.002
     n = 250_000
@@ -51,11 +50,11 @@ function main()
     fp = lorenz_fixed_points(LORENZ)
     @printf("Lorenz fixed points at (±%.4f, ±%.4f, %.1f)\n", fp[1][1], fp[1][2], fp[1][3])
     @printf("  with the 2018 value beta = 2.66 they would sit at ±%.4f\n",
-            sqrt(2.66 * (LORENZ.ρ - 1)))
+        sqrt(2.66 * (LORENZ.ρ - 1)))
     @printf("Lorenz  x range [%.2f, %.2f], z range [%.2f, %.2f]\n",
-            minimum(xL), maximum(xL), minimum(zL), maximum(zL))
+        minimum(xL), maximum(xL), minimum(zL), maximum(zL))
     @printf("Rossler x range [%.2f, %.2f], z range [%.2f, %.2f]\n",
-            minimum(xR), maximum(xR), minimum(zR), maximum(zR))
+        minimum(xR), maximum(xR), minimum(zR), maximum(zR))
 
     fig = Figure(size = (1000, 430))
 
@@ -66,7 +65,7 @@ function main()
     lines!(ax1, xL, zL, color = PALETTE.blue, linewidth = 0.25)
     text!(ax1, 0.02, 0.98;
         text = rich("Lorenz: ", it("σ"), " = 10, ", it("ρ"), " = 28, ", it("β"), " = 8/3"),
-        space = :relative, align = (:left, :top), color = PALETTE.blue, fontsize = 17)
+        space = :relative, align = (:left, :top), color = PALETTE.blue, fontsize = 17,)
 
     # The fixed points sit inside the lobes, so their label cannot. It goes in
     # the notch between the two wings, which is the only region of this
@@ -74,18 +73,18 @@ function main()
     # from it. Placed below the attractor it was crossed by the strands running
     # down to the lower vertex.
     scatter!(ax1, [fp[1][1], fp[2][1]], [fp[1][3], fp[2][3]],
-        color = PALETTE.red, markersize = MARKERSIZE.emphasis, marker = :xcross)
+        color = PALETTE.red, markersize = MARKERSIZE.emphasis, marker = :xcross,)
     text!(ax1, 0.5, 0.88;
         text = rich("✕  Fixed points\n(±8.4853, 27)"),
         space = :relative, align = (:center, :top), color = PALETTE.red,
-        fontsize = 15, justification = :center)
+        fontsize = 15, justification = :center,)
     ylims!(ax1, 0, 53)
 
     ax2 = Axis(fig[1, 2], xlabel = L"x", ylabel = L"y")
     lines!(ax2, xR, yR, color = PALETTE.green, linewidth = 0.25)
     text!(ax2, 0.02, 0.98;
         text = rich("Rössler: ", it("a"), " = ", it("b"), " = 0.2, ", it("c"), " = 5.7"),
-        space = :relative, align = (:left, :top), color = PALETTE.green, fontsize = 17)
+        space = :relative, align = (:left, :top), color = PALETTE.green, fontsize = 17,)
     ylims!(ax2, nothing, 12)
 
     path = savefigure(fig, FIGURES, "lorenz_rossler_attractors")
@@ -127,7 +126,7 @@ function animate_attractors(xL, zL, xR, yR, h)
     xlims!(ax1, minimum(xL) - 2, maximum(xL) + 2)
     ylims!(ax1, minimum(zL) - 2, maximum(zL) + 6)
     text!(ax1, 0.02, 0.98; text = "Lorenz", space = :relative,
-        align = (:left, :top), fontsize = 16, color = PALETTE.blue)
+        align = (:left, :top), fontsize = 16, color = PALETTE.blue,)
 
     ax2 = Axis(fig[2, 2], xlabel = L"x", ylabel = L"y")
     lines!(ax2, headR, color = PALETTE.green, linewidth = 0.4)
@@ -135,7 +134,7 @@ function animate_attractors(xL, zL, xR, yR, h)
     xlims!(ax2, minimum(xR) - 2, maximum(xR) + 2)
     ylims!(ax2, minimum(yR) - 2, maximum(yR) + 4)
     text!(ax2, 0.02, 0.98; text = "Rössler", space = :relative,
-        align = (:left, :top), fontsize = 16, color = PALETTE.green)
+        align = (:left, :top), fontsize = 16, color = PALETTE.green,)
 
     Label(fig[1, 1:2], caption, fontsize = 17, tellwidth = false)
     rowgap!(fig.layout, 6)

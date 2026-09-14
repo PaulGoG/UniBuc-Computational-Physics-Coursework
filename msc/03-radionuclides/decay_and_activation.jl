@@ -71,28 +71,28 @@ function main()
     t_m = bateman_peak(λ₁, λ₂)
     @printf("²³⁸U T½ = %.3e yr, ²³⁴Th T½ = %.2f d\n", T_U238 / YEAR, T_TH234 / 86400)
     @printf("λ₂/λ₁ = %.3e — the daughter equilibrates %.0e times faster than the parent\n",
-            λ₂ / λ₁, λ₂ / λ₁)
+        λ₂ / λ₁, λ₂ / λ₁)
     @printf("daughter maximum at t = %.3f yr = %.1f d\n", t_m / YEAR, t_m / 86400)
     @printf("  the original time grid had a step of %.2e yr, so this sat at x = 0\n",
-            T_U238 / YEAR / 10)
+        T_U238 / YEAR / 10)
     @printf("secular equilibrium ratio Λ₂/Λ₁ → %.6f\n\n", λ₂ / (λ₂ - λ₁))
 
     λ_al = decay_constant(T_AL28)
     # the original set τ = 5·T½ and ran three activation/pause cycles
     τ, K = 5 * T_AL28, 2.565e7
     @printf("²⁸Al T½ = %.1f s (the original used %.1f s, %.1f %% high)\n",
-            T_AL28, 2.3 * 60, 100 * (2.3 * 60 / T_AL28 - 1))
+        T_AL28, 2.3 * 60, 100 * (2.3 * 60 / T_AL28 - 1))
     @printf("pulsed flux, τ = %.0f s: saturation activity K = %.3e s⁻¹\n", τ, K)
     for n in (1, 3, 5, 10)
         @printf("  end of irradiation %2d: Λ = %.4e s⁻¹ (%.1f %% of saturation)\n",
-                n, pulsed_activity((2n - 1) * τ, λ_al, τ, K),
-                100 * pulsed_activity((2n - 1) * τ, λ_al, τ, K) / K)
+            n, pulsed_activity((2n - 1) * τ, λ_al, τ, K),
+            100 * pulsed_activity((2n - 1) * τ, λ_al, τ, K) / K)
     end
 
     fig = Figure(size = (1000, 450))
 
     ax1 = Axis(fig[2, 1], xlabel = L"Time $t$ [d]", ylabel = L"$\Lambda_2/\Lambda_0$",
-        xscale = log10, xticks = logticks(-1, 3))
+        xscale = log10, xticks = logticks(-1, 3),)
     td = 10 .^ range(-1, 3, length = 500)
     lines!(ax1, td, bateman.(td .* 86400, λ₁, λ₂), color = PALETTE.blue, linewidth = 1.8)
     v = vlines!(ax1, [t_m / 86400], color = PALETTE.red, linestyle = :dash, linewidth = 1.3)
@@ -101,34 +101,34 @@ function main()
     # by the axis frame and read "t_n".
     text!(ax1, t_m / 86400 * 0.85, 0.35;
         text = rich(it("t"), subscript("m"), @sprintf(" = %.0f d", t_m / 86400)),
-        color = PALETTE.red, align = (:right, :center), fontsize = 15)
+        color = PALETTE.red, align = (:right, :center), fontsize = 15,)
 
     # Activity in units of 1e7: every tick otherwise repeated the factor, and
     # Makie wrote the first of them as 1x10^7.
     scale = 1e7
     ax2 = Axis(fig[2, 2], xlabel = L"Time $t$ [s]",
-        ylabel = L"Activity $\Lambda$ [$10^{7}$ s$^{-1}$]")
+        ylabel = L"Activity $\Lambda$ [$10^{7}$ s$^{-1}$]",)
     ts = range(0, 6τ, length = 3000)
     for c in 0:2
         vspan!(ax2, 2c * τ, (2c + 1) * τ, color = (PALETTE.orange, 0.14))
     end
     lines!(ax2, ts, pulsed_activity.(ts, λ_al, τ, K) ./ scale,
-        color = PALETTE.green, linewidth = 1.5)
+        color = PALETTE.green, linewidth = 1.5,)
     h = hlines!(ax2, [K / scale], color = PALETTE.black, linestyle = :dash, linewidth = 1.1)
     reached = pulsed_activity(τ, λ_al, τ, K) / K
     # headroom above the saturation line, the only band this panel leaves clear
     ylims!(ax2, -0.1, K / scale * 1.28)
     text!(ax2, 0.98, 0.97;
         text = @sprintf("%.1f %% of saturation by the end of the first irradiation",
-                        100 * reached),
+            100 * reached),
         space = :relative, align = (:right, :top), fontsize = 14,
-        color = PALETTE.green)
+        color = PALETTE.green,)
 
     Legend(fig[1, 1:2],
         [v, h, PolyElement(color = (PALETTE.orange, 0.35))],
         [rich(superscript("234"), "Th maximum"), "Saturation activity",
-         "Flux on"],
-        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 26)
+            "Flux on",],
+        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 26,)
     rowsize!(fig.layout, 2, Relative(0.85))
     println("\nwrote ", savefigure(fig, FIGURES, "decay_and_activation"))
 end

@@ -9,15 +9,16 @@ using CSV, DataFrames
 "Straede triple-differential yield Y(A_H, Z_H, TKE) in % per fission."
 function load_yields(path)
     CSV.read(path, DataFrame; header = ["A_H", "Z_H", "TKE", "Y", "σY"],
-             skipto = 2, delim = ' ', ignorerepeated = true, silencewarnings = true)
+        skipto = 2, delim = ' ', ignorerepeated = true, silencewarnings = true,)
 end
 
 "AME mass excesses keyed on (Z, A), in keV."
 function load_masses(path)
     df = CSV.read(path, DataFrame; header = ["Z", "A", "symbol", "Δ", "σΔ"],
-                  delim = ' ', ignorerepeated = true, silencewarnings = true)
-    Dict((r.Z, r.A) => Float64(r.Δ) for r in eachrow(df)
-         if !ismissing(r.Z) && !ismissing(r.A) && !ismissing(r.Δ))
+        delim = ' ', ignorerepeated = true, silencewarnings = true,)
+    Dict((r.Z, r.A) => Float64(r.Δ)
+    for r in eachrow(df)
+    if !ismissing(r.Z) && !ismissing(r.A) && !ismissing(r.Δ))
 end
 
 "Möller–Nix FRLDM ground-state β₂ keyed on (Z, A)."
@@ -46,7 +47,9 @@ end
 
 "Two-column measurement file with a trailing header comment: x, y, σy."
 function load_measurement(path)
-    x = Float64[]; y = Float64[]; σ = Float64[]
+    x = Float64[]
+    y = Float64[]
+    σ = Float64[]
     for (i, line) in enumerate(eachline(path))
         i == 1 && continue
         p = split(strip(line))

@@ -72,13 +72,14 @@ function fwhm(x, y)
     left === nothing && return (NaN, x[peak])
     right === nothing && return (NaN, x[peak])
     right += peak - 1
-    xl = x[left] + (half - y[left]) * (x[left+1] - x[left]) / (y[left+1] - y[left])
-    xr = x[right-1] + (half - y[right-1]) * (x[right] - x[right-1]) / (y[right] - y[right-1])
+    xl = x[left] + (half - y[left]) * (x[left + 1] - x[left]) / (y[left + 1] - y[left])
+    xr = x[right - 1] +
+         (half - y[right - 1]) * (x[right] - x[right - 1]) / (y[right] - y[right - 1])
     return (xr - xl, x[peak])
 end
 
 "Normalise a sampled distribution to unit integral."
-normalise(x, y) = y ./ (sum((y[1:end-1] .+ y[2:end]) ./ 2 .* diff(x)))
+normalise(x, y) = y ./ (sum((y[1:(end - 1)] .+ y[2:end]) ./ 2 .* diff(x)))
 
 """
     interference_shape(E, r1, r2, φ)
@@ -88,9 +89,10 @@ separately normalised so that the two enter with equal weight, as the
 assignment specifies.
 """
 function interference_shape(E, r1, r2, φ)
-    a1 = amplitude.(E, Ref(r1)); a2 = amplitude.(E, Ref(r2))
-    c1 = 1 / sqrt(sum((abs2.(a1)[1:end-1] .+ abs2.(a1)[2:end]) ./ 2 .* diff(E)))
-    c2 = 1 / sqrt(sum((abs2.(a2)[1:end-1] .+ abs2.(a2)[2:end]) ./ 2 .* diff(E)))
+    a1 = amplitude.(E, Ref(r1))
+    a2 = amplitude.(E, Ref(r2))
+    c1 = 1 / sqrt(sum((abs2.(a1)[1:(end - 1)] .+ abs2.(a1)[2:end]) ./ 2 .* diff(E)))
+    c2 = 1 / sqrt(sum((abs2.(a2)[1:(end - 1)] .+ abs2.(a2)[2:end]) ./ 2 .* diff(E)))
     return normalise(E, abs2.(c1 .* a1 .+ c2 .* a2 .* exp(im * φ)))
 end
 
@@ -108,12 +110,15 @@ covariances, and with only four parameters the envelope is the honest summary.
 """
 function peak_uncertainty(E, φ)
     base_w, base_pos = fwhm(E, interference_shape(E, RES1, RES2, φ))
-    δpos = 0.0; δw = 0.0
+    δpos = 0.0
+    δw = 0.0
     for (field, σfield) in ((:E, :σE), (:Γ, :σΓ)), which in 1:2
+
         for sign in (+1, -1)
             r1, r2 = RES1, RES2
             r = which == 1 ? r1 : r2
-            shifted = merge(r, NamedTuple{(field,)}((getfield(r, field) + sign * getfield(r, σfield),)))
+            shifted = merge(r, NamedTuple{(field,)}((getfield(r, field) +
+                                                     sign * getfield(r, σfield),)))
             which == 1 ? (r1 = shifted) : (r2 = shifted)
             w, pos = fwhm(E, interference_shape(E, r1, r2, φ))
             δpos = max(δpos, abs(pos - base_pos))
@@ -131,7 +136,7 @@ function main()
     for (name, r, y) in (("resonance 1", RES1, B1), ("resonance 2", RES2, B2))
         w, pos = fwhm(E, y)
         @printf("%-12s  input E = %6.1f Γ = %5.1f   measured peak %7.2f  FWHM %6.2f\n",
-                name, r.E, r.Γ, pos, w)
+            name, r.E, r.Γ, pos, w)
     end
 
     println()
@@ -140,15 +145,15 @@ function main()
         w, pos = fwhm(E, y)
         δpos, δw = peak_uncertainty(E, φ)
         @printf("φ = %3.0f°   interference peak %7.2f ± %.0f MeV   FWHM %6.2f ± %.0f MeV\n",
-                rad2deg(φ), pos, δpos, w, δw)
+            rad2deg(φ), pos, δpos, w, δw)
         (φ = φ, y = y, w = w, pos = pos, δpos = δpos, δw = δw)
     end
     @printf("\nthe two phases move the peak by %.1f MeV, well inside the %.0f MeV that\n",
-            abs(interference[2].pos - interference[1].pos), interference[1].δpos)
+        abs(interference[2].pos - interference[1].pos), interference[1].δpos)
     @printf("the quoted resonance parameters allow: the phase dependence is real but\n")
     @printf("this data cannot resolve it.\n")
     @printf("\nneither resonance sits at %.0f or %.0f: the apparent position and width\n",
-            RES1.E, RES2.E)
+        RES1.E, RES2.E)
     @printf("of the observed line depend on the relative phase.\n")
 
     fig = Figure(size = (900, 480))
@@ -161,34 +166,36 @@ function main()
     handles = [l1, l2]
     for (k, r) in enumerate(interference)
         push!(handles, lines!(ax, E, r.y,
-              color = (PALETTE.blue, PALETTE.red)[k], linewidth = 2.0))
+            color = (PALETTE.blue, PALETTE.red)[k], linewidth = 2.0,))
     end
     xlims!(ax, 1900, 2800)
     # Each uncertainty stays with the quantity it belongs to: a single "± 61 MeV"
     # on its own line read as the uncertainty of the FWHM above it.
     for (k, r) in enumerate(interference)
         text!(ax, 0.97, 0.95 - 0.075 * (k - 1);
-            text = rich(it("φ"), @sprintf(" = %.0f°: peak %.0f ± %.0f MeV,  FWHM %.0f ± %.0f MeV",
-                                          rad2deg(r.φ), r.pos, r.δpos, r.w, r.δw)),
+            text = rich(it("φ"),
+                @sprintf(" = %.0f°: peak %.0f ± %.0f MeV,  FWHM %.0f ± %.0f MeV",
+                    rad2deg(r.φ), r.pos, r.δpos, r.w, r.δw)),
             space = :relative, align = (:right, :top), fontsize = 15,
-            color = (PALETTE.blue, PALETTE.red)[k])
+            color = (PALETTE.blue, PALETTE.red)[k],)
     end
     text!(ax, 0.97, 0.80;
         text = "the quoted resonance parameters allow that much movement,\nso the phase dependence is real but not resolvable here",
         space = :relative, align = (:right, :top), fontsize = 14,
-        justification = :right)
+        justification = :right,)
 
     Legend(fig[1, 1], handles,
-        [rich("|", it("C"), subscript("1"), it("B"), subscript("1"), "|",
-              superscript("2"), ": ", it("f"), subscript("2"), "(2300), ",
-              it("E"), subscript("1"), " = 2297 MeV, Γ", subscript("1"), " = 149 MeV"),
-         rich("|", it("C"), subscript("2"), it("B"), subscript("2"), "|",
-              superscript("2"), ": ", it("f"), subscript("2"), "(2340), ",
-              it("E"), subscript("2"), " = 2339 MeV, Γ", subscript("2"), " = 319 MeV"),
-         rich("Interference, ", it("φ"), " = 30°"),
-         rich("Interference, ", it("φ"), " = 45°")],
+        [
+            rich("|", it("C"), subscript("1"), it("B"), subscript("1"), "|",
+                superscript("2"), ": ", it("f"), subscript("2"), "(2300), ",
+                it("E"), subscript("1"), " = 2297 MeV, Γ", subscript("1"), " = 149 MeV",),
+            rich("|", it("C"), subscript("2"), it("B"), subscript("2"), "|",
+                superscript("2"), ": ", it("f"), subscript("2"), "(2340), ",
+                it("E"), subscript("2"), " = 2339 MeV, Γ", subscript("2"), " = 319 MeV",),
+            rich("Interference, ", it("φ"), " = 30°"),
+            rich("Interference, ", it("φ"), " = 45°"),],
         orientation = :horizontal, framevisible = false, labelsize = 15,
-        nbanks = 2, colgap = 18)
+        nbanks = 2, colgap = 18,)
     rowsize!(fig.layout, 2, Relative(0.82))
     println("wrote ", savefigure(fig, FIGURES, "breit_wigner_interference"))
 end

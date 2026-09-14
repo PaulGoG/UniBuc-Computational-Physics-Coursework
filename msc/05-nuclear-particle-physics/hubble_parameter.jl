@@ -35,7 +35,7 @@ const σλ = 3.3 / 2
 "(name, observed wavelengths, apparent size in cm, size uncertainty)"
 const GALAXIES = [
     ("NGC 3627", [3941.67, 3980.0, 6578.34, 4873.33, 4113.3], 5.0, 0.75),
-    ("NGC 3368", [3944.995, 3980.0, NaN, NaN, 4116.33],       3.5, 0.80),
+    ("NGC 3368", [3944.995, 3980.0, NaN, NaN, 4116.33], 3.5, 0.80),
     ("NGC 3147", [3970.0, 4006.66, 6620.0, 4916.66, 4136.66], 1.8, 0.50),
 ]
 "Reference distance for NGC 3627, in Mpc."
@@ -51,28 +51,37 @@ Inverse-variance mean over the usable lines, with the variance summed correctly
 — the defect the original's `=+` introduced.
 """
 function mean_redshift(λs, λ₀s, σλ)
-    zs = Float64[]; σs = Float64[]
+    zs = Float64[]
+    σs = Float64[]
     for (λ, λr) in zip(λs, λ₀s)
         isnan(λ) && continue
         z, σz = redshift(λ, λr, σλ)
-        push!(zs, z); push!(σs, σz)
+        push!(zs, z)
+        push!(σs, σz)
     end
     w = 1 ./ σs .^ 2
     return sum(w .* zs) / sum(w), sqrt(1 / sum(w))
 end
 
 function main()
-    d = Float64[]; σd = Float64[]; v = Float64[]; σv = Float64[]; names = String[]
+    d = Float64[]
+    σd = Float64[]
+    v = Float64[]
+    σv = Float64[]
+    names = String[]
     s_ref, σs_ref = GALAXIES[1][3], GALAXIES[1][4]
 
     for (name, λs, s, σs) in GALAXIES
         z, σz = mean_redshift(λs, λ₀, σλ)
         dist = D_REF * s_ref / s
         σdist = dist * sqrt((σs_ref / s_ref)^2 + (σs / s)^2)
-        push!(names, name); push!(d, dist); push!(σd, σdist)
-        push!(v, C_KM_S * z); push!(σv, C_KM_S * σz)
+        push!(names, name)
+        push!(d, dist)
+        push!(σd, σdist)
+        push!(v, C_KM_S * z)
+        push!(σv, C_KM_S * σz)
         @printf("%-9s  z = %.5f ± %.5f   v = %7.1f ± %5.1f km/s   d = %5.2f ± %4.2f Mpc\n",
-                name, z, σz, C_KM_S * z, C_KM_S * σz, dist, σdist)
+            name, z, σz, C_KM_S * z, C_KM_S * σz, dist, σdist)
     end
 
     # Weighted fit through the origin, v = H₀d. Both coordinates carry error,
@@ -99,18 +108,19 @@ function main()
     errorbars!(ax, d, v, σd, direction = :x, color = PALETTE.orange, whiskerwidth = 10)
     l_dat = scatter!(ax, d, v, color = PALETTE.orange, markersize = MARKERSIZE.data)
     for (n, x, y) in zip(names, d, v)
-        text!(ax, x, y - 3 * maximum(σv) / 4; text = n, align = (:center, :top), fontsize = 14)
+        text!(ax, x, y - 3 * maximum(σv) / 4; text = n,
+            align = (:center, :top), fontsize = 14,)
     end
     text!(ax, 0.04, 0.93;
         # rich rather than the Unicode subscript: MathTeXEngine draws U+2080 as a
         # baseline letter o, so this read "Ho = 73 ± 11"
         text = rich(it("H"), subscript("0"),
-                    @sprintf(" = %.1f ± %.1f km s", H₀, σH₀), superscript("−1"),
-                    " Mpc", superscript("−1")),
-        space = :relative, align = (:left, :top), color = PALETTE.blue, fontsize = 16)
+            @sprintf(" = %.1f ± %.1f km s", H₀, σH₀), superscript("−1"),
+            " Mpc", superscript("−1"),),
+        space = :relative, align = (:left, :top), color = PALETTE.blue, fontsize = 16,)
 
     Legend(fig[1, 1], [l_dat, l_fit], ["Galaxies", L"$v = H_0 d$"],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24)
+        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24,)
     rowsize!(fig.layout, 2, Relative(0.86))
     println("wrote ", savefigure(fig, FIGURES, "hubble_parameter"))
 end

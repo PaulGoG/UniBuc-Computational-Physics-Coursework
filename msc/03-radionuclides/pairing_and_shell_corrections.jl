@@ -46,7 +46,7 @@ choice comes from; the coefficients themselves are not tabulated anywhere that
 survives, so they stand as the original file set them.
 """
 const LDM = (a_v = 15.65, a_s = 17.63, a_sym = 27.72, a_ss = 25.60,
-             a_c = 0.864 / 1.233)      # (3/5)e²/r₀ with e² = 1.44 MeV·fm, r₀ = 1.233 fm
+    a_c = 0.864 / 1.233,)      # (3/5)e²/r₀ with e² = 1.44 MeV·fm, r₀ = 1.233 fm
 
 "Liquid-drop binding energy without pairing, in MeV."
 function W_ldm(Z, A)
@@ -101,7 +101,7 @@ function main()
         gap_sets[formula] = g_list
         resid = [g - 12/sqrt(A) for (A, g) in g_list]
         @printf("neutron pairing gap, %-11s %d nuclides, median %.3f MeV, ",
-                string(formula) * ":", length(g_list), median(last.(g_list)))
+            string(formula) * ":", length(g_list), median(last.(g_list)))
         @printf("RMS residual against 12/√A %.3f MeV\n", sqrt(mean(abs2, resid)))
     end
     gaps_n = gap_sets[:guttormsen]
@@ -114,12 +114,13 @@ function main()
         haskey(moller, (n.Z, n.A)) || continue
         push!(δW, (n.Z, n.A, W_ldm(n.Z, n.A) - w, moller[(n.Z, n.A)]))
     end
-    ours = [d[3] for d in δW]; mn = [d[4] for d in δW]
+    ours = [d[3] for d in δW]
+    mn = [d[4] for d in δW]
     @printf("\nshell correction on %d nuclides in common\n", length(δW))
     @printf("  this LDM:     mean %+.3f MeV, range %+.2f to %+.2f\n",
-            mean(ours), minimum(ours), maximum(ours))
+        mean(ours), minimum(ours), maximum(ours))
     @printf("  Möller–Nix:   mean %+.3f MeV, range %+.2f to %+.2f\n",
-            mean(mn), minimum(mn), maximum(mn))
+        mean(mn), minimum(mn), maximum(mn))
     @printf("  correlation coefficient %.3f\n", cor(ours, mn))
     for (Z, A, name) in ((82, 208, "²⁰⁸Pb"), (50, 132, "¹³²Sn"), (28, 78, "⁷⁸Ni"))
         haskey(moller, (Z, A)) &&
@@ -129,11 +130,11 @@ function main()
     fig = Figure(size = (1000, 450))
 
     ax1 = Axis(fig[2, 1], xlabel = L"Mass number $A$",
-        ylabel = L"Neutron pairing gap $\Delta_n$ [MeV]")
+        ylabel = L"Neutron pairing gap $\Delta_n$ [MeV]",)
     m_vl = scatter!(ax1, first.(gap_sets[:vladuca]), last.(gap_sets[:vladuca]),
-        color = (PALETTE.orange, 0.18), markersize = MARKERSIZE.cloud - 1)
+        color = (PALETTE.orange, 0.18), markersize = MARKERSIZE.cloud - 1,)
     m_gu = scatter!(ax1, first.(gaps_n), last.(gaps_n),
-        color = (PALETTE.blue, 0.3), markersize = MARKERSIZE.cloud - 1)
+        color = (PALETTE.blue, 0.3), markersize = MARKERSIZE.cloud - 1,)
     Af = sort(unique(first.(gaps_n)))
     # black, not a palette colour: in red this guide was a third warm hue beside
     # the orange cloud it runs through
@@ -144,47 +145,47 @@ function main()
     # A legend, not a sentence naming two colours, and built by hand so that the
     # swatches are not the three-pixel markers the clouds need.
     axislegend(ax1,
-        [MarkerElement(color = PALETTE.blue, marker = :circle,
-                       markersize = MARKERSIZE.key),
-         MarkerElement(color = PALETTE.orange, marker = :circle,
-                       markersize = MARKERSIZE.key),
-         LineElement(color = PALETTE.black, linewidth = 2)],
+        [
+            MarkerElement(color = PALETTE.blue, marker = :circle,
+                markersize = MARKERSIZE.key,),
+            MarkerElement(color = PALETTE.orange, marker = :circle,
+                markersize = MARKERSIZE.key,),
+            LineElement(color = PALETTE.black, linewidth = 2),],
         [rich("Guttormsen 3-point, median ",
-              @sprintf("%.3f MeV", median(last.(gaps_n)))),
-         rich("Vlăduca 2-point, median ",
-              @sprintf("%.3f MeV", median(last.(gap_sets[:vladuca])))),
-         L"$12/\sqrt{A}$"],
-        position = :rt, framevisible = false, labelsize = 14, padding = 2)
+                @sprintf("%.3f MeV", median(last.(gaps_n)))),
+            rich("Vlăduca 2-point, median ",
+                @sprintf("%.3f MeV", median(last.(gap_sets[:vladuca])))),
+            L"$12/\sqrt{A}$",],
+        position = :rt, framevisible = false, labelsize = 14, padding = 2,)
 
     ax2 = Axis(fig[2, 2], xlabel = L"Möller–Nix $\delta W$ [MeV]",
-        ylabel = L"This LDM $\delta W$ [MeV]")
+        ylabel = L"This LDM $\delta W$ [MeV]",)
     scatter!(ax2, mn, ours, color = (PALETTE.green, 0.3), markersize = MARKERSIZE.cloud - 1)
     lo, hi = extrema(vcat(mn, ours))
     lines!(ax2, [lo, hi], [lo, hi], color = PALETTE.black,
-        linestyle = :dash, linewidth = 1.2)
+        linestyle = :dash, linewidth = 1.2,)
     text!(ax2, hi, hi; text = "Equality", align = (:right, :top), fontsize = 14,
-        color = PALETTE.black)
+        color = PALETTE.black,)
 
     # The doubly magic nuclei carry the largest negative corrections, which is
     # the panel's own check and was left to the printed output.
     # offsets chosen per nuclide: 208-Pb and 132-Sn sit within 1.5 MeV of each
     # other and their labels would otherwise overlap
-    for (Z, A, name, dx, dy, al) in
-            ((82, 208, "²⁰⁸Pb", -0.7,  0.9, (:right, :bottom)),
-             (50, 132, "¹³²Sn",  0.7, -0.9, (:left,  :top)),
-             (28,  78, "⁷⁸Ni",   0.9,  0.6, (:left,  :bottom)))
+    for (Z, A, name, dx, dy, al) in ((82, 208, "²⁰⁸Pb", -0.7, 0.9, (:right, :bottom)),
+        (50, 132, "¹³²Sn", 0.7, -0.9, (:left, :top)),
+        (28, 78, "⁷⁸Ni", 0.9, 0.6, (:left, :bottom)))
         haskey(moller, (Z, A)) || continue
         k = findfirst(d -> d[1] == Z && d[2] == A, δW)
         k === nothing && continue
         scatter!(ax2, [mn[k]], [ours[k]], color = PALETTE.red,
-            markersize = MARKERSIZE.data, marker = :xcross)
+            markersize = MARKERSIZE.data, marker = :xcross,)
         text!(ax2, mn[k] + dx, ours[k] + dy; text = name, align = al,
-            fontsize = 14, color = PALETTE.red)
+            fontsize = 14, color = PALETTE.red,)
     end
     text!(ax2, 0.04, 0.93;
         text = rich(it("r"), @sprintf(" = %.3f on %d nuclides", cor(ours, mn), length(mn)),
-                    "\n", rich("✕", color = PALETTE.red), " doubly magic"),
-        space = :relative, align = (:left, :top), fontsize = 15)
+            "\n", rich("✕", color = PALETTE.red), " doubly magic",),
+        space = :relative, align = (:left, :top), fontsize = 15,)
 
     rowsize!(fig.layout, 2, Relative(0.88))
     println("\nwrote ", savefigure(fig, FIGURES, "pairing_and_shell_corrections"))

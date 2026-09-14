@@ -32,9 +32,11 @@ function rk4_scalar(f, y₀, Δx, n)
     y = Vector{Float64}(undef, n + 1)
     y[1] = y₀
     for i in 1:n
-        k₁ = f(y[i]);              k₂ = f(y[i] + Δx*k₁/2)
-        k₃ = f(y[i] + Δx*k₂/2);    k₄ = f(y[i] + Δx*k₃)
-        y[i+1] = y[i] + Δx/6*(k₁ + 2k₂ + 2k₃ + k₄)
+        k₁ = f(y[i])
+        k₂ = f(y[i] + Δx*k₁/2)
+        k₃ = f(y[i] + Δx*k₂/2)
+        k₄ = f(y[i] + Δx*k₃)
+        y[i + 1] = y[i] + Δx/6*(k₁ + 2k₂ + 2k₃ + k₄)
     end
     return y
 end
@@ -48,9 +50,9 @@ function rk4_system(f, y₀, z₀, Δx, n)
         k1y, k1z = f(y[i], z[i])
         k2y, k2z = f(y[i] + Δx*k1y/2, z[i] + Δx*k1z/2)
         k3y, k3z = f(y[i] + Δx*k2y/2, z[i] + Δx*k2z/2)
-        k4y, k4z = f(y[i] + Δx*k3y,   z[i] + Δx*k3z)
-        y[i+1] = y[i] + Δx/6*(k1y + 2k2y + 2k3y + k4y)
-        z[i+1] = z[i] + Δx/6*(k1z + 2k2z + 2k3z + k4z)
+        k4y, k4z = f(y[i] + Δx*k3y, z[i] + Δx*k3z)
+        y[i + 1] = y[i] + Δx/6*(k1y + 2k2y + 2k3y + k4y)
+        z[i + 1] = z[i] + Δx/6*(k1z + 2k2z + 2k3z + k4z)
     end
     return y, z
 end
@@ -71,7 +73,7 @@ function main()
     energy(y, z) = z^2/2 + sin(y) - y*cos(y)
     E = energy.(y, z)
     @printf("system invariant z²/2 + sin y - y cos y: drift %.3e over %d steps\n",
-            maximum(abs.(E .- E[1])), n)
+        maximum(abs.(E .- E[1])), n)
 
     fig = Figure(size = (1000, 440))
 
@@ -86,25 +88,25 @@ function main()
     for (k, (y₀, ysol)) in enumerate(zip(starts, solutions))
         col = (PALETTE.black, PALETTE.blue, PALETTE.orange, PALETTE.green)[k]
         push!(handles, lines!(ax1, x, ysol, color = col,
-              linewidth = widths[k], linestyle = styles[k]))
+            linewidth = widths[k], linestyle = styles[k],))
     end
     xlims!(ax1, 0, 100)
     text!(ax1, 0.03, 0.96;
         text = latexstring(@sprintf("\\text{A perturbation of } 10^{-12} \\text{ moves } \
-                                     y(100) \\text{ from } 0 \\text{ to } %.1f", 
-                                    last(solutions[2]))),
-        space = :relative, align = (:left, :top), fontsize = 15)
+                                     y(100) \\text{ from } 0 \\text{ to } %.1f",
+            last(solutions[2]))),
+        space = :relative, align = (:left, :top), fontsize = 15,)
 
     ax2 = Axis(fig[2, 2], xlabel = L"y", ylabel = L"z = y'")
     lines!(ax2, y, z, color = PALETTE.purple, linewidth = 1.2)
     text!(ax2, 0.97, 0.06;
         text = rich("Invariant drift ", rsci(maximum(abs.(E .- E[1])); digits = 1),
-                    @sprintf(" over %d RK4 steps", n)),
-        space = :relative, align = (:right, :bottom), fontsize = 15)
+            @sprintf(" over %d RK4 steps", n)),
+        space = :relative, align = (:right, :bottom), fontsize = 15,)
 
     Legend(fig[1, 1:2], handles,
         [L"y(0) = 0", L"y(0) = 10^{-12}", L"y(0) = 10^{-6}", L"y(0) = 1"],
-        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 22)
+        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 22,)
 
     rowsize!(fig.layout, 2, Relative(0.85))
     path = savefigure(fig, FIGURES, "nonunique_ivp_and_rk4")
