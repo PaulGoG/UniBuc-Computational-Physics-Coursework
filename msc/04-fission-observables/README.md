@@ -15,8 +15,8 @@ boolean masking inside nested loops; `Fisiune_2.jl:TKE_A` alone made roughly
 
 ![Q value](figures/fission_q_value.png)
 
-Q(A_H) averaged over the isobaric charge distribution. Mean **184.6 MeV**, range
-165.6–196.0, peaking at **A_H = 130** — at the ¹³²Sn shell closure, where it
+Q(A_H) averaged over the isobaric charge distribution. Mean **183.7 MeV**, range
+163.3–196.0, peaking at **A_H = 130** — at the ¹³²Sn shell closure, where it
 must.
 
 ## `fragment_yields.jl`

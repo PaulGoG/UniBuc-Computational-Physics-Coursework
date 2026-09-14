@@ -191,23 +191,23 @@ function main()
     @printf("both of which vary with A_H, so it reweights the mass average and\n")
     @printf("cannot be absorbed into an overall normalisation.\n\n")
 
-    files = [("Gook, lab", "U5SPGOOK.DAT", PALETTE.blue),
+    files = [("Göök, lab", "U5SPGOOK.DAT", PALETTE.blue),
              ("Vorobyev, lab", "U5SPVORO.DAT", PALETTE.orange),
-             ("Gook, CM light", "U5SPCMLF.DAT", PALETTE.green),
-             ("Gook, CM heavy", "U5SPCMHF.DAT", PALETTE.purple)]
+             ("Göök, CM light", "U5SPCMLF.DAT", PALETTE.green),
+             ("Göök, CM heavy", "U5SPCMHF.DAT", PALETTE.purple)]
     results = map(files) do (name, file, colour)
         d = load_measurement(joinpath(DATA, "Date_experimentale", "Spectru_n", file))
         keep = d.σ .> 0
         T, χ²ν = fit_maxwellian(d.x[keep], d.y[keep], d.σ[keep])
         @printf("%-16s %3d points, T_M = %.4f MeV, χ²/ν = %.2f\n",
                 name, count(keep), T, χ²ν)
-        (name = name, d = d, keep = keep, T = T, colour = colour)
+        (name = name, d = d, keep = keep, T = T, χ²ν = χ²ν, colour = colour)
     end
 
     fig = Figure(size = (1000, 460))
     ax1 = Axis(fig[2, 1], xlabel = L"Neutron energy $E$ [MeV]",
         ylabel = L"$N(E)$ [arb.]", xscale = log10, yscale = log10,
-        xticks = ([0.1, 1, 10], ["0.1", "1", "10"]))
+        xticks = logticks(-1, 1), yticks = logticks(-4, 0))
     l_g = lines!(ax1, E, good ./ maximum(good), color = PALETTE.blue, linewidth = 1.8)
     l_b = lines!(ax1, E, bad ./ maximum(bad), color = PALETTE.red,
         linewidth = 1.6, linestyle = :dash)
@@ -223,14 +223,22 @@ function main()
         area = sum((r.d.y[r.keep][1:end-1] .+ r.d.y[r.keep][2:end]) ./ 2 .* diff(r.d.x[r.keep]))
         ratio_data = (r.d.y[r.keep] ./ area) ./ maxwellian.(r.d.x[r.keep], r.T)
         push!(handles, scatterlines!(ax2, r.d.x[r.keep], ratio_data,
-              color = r.colour, markersize = 5, linewidth = 1.2))
+              color = r.colour, markersize = MARKERSIZE.cloud + 1, linewidth = 1.2))
     end
     hlines!(ax2, [1.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
-    ylims!(ax2, 0.6, 1.5)
+    text!(ax2, 13.7, 1.02; text = "Maxwellian fit", space = :data,
+        align = (:right, :bottom), fontsize = 13, color = PALETTE.black)
+    ylims!(ax2, 0.6, 1.62)
+    # The two centre-of-mass sets are counting-limited above about 6 MeV and
+    # their excursions ran off the top of the panel; the ratio is only
+    # informative where the measurement has counts.
+    xlims!(ax2, 0, 14)
 
     Legend(fig[1, 1:2], [[l_g, l_b]; handles],
         [["Madland–Nix, correct", "Madland–Nix, original prefactor"];
-         [@sprintf("%s, T=%.2f", r.name, r.T) for r in results]],
+         [rich(r.name, ", ", it("T"), subscript("M"),
+               @sprintf(" = %.2f MeV, ", r.T), it("χ"), superscript("2"), "/",
+               it("ν"), @sprintf(" = %.2f", r.χ²ν)) for r in results]],
         orientation = :horizontal, framevisible = false, labelsize = 14,
         nbanks = 2, colgap = 14)
     rowsize!(fig.layout, 2, Relative(0.80))

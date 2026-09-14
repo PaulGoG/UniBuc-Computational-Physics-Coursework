@@ -198,20 +198,44 @@ function main()
 
     fig = Figure(size = (1020, 640))
 
-    ax1 = Axis(fig[1, 1], xlabel = L"$A_H$", ylabel = "Y(A) [%]")
+    # One colour per quantity across the four panels. The yields are all the
+    # same quantity measured against different variables, so they share the
+    # blue; the energies of the fourth panel take their own.
+    ax1 = Axis(fig[1, 1], xlabel = L"$A_H$", ylabel = L"Y($A_H$) [%]")
     lines!(ax1, A, Y_A, color = PALETTE.blue, linewidth = 1.6)
-    ax2 = Axis(fig[1, 2], xlabel = L"$Z_H$", ylabel = "Y(Z) [%]")
-    barplot!(ax2, Z, Y_Z, color = PALETTE.orange, strokewidth = 0.4)
+    peak = A[argmax(Y_A)]
+    text!(ax1, 0.97, 0.95;
+        text = rich("Peak at ", it("A"), subscript("H"),
+                    @sprintf(" = %d, %.2f %%", peak, maximum(Y_A))),
+        space = :relative, align = (:right, :top), fontsize = 14, color = PALETTE.blue)
+
+    ax2 = Axis(fig[1, 2], xlabel = L"$Z_H$", ylabel = L"Y($Z_H$) [%]")
+    barplot!(ax2, Z, Y_Z, color = PALETTE.blue, strokewidth = 0.4)
+    # the tail bins carry a yield of order 1e-3 % and read as stray marks at zero
+    xlims!(ax2, minimum(Z[Y_Z .> 0.05]) - 1, maximum(Z[Y_Z .> 0.05]) + 1)
+
     ax3 = Axis(fig[2, 1], xlabel = "TKE [MeV]", ylabel = "Y(TKE) [%]")
-    lines!(ax3, T, Y_T, color = PALETTE.green, linewidth = 1.6)
+    lines!(ax3, T, Y_T, color = PALETTE.blue, linewidth = 1.6)
+    # Y(TKE) is zero below about 140 MeV and the axis started at 105.
+    keep_T = Y_T .> 1e-3
+    xlims!(ax3, minimum(T[keep_T]) - 3, maximum(T[keep_T]) + 3)
+
     ax4 = Axis(fig[2, 2], xlabel = L"$A_H$", ylabel = "Energy [MeV]")
     l_tke = lines!(ax4, A_keep, TKE_A, color = PALETTE.blue, linewidth = 1.6)
     l_txe = lines!(ax4, A_keep, TXE_A, color = PALETTE.red, linewidth = 1.6)
-    l_kel = lines!(ax4, A_keep, KE_L, color = PALETTE.green, linewidth = 1.4, linestyle = :dash)
-    l_keh = lines!(ax4, A_keep, KE_H, color = PALETTE.orange, linewidth = 1.4, linestyle = :dash)
+    l_kel = lines!(ax4, A_keep, KE_L, color = PALETTE.green, linewidth = 1.6, linestyle = :dash)
+    l_keh = lines!(ax4, A_keep, KE_H, color = PALETTE.purple, linewidth = 1.6, linestyle = :dash)
+    # Headroom: at :rt this legend sat on the ⟨TKE⟩ curve, which runs across the
+    # top of the panel, and the curve crossed its KE_H swatch.
+    ylims!(ax4, 0, maximum(TKE_A) * 1.42)
+    ke = rich(it("KE"))
     axislegend(ax4, [l_tke, l_txe, l_kel, l_keh],
-               [L"\langle TKE \rangle(A)", "TXE(A)", L"KE_L(A)", L"KE_H(A)"],
-               position = :rt, framevisible = false, labelsize = 13, nbanks = 2)
+               [rich("⟨", it("TKE"), "⟩(", it("A"), subscript("H"), ")"),
+                rich(it("TXE"), "(", it("A"), subscript("H"), ")"),
+                rich(ke, subscript("L"), "(", it("A"), subscript("H"), ")"),
+                rich(ke, subscript("H"), "(", it("A"), subscript("H"), ")")],
+               position = :lt, framevisible = false, labelsize = 14, nbanks = 2,
+               padding = 2)
 
     println("\nwrote ", savefigure(fig, FIGURES, "fragment_yields"))
 end

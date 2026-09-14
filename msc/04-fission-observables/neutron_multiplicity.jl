@@ -259,15 +259,25 @@ function main()
     ax = Axis(fig[2, 1], xlabel = L"Fragment mass $A$", ylabel = L"\nu(A)")
     handles = []
     for m in measured
-        push!(handles, scatter!(ax, m.A, m.ν, color = (m.colour, 0.75), markersize = 5))
+        push!(handles, scatter!(ax, m.A, m.ν, color = (m.colour, 0.75),
+              markersize = MARKERSIZE.cloud + 2))
     end
     l_model = lines!(ax, A_list, ν_H, color = PALETTE.red, linewidth = 2)
-    lines!(ax, A₀ .- A_list, ν_L, color = PALETTE.red, linewidth = 2, linestyle = :dash)
-    xlims!(ax, 70, 170); ylims!(ax, 0, 5)
+    # The light-fragment branch is the same model in a different line style and
+    # had no legend entry, so the dashed orange curve was unexplained.
+    l_model_L = lines!(ax, A₀ .- A_list, ν_L, color = PALETTE.red, linewidth = 2,
+        linestyle = :dash)
+    xlims!(ax, 70, 170); ylims!(ax, 0, 3.9)
+    text!(ax, 0.98, 0.97;
+        text = rich("⟨", it("ν"), subscript("pair"), @sprintf("⟩ = %.3f", ν_weighted),
+                    " against 2.42 evaluated"),
+        space = :relative, align = (:right, :top), fontsize = 15, color = PALETTE.red)
 
-    Legend(fig[1, 1], [handles; l_model],
-        [[m.name for m in measured]; "Energy-balance model"],
-        orientation = :horizontal, framevisible = false, labelsize = 15, colgap = 18)
+    Legend(fig[1, 1], [handles; [l_model, l_model_L]],
+        [[m.name for m in measured];
+         ["Energy balance, heavy fragment", "Energy balance, light fragment"]],
+        orientation = :horizontal, framevisible = false, labelsize = 15,
+        nbanks = 2, colgap = 18)
 
     # The assignment asks for β at scission and β in the ground state against Z.
     # Plotting them is also the check on the parameterisation: the two zeros
@@ -278,15 +288,18 @@ function main()
     Zgrid = range(minimum(Zs), maximum(Zs), length = 400)
     gs_pts = [(Z, b) for ((Z, A), b) in β_gs if Z in Zs]
     l_gs = scatter!(ax2, first.(gs_pts), last.(gs_pts),
-        color = (PALETTE.sky, 0.35), markersize = 5)
+        color = (PALETTE.sky, 0.35), markersize = MARKERSIZE.cloud)
     l_sc = lines!(ax2, Zgrid, scission_deformation.(Zgrid),
         color = PALETTE.red, linewidth = 2)
     vlines!(ax2, [28, 50], color = PALETTE.black, linestyle = :dot, linewidth = 1.2)
-    text!(ax2, 28, -0.22; text = "Z = 28", align = (:center, :bottom), fontsize = 13)
-    text!(ax2, 50, -0.22; text = "Z = 50", align = (:center, :bottom), fontsize = 13)
+    text!(ax2, 28, -0.22; text = rich(it("Z"), " = 28"),
+        align = (:center, :bottom), fontsize = 13)
+    text!(ax2, 50, -0.22; text = rich(it("Z"), " = 50"),
+        align = (:center, :bottom), fontsize = 13)
     ylims!(ax2, -0.28, 0.88)
     axislegend(ax2,
-        [MarkerElement(color = PALETTE.sky, marker = :circle, markersize = 9),
+        [MarkerElement(color = PALETTE.sky, marker = :circle,
+                       markersize = MARKERSIZE.key),
          LineElement(color = PALETTE.red, linewidth = 2)],
         ["Ground state, Möller–Nix", "At scission"];
         position = :rt, framevisible = false, labelsize = 14, padding = 4)
