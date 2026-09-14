@@ -97,12 +97,16 @@ function main()
     band!(ax, xf, (H₀ - σH₀) .* xf, (H₀ + σH₀) .* xf, color = (PALETTE.blue, 0.18))
     errorbars!(ax, d, v, σv, color = PALETTE.orange, whiskerwidth = 10)
     errorbars!(ax, d, v, σd, direction = :x, color = PALETTE.orange, whiskerwidth = 10)
-    l_dat = scatter!(ax, d, v, color = PALETTE.orange, markersize = 11)
+    l_dat = scatter!(ax, d, v, color = PALETTE.orange, markersize = MARKERSIZE.data)
     for (n, x, y) in zip(names, d, v)
         text!(ax, x, y - 3 * maximum(σv) / 4; text = n, align = (:center, :top), fontsize = 14)
     end
     text!(ax, 0.04, 0.93;
-        text = @sprintf("H₀ = %.0f ± %.0f km s⁻¹ Mpc⁻¹", H₀, σH₀),
+        # rich rather than the Unicode subscript: MathTeXEngine draws U+2080 as a
+        # baseline letter o, so this read "Ho = 73 ± 11"
+        text = rich(it("H"), subscript("0"),
+                    @sprintf(" = %.1f ± %.1f km s", H₀, σH₀), superscript("−1"),
+                    " Mpc", superscript("−1")),
         space = :relative, align = (:left, :top), color = PALETTE.blue, fontsize = 16)
 
     Legend(fig[1, 1], [l_dat, l_fit], ["Galaxies", L"$v = H_0 d$"],

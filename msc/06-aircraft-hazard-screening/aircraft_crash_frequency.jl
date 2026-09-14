@@ -134,8 +134,11 @@ function main()
     Rs = [25.0, 50.0, 100.0, 200.0, 400.0]
 
     fig = Figure(size = (900, 500))
+    # Ticks every two decades from the lowest curve up through both thresholds,
+    # so that each threshold falls on a labelled decade and can be read off.
     ax = Axis(fig[2, 1], xlabel = L"Distance from the route $y_0$ [km]",
-        ylabel = L"Annual impact frequency $F$ [yr$^{-1}$]", yscale = log10)
+        ylabel = L"Annual impact frequency $F$ [yr$^{-1}$]", yscale = log10,
+        yticks = logticks(-13, -5; step = 2))
 
     handles = []
     for (k, R) in enumerate(Rs)
@@ -146,10 +149,18 @@ function main()
     end
     t1 = hlines!(ax, [THRESHOLDS[1]], color = PALETTE.red, linestyle = :dash, linewidth = 1.4)
     t2 = hlines!(ax, [THRESHOLDS[2]], color = PALETTE.red, linestyle = :dot, linewidth = 1.4)
-    text!(ax, 0.99, 0.10; text = L"Screening thresholds $10^{-5}$ and $10^{-7}$ yr$^{-1}$",
-        space = :relative, align = (:right, :bottom), color = PALETTE.red, fontsize = 15)
+    # Each threshold labelled on its own line rather than by one note four to
+    # seven decades below both of them, which the curves ran through.
+    for (thr, lab) in ((THRESHOLDS[1], "10⁻⁵"), (THRESHOLDS[2], "10⁻⁷"))
+        text!(ax, maximum(y₀s), thr * 1.5;
+            text = rich("Screening threshold ", lab, " yr", superscript("−1")),
+            align = (:right, :bottom), color = PALETTE.red, fontsize = 15)
+    end
+    ylims!(ax, nothing, THRESHOLDS[1] * 60)
 
-    Legend(fig[1, 1], handles, [L"R = %$(Int(R)) m" for R in Rs],
+    # the unit is upright: set in maths italic, "m" reads as a variable
+    Legend(fig[1, 1], handles,
+        [rich(it("R"), " = $(Int(R)) m") for R in Rs],
         orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 20)
     rowsize!(fig.layout, 2, Relative(0.85))
     println("\nwrote ", savefigure(fig, FIGURES, "aircraft_crash_frequency"))

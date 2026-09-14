@@ -153,25 +153,40 @@ function main()
 
     fig = Figure(size = (900, 480))
     ax = Axis(fig[2, 1], xlabel = L"$E$ [MeV]", ylabel = L"$P(E)$ [MeV$^{-1}$]")
-    l1 = lines!(ax, E, B1, color = PALETTE.sky, linewidth = 1.4)
-    l2 = lines!(ax, E, B2, color = PALETTE.orange, linewidth = 1.4)
+    # Isolated resonances dashed, their interference solid: the two are not
+    # variants of one another, and drawn in one hue family each pair read as if
+    # they were.
+    l1 = lines!(ax, E, B1, color = PALETTE.sky, linewidth = 1.6, linestyle = :dash)
+    l2 = lines!(ax, E, B2, color = PALETTE.orange, linewidth = 1.6, linestyle = :dash)
     handles = [l1, l2]
     for (k, r) in enumerate(interference)
         push!(handles, lines!(ax, E, r.y,
-              color = (PALETTE.blue, PALETTE.red)[k], linewidth = 1.8))
+              color = (PALETTE.blue, PALETTE.red)[k], linewidth = 2.0))
     end
     xlims!(ax, 1900, 2800)
-    text!(ax, 0.97, 0.93;
-        text = @sprintf("φ = 30°: peak %.0f, FWHM %.0f\nφ = 45°: peak %.0f, FWHM %.0f\n± %.0f MeV from the inputs",
-                        interference[1].pos, interference[1].w,
-                        interference[2].pos, interference[2].w,
-                        interference[1].δpos),
-        space = :relative, align = (:right, :top), fontsize = 15)
+    # Each uncertainty stays with the quantity it belongs to: a single "± 61 MeV"
+    # on its own line read as the uncertainty of the FWHM above it.
+    for (k, r) in enumerate(interference)
+        text!(ax, 0.97, 0.95 - 0.075 * (k - 1);
+            text = rich(it("φ"), @sprintf(" = %.0f°: peak %.0f ± %.0f MeV,  FWHM %.0f ± %.0f MeV",
+                                          rad2deg(r.φ), r.pos, r.δpos, r.w, r.δw)),
+            space = :relative, align = (:right, :top), fontsize = 15,
+            color = (PALETTE.blue, PALETTE.red)[k])
+    end
+    text!(ax, 0.97, 0.80;
+        text = "the quoted resonance parameters allow that much movement,\nso the phase dependence is real but not resolvable here",
+        space = :relative, align = (:right, :top), fontsize = 14,
+        justification = :right)
 
     Legend(fig[1, 1], handles,
-        [L"$|C_1B_1|^2$: $f_2(2300)$, $E_1 = 2297$, $\Gamma_1 = 149$",
-         L"$|C_2B_2|^2$: $f_2(2340)$, $E_2 = 2339$, $\Gamma_2 = 319$",
-         L"interference, $\varphi = 30°$", L"interference, $\varphi = 45°$"],
+        [rich("|", it("C"), subscript("1"), it("B"), subscript("1"), "|",
+              superscript("2"), ": ", it("f"), subscript("2"), "(2300), ",
+              it("E"), subscript("1"), " = 2297 MeV, Γ", subscript("1"), " = 149 MeV"),
+         rich("|", it("C"), subscript("2"), it("B"), subscript("2"), "|",
+              superscript("2"), ": ", it("f"), subscript("2"), "(2340), ",
+              it("E"), subscript("2"), " = 2339 MeV, Γ", subscript("2"), " = 319 MeV"),
+         rich("Interference, ", it("φ"), " = 30°"),
+         rich("Interference, ", it("φ"), " = 45°")],
         orientation = :horizontal, framevisible = false, labelsize = 15,
         nbanks = 2, colgap = 18)
     rowsize!(fig.layout, 2, Relative(0.82))
