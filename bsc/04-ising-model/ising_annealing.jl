@@ -147,6 +147,25 @@ function main()
     l_tc = vlines!(ax, [T_CRITICAL], color = PALETTE.red, linestyle = :dot, linewidth = 1.2)
     ylims!(ax, -2.25, -0.15)
 
+    # The cold half of this panel is two flat lines, and flat is the result: the
+    # ground state is held for a further decade of cooling rather than merely
+    # touched. Saying where it is first reached is what makes that readable
+    # instead of looking like empty axis.
+    reached = findfirst(
+        i -> energies[i] <= -2.0 * J + 1e-9 &&
+             abs(magnetisations[i]) >= 1 - 1e-9,
+        eachindex(energies),)
+    if reached !== nothing
+        T_reached = temperatures[reached]
+        @printf("ground state first reached at T = %.3f J/k_B, held to T = %.3f\n",
+            T_reached, last(temperatures))
+        vlines!(ax, [T_reached], color = PALETTE.black, linestyle = :dot, linewidth = 1.0)
+        text!(ax, T_reached * 0.92, -0.22;
+            text = rich(it("E"), "/", it("N"), " = −2", it("J"), " and |", it("m"),
+                "| = 1 from ", it("T"), @sprintf(" = %.2f down", T_reached)),
+            align = (:right, :top), fontsize = 15, color = PALETTE.black,)
+    end
+
     axm = Axis(fig[2, 1:3],
         ylabel = L"Magnetisation $|m|$",
         yaxisposition = :right, xreversed = true, xscale = log10,

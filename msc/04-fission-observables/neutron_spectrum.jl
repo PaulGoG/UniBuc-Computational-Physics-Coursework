@@ -223,11 +223,21 @@ function main()
 
     ax2 = Axis(fig[2, 2], xlabel = L"Neutron energy $E$ [MeV]",
         ylabel = "Spectrum / Maxwellian fit",)
+    # Error bars, not a smoothing or a cut. Without them this panel inverts its
+    # own legend: the Göök laboratory set is the smoothest curve here and fits
+    # worst by a long way (χ²/ν = 54.9), while the centre-of-mass heavy set
+    # looks like noise and fits best (1.83). The uncertainties are what make
+    # that legible -- the excursions carry error bars that cross unity and the
+    # smooth departure does not.
     handles = []
     for r in results
         area = sum((r.d.y[r.keep][1:(end - 1)] .+ r.d.y[r.keep][2:end]) ./ 2 .*
                    diff(r.d.x[r.keep]))
-        ratio_data = (r.d.y[r.keep] ./ area) ./ maxwellian.(r.d.x[r.keep], r.T)
+        denom = maxwellian.(r.d.x[r.keep], r.T)
+        ratio_data = (r.d.y[r.keep] ./ area) ./ denom
+        ratio_err = (r.d.σ[r.keep] ./ area) ./ denom
+        errorbars!(ax2, r.d.x[r.keep], ratio_data, ratio_err,
+            color = (r.colour, 0.3), whiskerwidth = 0, linewidth = 1.0,)
         push!(handles,
             scatterlines!(ax2, r.d.x[r.keep], ratio_data,
                 color = r.colour, markersize = MARKERSIZE.cloud + 1, linewidth = 1.2,),)
