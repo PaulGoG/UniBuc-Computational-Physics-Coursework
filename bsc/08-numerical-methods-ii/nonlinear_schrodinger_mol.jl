@@ -7,9 +7,14 @@
 #
 # A soliton carrying the phase factor e^{ikx} travels with velocity v = k, so the
 # original's pair — centred at x = ∓5 with k = ∓0.1 — moves **apart**, not
-# together. On the periodic domain [-10, 10] each reaches the boundary at
-# t = 50 and wraps, so they meet at the edge rather than in the middle. The
-# initial condition, domain and phase are kept exactly as written.
+# together. On the periodic domain [-10, 10] they meet at the edge rather than
+# in the middle. Travelling freely at |v| = 0.1 that would take t = 50; the
+# heatmap puts the collision at t ≈ 35, because the tails overlap across the
+# boundary well before the peaks do and two in-phase solitons attract. The
+# measured speed away from the encounter is 0.1 either side of it, and both
+# pulses leave with the shape and speed they arrived with, which is what makes
+# them solitons. The initial condition, domain and phase are kept exactly as
+# written.
 #
 # Ported from SolitonicEq_MOL.jl. The sign convention and the stencil were
 # right. The time stepping was not: the original wrote

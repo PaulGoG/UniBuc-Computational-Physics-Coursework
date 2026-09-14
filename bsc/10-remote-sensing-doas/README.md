@@ -58,7 +58,8 @@ The two points singled out are the two largest dSCD in that window and they
 carry the worst spectral residuals in the entire SWING file, five to seven times
 the 5 × 10⁻³ threshold and thirty to seventy times the residuals of the good
 fits beside them. Four of the twenty-two spectra in the window are rejected;
-these are two of them.
+these are two of them. They are the two crosses in the residual panel of the
+figure.
 
 There *is* elevated NO₂ around 11:10–11:25 — the 18° and 24° points at
 1–2 × 10¹⁶ are three to four times their own medians, they survive the cut, and

@@ -47,6 +47,12 @@ the original's pair — centred at x = ∓5 with k = ∓0.1 — moves **apart**,
 together. On the periodic domain [−10, 10] they reach the boundary, meet there,
 pass through one another and separate again, which is what the heatmap shows.
 
+They meet at **t ≈ 35**, not the t = 50 that |v| = 0.1 over five units of
+separation would give. The tails reach across the periodic boundary well before
+the peaks do, and two in-phase solitons attract; the speed measured away from
+the encounter is 0.1 on either side of it, and both pulses leave with the shape
+and speed they arrived with.
+
 The norm `∫|Ψ|²dx` is conserved to a relative **8 × 10⁻¹⁵** over 625 000 steps.
 That is the check the port exists for: the 2021 stages were
 
