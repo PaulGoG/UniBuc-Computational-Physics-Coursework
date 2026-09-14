@@ -16,6 +16,8 @@ that run, say what they compute, and check themselves against something.
 ├── Project.toml, Manifest.toml     single root environment, resolved versions pinned
 ├── activate.jl                     activates and instantiates it
 ├── theme.jl                        shared figure style and colourblind-safe palette
+├── .JuliaFormatter.toml            formatting rules, SciMLStyle
+├── .github/workflows/CI.yml        formatting check, and one figure rendered from scratch
 ├── bsc/
 │   ├── 01-oscillators-and-integrators/   year 1, 2017–2018, from C++
 │   ├── 02-chaos-and-attractors/          year 1, 2017–2018, from C++ and Octave
