@@ -92,26 +92,42 @@ function main()
     fig = Figure(size = (1000, 450))
 
     ax1 = Axis(fig[2, 1], xlabel = L"Time $t$ [d]", ylabel = L"$\Lambda_2/\Lambda_0$",
-        xscale = log10, xticks = ([0.1, 1, 10, 100, 1000], ["0.1", "1", "10", "100", "1000"]))
+        xscale = log10, xticks = logticks(-1, 3))
     td = 10 .^ range(-1, 3, length = 500)
     lines!(ax1, td, bateman.(td .* 86400, λ₁, λ₂), color = PALETTE.blue, linewidth = 1.8)
     v = vlines!(ax1, [t_m / 86400], color = PALETTE.red, linestyle = :dash, linewidth = 1.3)
-    text!(ax1, t_m / 86400 * 1.2, 0.3;
-        text = @sprintf("t_m = %.0f d", t_m / 86400),
-        color = PALETTE.red, align = (:left, :center), fontsize = 15)
+    # Right-aligned to the left of the line. The maximum falls at the right-hand
+    # end of the decade range, so a label placed to its right was sliced in two
+    # by the axis frame and read "t_n".
+    text!(ax1, t_m / 86400 * 0.85, 0.35;
+        text = rich(it("t"), subscript("m"), @sprintf(" = %.0f d", t_m / 86400)),
+        color = PALETTE.red, align = (:right, :center), fontsize = 15)
 
-    ax2 = Axis(fig[2, 2], xlabel = L"Time $t$ [s]", ylabel = L"Activity $\Lambda$ [s$^{-1}$]")
+    # Activity in units of 1e7: every tick otherwise repeated the factor, and
+    # Makie wrote the first of them as 1x10^7.
+    scale = 1e7
+    ax2 = Axis(fig[2, 2], xlabel = L"Time $t$ [s]",
+        ylabel = L"Activity $\Lambda$ [$10^{7}$ s$^{-1}$]")
     ts = range(0, 6τ, length = 3000)
-    lines!(ax2, ts, pulsed_activity.(ts, λ_al, τ, K), color = PALETTE.green, linewidth = 1.5)
-    h = hlines!(ax2, [K], color = PALETTE.black, linestyle = :dash, linewidth = 1.1)
     for c in 0:2
-        vspan!(ax2, 2c * τ, (2c + 1) * τ, color = (PALETTE.orange, 0.12))
+        vspan!(ax2, 2c * τ, (2c + 1) * τ, color = (PALETTE.orange, 0.14))
     end
-    text!(ax2, 0.5, 0.06; text = "shaded: flux on",
-        space = :relative, align = (:center, :bottom), fontsize = 14)
+    lines!(ax2, ts, pulsed_activity.(ts, λ_al, τ, K) ./ scale,
+        color = PALETTE.green, linewidth = 1.5)
+    h = hlines!(ax2, [K / scale], color = PALETTE.black, linestyle = :dash, linewidth = 1.1)
+    reached = pulsed_activity(τ, λ_al, τ, K) / K
+    # headroom above the saturation line, the only band this panel leaves clear
+    ylims!(ax2, -0.1, K / scale * 1.28)
+    text!(ax2, 0.98, 0.97;
+        text = @sprintf("%.1f %% of saturation by the end of the first irradiation",
+                        100 * reached),
+        space = :relative, align = (:right, :top), fontsize = 14,
+        color = PALETTE.green)
 
-    Legend(fig[1, 1:2], [v, h],
-        [L"$^{234}$Th maximum", "Saturation activity"],
+    Legend(fig[1, 1:2],
+        [v, h, PolyElement(color = (PALETTE.orange, 0.35))],
+        [rich(superscript("234"), "Th maximum"), "Saturation activity",
+         "Flux on"],
         orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 26)
     rowsize!(fig.layout, 2, Relative(0.85))
     println("\nwrote ", savefigure(fig, FIGURES, "decay_and_activation"))

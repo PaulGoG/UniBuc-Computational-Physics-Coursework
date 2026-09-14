@@ -22,7 +22,7 @@
 #      passing AME2021 would have produced an AME95 fit labelled AME2021.
 #   4. The CSV was re-parsed on every call — six full parses of the same file.
 
-using Printf, Statistics
+using Printf, Statistics, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 include(joinpath(@__DIR__, "mass_tables.jl"))
 
@@ -64,28 +64,54 @@ function main()
     fig = Figure(size = (1020, 450))
     ax1 = Axis(fig[2, 1], xlabel = L"Mass number $A$",
         ylabel = L"$B/A$ [MeV]")
-    scatter!(ax1, As, Bs, color = (PALETTE.blue, 0.35), markersize = 3)
-    scatter!(ax1, [56, 62], [fe56, ni62], color = PALETTE.red, markersize = 11)
-    text!(ax1, 62, ni62 - 0.5; text = L"$^{62}$Ni", color = PALETTE.red,
-        align = (:left, :top), fontsize = 15)
-    ylims!(ax1, 0, 9.5)
+    scatter!(ax1, As, Bs, color = (PALETTE.blue, 0.35), markersize = MARKERSIZE.cloud)
+    scatter!(ax1, [56, 62], [fe56, ni62], color = PALETTE.red,
+        markersize = MARKERSIZE.emphasis)
+    # Both markers are labelled and both labels are above the curve: the single
+    # label sat half an MeV below its marker, inside the data cloud, and did not
+    # say which of the two nuclides it named.
+    text!(ax1, 82, ni62 + 0.72; text = rich(superscript("56"), "Fe, ",
+              @sprintf("%.4f MeV", fe56)),
+        color = PALETTE.red, align = (:left, :bottom), fontsize = 15)
+    text!(ax1, 82, ni62 + 0.26; text = rich(superscript("62"), "Ni, ",
+              @sprintf("%.4f MeV", ni62)),
+        color = PALETTE.red, align = (:left, :bottom), fontsize = 15)
+    lines!(ax1, [80, 56], [ni62 + 0.80, fe56 + 0.10], color = PALETTE.red, linewidth = 1.0)
+    lines!(ax1, [80, 62], [ni62 + 0.34, ni62 + 0.10], color = PALETTE.red, linewidth = 1.0)
+    # The whole of this curve lies between 7 and 8.8 MeV, and from zero its
+    # structure -- the maximum included -- occupied the top tenth of the panel.
+    ylims!(ax1, 6.9, 9.9)
 
     ax2 = Axis(fig[2, 2], xlabel = L"Neutron number $N$",
         ylabel = L"Separation energy $S$ [MeV]")
-    handles = []
+    cols = (PALETTE.blue, PALETTE.orange, PALETTE.green, PALETTE.purple)
     for (k, s) in enumerate(series)
-        push!(handles, scatter!(ax2, s.N, s.S, markersize = 2.5,
-              color = ((PALETTE.blue, 0.4), (PALETTE.orange, 0.4),
-                       (PALETTE.green, 0.4), (PALETTE.purple, 0.4))[k]))
+        scatter!(ax2, s.N, s.S, markersize = MARKERSIZE.cloud - 2,
+                 color = (cols[k], 0.35))
+        # The running median: four overlapping clouds of three thousand points
+        # hide the shell steps this panel exists to show.
+        Ns = sort(unique(s.N))
+        med = [median(s.S[s.N .== n]) for n in Ns]
+        lines!(ax2, Ns, med, color = cols[k], linewidth = 2.0)
     end
-    ylims!(ax2, -20, 35)
+    ylims!(ax2, -20, 42)
     for magic in (28, 50, 82, 126)
-        vlines!(ax2, [magic], color = PALETTE.black, linestyle = :dot, linewidth = 0.9)
+        vlines!(ax2, [magic], color = PALETTE.black, linestyle = :dot, linewidth = 1.1)
+        text!(ax2, magic + 2, 41; text = string(magic),
+            align = (:left, :top), fontsize = 14, color = PALETTE.black)
     end
-    text!(ax2, 0.98, 0.05; text = "dotted: neutron shell closures",
-        space = :relative, align = (:right, :bottom), fontsize = 14)
+    text!(ax2, 0.98, 0.03;
+        text = rich("Dotted: neutron shell closures\n",
+                    "Lines are the running median at each ", it("N")),
+        space = :relative, align = (:right, :bottom), fontsize = 14,
+        justification = :right)
 
-    Legend(fig[1, 1:2], handles, [s.name for s in series],
+    # Built by hand: a legend entry taken from the scatter would inherit the
+    # three-pixel, 35 %-opacity marker the clouds need and be unreadable.
+    Legend(fig[1, 1:2],
+        [[MarkerElement(color = c, marker = :circle, markersize = MARKERSIZE.key),
+          LineElement(color = c, linewidth = 2.0)] for c in cols],
+        [s.name for s in series],
         orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 24)
     rowsize!(fig.layout, 2, Relative(0.85))
     println("\nwrote ", savefigure(fig, FIGURES, "binding_and_separation"))
