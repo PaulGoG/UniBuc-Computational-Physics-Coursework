@@ -15,6 +15,8 @@
 # life is T½/ln 2 = 6.446 × 10⁹ yr, so the sample was decayed about 44 per cent
 # too fast. Both are shown below.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

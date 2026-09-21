@@ -20,6 +20,8 @@
 # whose values were then pushed into an `Int[]` field. It also omitted the
 # `q > 0` guard that the identical code in Fisiune_2, _3 and _4 carries.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 include(joinpath(@__DIR__, "fission_data.jl"))

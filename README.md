@@ -71,17 +71,19 @@ happens when a problem is ill-posed.
 ## Running it
 
 ```bash
-julia activate.jl                                    # instantiate the environment
-julia --project=. bsc/04-ising-model/ising_annealing.jl
+julia bsc/04-ising-model/ising_annealing.jl
 ```
 
-Any script runs the same way. Each writes its figures into its own `figures/`
-directory and prints its numerical results to the terminal.
+Any script runs the same way, from any directory: each activates and
+instantiates the root environment as its first statement, so the first run is
+slow. Each writes its figures into its own `figures/` directory and prints its
+numerical results to the terminal. `julia -i activate.jl` opens a REPL in the
+same environment.
 
 Formatting is checked against the committed `.JuliaFormatter.toml`:
 
 ```bash
-julia --project=. -e 'using JuliaFormatter; format(".")'
+julia -e 'include("activate.jl"); using JuliaFormatter; format(".")'
 ```
 
 ## What the rewrite found

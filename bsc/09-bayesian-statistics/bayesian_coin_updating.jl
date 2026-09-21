@@ -15,6 +15,8 @@
 # The credible interval and the 1/√N concentration are new: the original showed
 # the posterior widening and narrowing but never quantified it.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, Distributions, StableRNGs, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

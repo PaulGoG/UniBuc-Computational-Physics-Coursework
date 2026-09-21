@@ -33,6 +33,8 @@
 # Regressing drum reading on wavelength is the statistically correct direction:
 # λ is the reference and the drum reading carries the measurement error.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, Statistics, LinearAlgebra
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

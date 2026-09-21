@@ -16,6 +16,8 @@
 # whose entire subject is accumulated integration error, drew initial conditions
 # as integers on a 101x101 lattice with modulo bias, and seeded from the clock.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

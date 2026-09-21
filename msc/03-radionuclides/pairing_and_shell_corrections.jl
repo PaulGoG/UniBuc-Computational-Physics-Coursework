@@ -30,6 +30,8 @@
 #   5. `σᴾ` was pushed as a hardcoded 1 MeV placeholder because the real
 #      propagation was commented out, and was never used in any plot.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 include(joinpath(@__DIR__, "mass_tables.jl"))

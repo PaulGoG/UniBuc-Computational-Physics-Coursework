@@ -45,6 +45,8 @@
 # polluted the level-density distribution and everything averaged over it. The
 # charge range is now derived from the yield matrix itself.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 include(joinpath(@__DIR__, "fission_data.jl"))

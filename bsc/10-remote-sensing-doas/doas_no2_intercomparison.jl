@@ -43,6 +43,8 @@
 # measuring the same air mass. Converting dSCD to a vertical column would need
 # differential air-mass factors, which are not attempted here.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, CSV, DataFrames, Statistics, Dates
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

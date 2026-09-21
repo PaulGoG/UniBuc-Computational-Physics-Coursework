@@ -21,6 +21,8 @@
 #   4. No seed, so no run was reproducible; and `rand(Uniform(-3,3))` rebuilt the
 #      distribution object on each of ~1.8 million iterations.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, StableRNGs, Statistics, QuadGK
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

@@ -33,6 +33,8 @@
 # so the record shows what those three programs were actually configured to do
 # and why the analysis built on top of them could not work.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

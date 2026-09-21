@@ -21,6 +21,8 @@
 #      destructive rebinding, so re-evaluating that one line in a REPL divided
 #      by 100 again.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

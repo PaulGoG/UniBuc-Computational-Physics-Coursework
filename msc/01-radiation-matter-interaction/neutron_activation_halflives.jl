@@ -33,6 +33,8 @@
 # point and cancels in the ratio, so the slope recovers λ exactly. Only the
 # intercept shifts.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, Statistics, LinearAlgebra
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

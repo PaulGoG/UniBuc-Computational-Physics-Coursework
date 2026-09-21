@@ -12,6 +12,8 @@
 # were #define macros, so `a`, `b` and `c` textually replaced any identifier of
 # those names anywhere in the translation unit.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 include(joinpath(@__DIR__, "attractors_core.jl"))

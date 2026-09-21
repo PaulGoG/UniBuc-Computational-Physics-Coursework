@@ -23,6 +23,8 @@
 # count, or an areal thickness, than a length in micrometres. It is left as
 # supplied and labelled neutrally.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, Statistics, LinearAlgebra
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

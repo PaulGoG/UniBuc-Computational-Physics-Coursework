@@ -10,6 +10,8 @@
 # reproduced. Periodic boundaries are handled here by modular indexing, which
 # removes the ghost cells entirely.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Random, StableRNGs, Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

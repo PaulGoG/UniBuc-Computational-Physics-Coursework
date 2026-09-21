@@ -20,6 +20,8 @@
 # variance sum was divided by that count *outside* the square root, and no
 # uncertainty was reported on the individual line redshifts.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, Statistics, LinearAlgebra
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

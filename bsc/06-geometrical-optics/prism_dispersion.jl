@@ -24,6 +24,8 @@
 #      light — it is over-determined six times over;
 #   3. n must fall monotonically with wavelength, as normal dispersion requires.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, CSV, DataFrames, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

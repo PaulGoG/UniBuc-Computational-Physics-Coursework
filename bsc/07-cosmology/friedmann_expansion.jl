@@ -44,6 +44,8 @@
 # original's docstring (quintessence, Chaplygin and modified Chaplygin gas) was
 # never implemented there and is not implemented here.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, CSV, DataFrames, LsqFit, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

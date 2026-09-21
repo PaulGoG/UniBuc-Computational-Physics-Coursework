@@ -38,6 +38,8 @@
 # every access `Any`, and the annotation coordinates were hardcoded in data
 # units.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, QuadGK
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

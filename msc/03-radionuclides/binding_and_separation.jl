@@ -22,6 +22,8 @@
 #      passing AME2021 would have produced an AME95 fit labelled AME2021.
 #   4. The CSV was re-parsed on every call — six full parses of the same file.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, Statistics, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 include(joinpath(@__DIR__, "mass_tables.jl"))

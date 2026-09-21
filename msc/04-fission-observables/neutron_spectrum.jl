@@ -58,6 +58,8 @@
 # `Fisiune_5.jl` did bound its optimiser at T_M = 0, where T_M^{-3/2} is
 # infinite; that is fixed.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, SpecialFunctions, Optim, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 include(joinpath(@__DIR__, "fission_data.jl"))

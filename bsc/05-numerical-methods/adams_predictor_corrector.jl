@@ -15,6 +15,8 @@
 # element inside the loop, never checked that the grid held at least four
 # starting points, and hardcoded the problem at the call site.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

@@ -19,6 +19,8 @@
 # there, and neither is included. The result should therefore sit above the
 # tabulated value, and it does.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, QuadGK
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

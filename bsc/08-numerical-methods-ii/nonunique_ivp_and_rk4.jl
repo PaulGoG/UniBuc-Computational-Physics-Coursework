@@ -17,6 +17,8 @@
 # (b) was integrated correctly but called RungeKutta4 twice per step, once for
 # each component, doubling the work and discarding half of each result.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

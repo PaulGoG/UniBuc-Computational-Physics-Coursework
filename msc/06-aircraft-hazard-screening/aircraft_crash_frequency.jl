@@ -62,6 +62,8 @@
 # and shadow contributions, so the geometric value is a lower bound and is
 # labelled as such.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, QuadGK
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

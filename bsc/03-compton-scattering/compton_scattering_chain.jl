@@ -19,6 +19,8 @@
 # of one sample from a running mean, cast to Int and taken mod 100, with no sum
 # of squares anywhere.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, StableRNGs, StatsBase
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

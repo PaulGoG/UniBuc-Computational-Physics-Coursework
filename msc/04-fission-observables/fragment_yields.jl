@@ -29,6 +29,8 @@
 #     success, and the caller indexed `[1]` and `[2]` regardless, so the failure
 #     branch would have raised a `BoundsError` on `NaN[2]`.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 include(joinpath(@__DIR__, "fission_data.jl"))

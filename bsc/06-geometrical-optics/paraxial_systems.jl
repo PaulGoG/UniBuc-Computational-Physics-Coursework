@@ -27,6 +27,8 @@
 # and triplet in the Erfle exist precisely to achromatise, and without dispersion
 # data that cannot be evaluated at all.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, LinearAlgebra
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

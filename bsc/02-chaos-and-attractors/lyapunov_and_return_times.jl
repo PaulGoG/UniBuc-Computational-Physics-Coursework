@@ -19,6 +19,8 @@
 #     at fixed intervals and the accumulated logarithms averaged. This is what
 #     actually converges to λ₁.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, StatsBase
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 include(joinpath(@__DIR__, "attractors_core.jl"))

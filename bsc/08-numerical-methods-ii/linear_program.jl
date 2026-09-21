@@ -21,6 +21,8 @@
 #   * **the third constraint is redundant.** x₂ ≤ 3 is implied by x₁ + x₂ ≤ 3
 #     together with x₁ ≥ 0, and never binds.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

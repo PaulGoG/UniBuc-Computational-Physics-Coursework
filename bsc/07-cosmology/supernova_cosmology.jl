@@ -29,6 +29,8 @@
 # simulation of homogeneous and isotropic universe given by Friedmann equations"
 # (A. Crăciun and P. Gogîță).
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, CSV, DataFrames, LsqFit, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

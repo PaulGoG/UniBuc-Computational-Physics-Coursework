@@ -21,6 +21,8 @@
 # missing semicolons, demultiplexed its state by column-major linear indexing,
 # and never compared against the exact solution that exists for this system.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

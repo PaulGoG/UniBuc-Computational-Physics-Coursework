@@ -23,6 +23,8 @@
 # four files assigned `length = 1` or `length = 9.8`, shadowing the Octave
 # builtin.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

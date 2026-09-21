@@ -5,7 +5,7 @@
 # scripts were written as. SciMLStyle is built for hand-written scientific
 # Julia and keeps such calls together.
 #
-#   julia --project=. -e 'using JuliaFormatter; format(".")'
+#   julia -e 'include("activate.jl"); using JuliaFormatter; format(".")'
 
 style = "sciml"
 indent = 4

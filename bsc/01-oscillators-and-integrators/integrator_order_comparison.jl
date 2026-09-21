@@ -13,6 +13,8 @@
 # initial abscissa and the length of the integration interval, and never
 # advanced the abscissa at all.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

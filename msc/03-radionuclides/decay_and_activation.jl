@@ -28,6 +28,8 @@
 #      within the cycle, and located a plotting value by float equality after
 #      `round` on a time vector rather than evaluating the closed form it had.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 

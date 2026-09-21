@@ -28,6 +28,8 @@
 # actually conserved. It was a three-stage scheme labelled RungeKutta3; RK4 is
 # used below.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 
