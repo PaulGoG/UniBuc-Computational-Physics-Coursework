@@ -13,7 +13,7 @@ that run, say what they compute, and check themselves against something.
 
 ```
 .
-├── Project.toml, Manifest.toml     single root environment, resolved versions pinned
+├── Project.toml                    single root environment, bounded by [compat]
 ├── activate.jl                     activates and instantiates it
 ├── theme.jl                        shared figure style and colourblind-safe palette
 ├── .JuliaFormatter.toml            formatting rules, SciMLStyle

@@ -4,21 +4,45 @@
 
 using CairoMakie, MathTeXEngine, LaTeXStrings
 
+# One layout standard for every figure. A single panel is drawn on
+# `Figure(size = (900, 600))`; each further stacked main panel adds about 350 to
+# the height and each auxiliary strip (ratio, residual) about 180. Scripts scale
+# up from these values where a figure needs it and never below them: no
+# `fontsize`, `linewidth` or `markersize` override may undercut the theme,
+# except `ANNOTATION_SIZE` for in-axis notes and the `cloud` and `dense` marker
+# sizes below.
 set_theme!(Theme(
     fonts = (;
         regular = texfont(:text),
         bold = texfont(:bold),
         italic = texfont(:italic),
     ),
-    fontsize = 22,
-    figure_padding = 16,
+    fontsize = 26,
+    figure_padding = 10,
+    linewidth = 3,
+    markersize = 14,
+    rowgap = 10,
+    colgap = 12,
     Axis = (
+        spinewidth = 1.5,
+        xticklabelsize = 22, yticklabelsize = 22,
+        xlabelpadding = 8, ylabelpadding = 8,
         xgridstyle = :dash, ygridstyle = :dash,
         xgridcolor = (:grey, 0.12), ygridcolor = (:grey, 0.12),
         xminorticksvisible = false, yminorticksvisible = false,
         xtickalign = 1, ytickalign = 1,
     ),
+    Scatter = (strokewidth = 1.5,),
+    Legend = (framevisible = false, orientation = :horizontal, titlefont = :bold,
+        labelsize = 22, padding = (0, 0, 0, 0),),
+    Colorbar = (ticklabelsize = 22, spinewidth = 1.5),
 ))
+
+"Size of in-axis annotations, 0.8 of the base size. Nothing in a figure is set smaller."
+const ANNOTATION_SIZE = 21
+
+"Width of reference and guide lines, which are also dashed; data lines take the theme's 3."
+const GUIDE_WIDTH = 1.5
 
 "Okabe–Ito, colourblind-safe. One consistent colour per quantity across the repository."
 #! format: off
@@ -36,23 +60,27 @@ const PALETTE = (
 
 """
 Marker sizes, one scale for the whole repository, chosen against the shared
-`fontsize = 22` so that symbols stay legible when a figure is reduced to
+`fontsize = 26` so that symbols stay legible when a figure is reduced to
 journal column width.
 
   * `cloud` — scatter of thousands of points, where larger markers would only
     deepen the overplotting
-  * `dense` — series with enough points that full-size markers would collide
+  * `dense` — series of a hundred points or more, where full-size markers would
+    collide
   * `data` — the default for a measured or computed series
   * `emphasis` — single highlighted points: a fixed point, a fitted optimum
   * `key` — markers built by hand for a legend, which must stay readable even
     where the series itself is drawn small
 """
-const MARKERSIZE = (cloud = 5, dense = 10, data = 14, emphasis = 19, key = 16)
+const MARKERSIZE = (cloud = 6, dense = 10, data = 14, emphasis = 20, key = 16)
 
 _decimal_label(e::Integer) = e >= 0 ? latexstring(string(10^e)) :
                              latexstring("0." * "0"^(-e - 1) * "1")
 
-_power_label(e::Integer) = latexstring("10^{$e}")
+# The unit decade and the first are written as the numbers they are: `10^0` and
+# `10^1` are never the readable form, on an axis of powers no more than on one
+# of decimals.
+_power_label(e::Integer) = e == 0 ? L"1" : e == 1 ? L"10" : latexstring("10^{$e}")
 
 """
     logticks(e_min, e_max; step = 1, style = :auto)
@@ -72,13 +100,8 @@ others, and on ranges narrower than a decade it falls back to fractional
 exponents such as `10^{-0.4}`, which is not a form any of these quantities are
 read in.
 
-One style per axis, which is what settles the standing conflict between the two
-rules governing these labels: collapsing `10^0` to `1` and `10^1` to `10` is
-right on an axis of decimals, and on an axis of powers it produces the mixed
-`10^-4, 10^-2, 1, 10^2`. The collapse therefore belongs to the decimal style,
-where `1` and `10` *are* the decimals, and not to the power style. `sci` keeps
-the collapse unconditionally, an isolated quantity in running text having no
-axis to be consistent with.
+In the power style the unit decade is still written `1` and the first `10`, as
+[`sci`](@ref) writes them: `10^{-2}, 1, 10^{2}`.
 
 # Example
 

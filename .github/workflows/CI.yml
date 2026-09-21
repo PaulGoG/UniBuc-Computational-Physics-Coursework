@@ -2,9 +2,9 @@ name: CI
 
 # Trimmed to what a script archive warrants. There is no package to test, no
 # docs to build and nothing to register, so the two things worth checking are
-# that the formatting matches the committed configuration and that the pinned
-# environment still resolves and renders a figure on a machine that is not this
-# one — which is the whole claim the Manifest is committed to support.
+# that the formatting matches the committed configuration and that the
+# environment still resolves within its [compat] bounds and renders a figure on
+# a machine that is not this one.
 
 on:
   push:
