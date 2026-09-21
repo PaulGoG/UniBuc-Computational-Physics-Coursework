@@ -148,14 +148,21 @@ correct equivalent Maxwellian temperature of 1.40 MeV sits above the evaluated
 
 | Dataset | T_M [MeV] | χ²/ν |
 |---|---|---|
-| Göök, lab | 1.3222 | 54.9 |
-| Vorobyev, lab | 1.3362 | 3.35 |
-| Göök, CM light | 0.7964 | 4.98 |
-| Göök, CM heavy | 0.8388 | 1.83 |
+| Göök, lab | 1.2946 | 3.95 |
+| Vorobyev, lab | 1.3603 | 2.61 |
+| Göök, CM light | 0.7998 | 5.04 |
+| Göök, CM heavy | 0.8413 | 1.88 |
 
-The laboratory temperatures land on the evaluated ~1.32 MeV for ²³⁵U(n_th,f),
-and the centre-of-mass values sit well below them, as removing the fragment
-motion requires.
+The two laboratory temperatures bracket the evaluated ~1.32 MeV for
+²³⁵U(n_th,f), the Göök value agreeing with the 1.297 MeV the course quotes for
+the Hambsch and Kornilov set, and the centre-of-mass values sit well below
+them, as removing the fragment motion requires.
+
+Data and model are both normalised to unit area over the measured window. The
+window matters: the Göök laboratory spectrum runs from 0.55 to 12.5 MeV and
+holds 84 % of the Maxwellian, so comparing it with a Maxwellian normalised over
+all energies offsets the whole ratio by a fifth, drags T_M up to 1.322 MeV and
+returns χ²/ν = 54.9 for what is in fact a good fit.
 
 **The Madland–Nix prefactor was wrong.** The original wrote
 
@@ -196,8 +203,8 @@ p = 6.71 − Z²·0.156/A = 1.116 MeV        q = 0.75 + Z²·0.088/A = 3.905 MeV
 
 against Göök, Maslin, Nishio and Vorobyev.
 
-⟨ν_pair⟩ = **2.883** against the evaluated **2.42**, +19 %. The residual is the
-model: prompt γ emission competes for the same excitation energy and carries off
+⟨ν_pair⟩ = **2.573**, yield-weighted, against the evaluated **2.42**, +6 %. The
+residual is the model: prompt γ emission competes for the same excitation energy and carries off
 6–7 MeV per fission, which this balance does not account for. The measured sets
 average 1.16–1.32 neutrons per fragment, consistent with 2.42 for the pair.
 

@@ -31,12 +31,16 @@
 # for an optical-model compound cross-section and **C = 10 MeV for a constant
 # one**, which is the case used here.
 #
-# Two further defects, both removed: E₁(z) and γ(3/2,x) were each re-integrated
+# Two inefficiencies, both removed: E₁(z) and γ(3/2,x) were each re-integrated
 # from scratch with `quadgk` at every evaluation — about 34 000 adaptive
 # quadratures per run, where `SpecialFunctions` has both in closed form; and
-# `Fisiune_5.jl` re-evaluated a normalisation independent of the summation index
-# inside the χ² comprehension, running a quadrature and a trapezoid over the
-# whole dataset for every data point at every optimiser iteration.
+# `Fisiune_5.jl` recomputed the Maxwellian's integral over the measured window
+# by quadrature for every data point at every optimiser iteration. That
+# integral does not depend on the point but it does depend on T_M, so it is
+# kept — a measurement covers a finite window, and data normalised to unit area
+# over that window has to be compared with a model normalised over the same
+# window — and evaluated once per trial temperature from the closed-form
+# distribution function instead.
 #
 # **A retraction.** An earlier version of this header held that `Fisiune_5.jl`
 # was wrong to divide χ² by N rather than by ν = N − 1. It was not: the course
@@ -99,17 +103,42 @@ end
 maxwellian(E, T) = 2 / sqrt(π) * T^(-1.5) * sqrt(E) * exp(-E / T)
 
 """
+    maxwellian_cdf(E, T)
+
+Fraction of the Maxwellian of temperature `T` lying below energy `E`,
+`erf(√(E/T)) − (2/√π) √(E/T) exp(−E/T)`.
+"""
+function maxwellian_cdf(E, T)
+    x = sqrt(E / T)
+    return erf(x) - 2 / sqrt(π) * x * exp(-x^2)
+end
+
+"""
+    windowed_maxwellian(E, T, E_min, E_max)
+
+The Maxwellian normalised to unit integral over `[E_min, E_max]` rather than
+over `[0, ∞)`. A measured spectrum covers a finite window — the Göök laboratory
+set holds 84 % of the distribution — so this is the model that data normalised
+to unit area over that window has to be compared with.
+"""
+windowed_maxwellian(E, T, E_min, E_max) = maxwellian(E, T) / (maxwellian_cdf(E_max, T) -
+                                           maxwellian_cdf(E_min, T))
+
+trapezoid_area(E, N) = sum((N[1:(end - 1)] .+ N[2:end]) ./ 2 .* diff(E))
+
+"""
     fit_maxwellian(E, N, σN)
 
-Least-squares Maxwellian temperature, with the data renormalised to unit
-integral by the trapezoid rule so that shape rather than scale is fitted.
-Returns T_M and the reduced χ².
+Least-squares Maxwellian temperature. Data and model are both normalised to
+unit integral over the measured window, the data by the trapezoid rule, so that
+shape rather than scale is fitted. Returns T_M and the reduced χ².
 """
 function fit_maxwellian(E, N, σN)
-    area = sum((N[1:(end - 1)] .+ N[2:end]) ./ 2 .* diff(E))
+    area = trapezoid_area(E, N)
     n = N ./ area
     s = σN ./ area
-    χ²(T) = sum(((n .- maxwellian.(E, T)) ./ s) .^ 2)
+    E_min, E_max = extrema(E)
+    χ²(T) = sum(((n .- windowed_maxwellian.(E, T, E_min, E_max)) ./ s) .^ 2)
     # bounded: the original allowed T_M = 0, where T^(-3/2) is infinite
     res = optimize(χ², 0.3, 3.0, Brent())
     T = Optim.minimizer(res)
@@ -223,17 +252,13 @@ function main()
 
     ax2 = Axis(fig[2, 2], xlabel = L"Neutron energy $E$ [MeV]",
         ylabel = "Spectrum / Maxwellian fit",)
-    # Error bars, not a smoothing or a cut. Without them this panel inverts its
-    # own legend: the Göök laboratory set is the smoothest curve here and fits
-    # worst by a long way (χ²/ν = 54.9), while the centre-of-mass heavy set
-    # looks like noise and fits best (1.83). The uncertainties are what make
-    # that legible -- the excursions carry error bars that cross unity and the
-    # smooth departure does not.
+    # Error bars, not a smoothing or a cut: the centre-of-mass sets look like
+    # noise above a few MeV, and the uncertainties show that those excursions
+    # cross unity.
     handles = []
     for r in results
-        area = sum((r.d.y[r.keep][1:(end - 1)] .+ r.d.y[r.keep][2:end]) ./ 2 .*
-                   diff(r.d.x[r.keep]))
-        denom = maxwellian.(r.d.x[r.keep], r.T)
+        area = trapezoid_area(r.d.x[r.keep], r.d.y[r.keep])
+        denom = windowed_maxwellian.(r.d.x[r.keep], r.T, extrema(r.d.x[r.keep])...)
         ratio_data = (r.d.y[r.keep] ./ area) ./ denom
         ratio_err = (r.d.σ[r.keep] ./ area) ./ denom
         errorbars!(ax2, r.d.x[r.keep], ratio_data, ratio_err,

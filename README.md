@@ -120,8 +120,8 @@ fails. A perturbation of 10⁻¹² changes y(100) from 0 to 59.7. The 2021 file 
 | Maximum binding energy per nucleon | 8.7946 MeV at **⁶²Ni**, over ⁵⁶Fe at 8.7904 |
 | ⟨TKE⟩ in ²³⁵U(n_th,f) | 170.55 MeV |
 | S_n(²³⁶U) | 6.546 MeV |
-| Prompt-neutron spectrum temperature | 1.322 and 1.336 MeV (lab), 0.796 and 0.839 (CM) |
-| Prompt-neutron pair multiplicity | 2.883 (evaluated 2.42) |
+| Prompt-neutron spectrum temperature | 1.295 and 1.360 MeV (lab), 0.800 and 0.841 (CM) |
+| Prompt-neutron pair multiplicity | 2.573 (evaluated 2.42) |
 | H₀ from three galaxies | 73.1 ± 11.4 km s⁻¹ Mpc⁻¹ |
 | H₀ from H(z), flat ΛCDM | 73.3 ± 5.1 km s⁻¹ Mpc⁻¹, Ω_m = 0.267 ± 0.064 |
 | Tessar objective focal length | 50.79 mm |
