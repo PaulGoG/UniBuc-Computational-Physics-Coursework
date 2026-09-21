@@ -74,7 +74,10 @@ function main()
     for (name, λs, s, σs) in GALAXIES
         z, σz = mean_redshift(λs, λ₀, σλ)
         dist = D_REF * s_ref / s
-        σdist = dist * sqrt((σs_ref / s_ref)^2 + (σs / s)^2)
+        # The reference galaxy sits at D_REF by definition: its own apparent
+        # size cancels out of its distance and contributes no error to it.
+        σdist = name == GALAXIES[1][1] ? 0.0 :
+                dist * sqrt((σs_ref / s_ref)^2 + (σs / s)^2)
         push!(names, name)
         push!(d, dist)
         push!(σd, σdist)

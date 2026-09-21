@@ -195,7 +195,7 @@ function main()
             xlabel = rich(it("T"), @sprintf(" = %.2f ", T), it("J"), "/", it("k"),
                 subscript("B"),),
             xlabelsize = 18,)
-        heatmap!(axk, config', colormap = [PALETTE.orange, PALETTE.blue],
+        heatmap!(axk, config', colormap = [PALETTE.blue, PALETTE.orange],
             colorrange = (-1, 1),)
         hidedecorations!(axk, label = false)
         hidespines!(axk)
@@ -247,7 +247,7 @@ function animate_anneal(; every::Int = 20)
 
     fig = Figure(size = (980, 460))
     axl = Axis(fig[2, 1], aspect = DataAspect())
-    heatmap!(axl, lattice, colormap = [PALETTE.orange, PALETTE.blue], colorrange = (-1, 1))
+    heatmap!(axl, lattice, colormap = [PALETTE.blue, PALETTE.orange], colorrange = (-1, 1))
     hidedecorations!(axl)
     hidespines!(axl)
 

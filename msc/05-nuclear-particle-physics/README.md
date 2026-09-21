@@ -47,7 +47,7 @@ Replaced by linear interpolation between the bracketing samples.
 H₀ from three galaxies, with redshifts from five reference lines and distances
 from apparent size relative to a standard.
 
-**H₀ = 73.1 ± 11.4 km s⁻¹ Mpc⁻¹**, a Hubble time of 13.4 Gyr — consistent with
+**H₀ = 70.4 ± 5.6 km s⁻¹ Mpc⁻¹**, a Hubble time of 13.9 Gyr — consistent with
 both Planck (67.4 ± 0.5) and SH0ES (73.0 ± 1.0). The measured recession
 velocities are good: 745, 936 and 2827 km s⁻¹ against catalogue values near 727,
 897 and 2820.
@@ -59,8 +59,12 @@ Two corrections:
   was overwritten every iteration and kept only the last term, so every averaged
   redshift uncertainty was too small by roughly √n, and the fit weights derived
   from them were wrong.
-- **The distance errors were left out of the fit.** They dominate here: σ_d/d
-  runs to 30 %. Weighting by velocity errors alone gives H₀ = 89.1 ± 2.0, because
-  the distant, poorly-measured galaxy is over-weighted. Using the effective
-  variance σ_v² + H₀²σ_d², iterated to convergence, gives 73.1 ± 11.4 — a
-  different central value *and* an honest uncertainty.
+- **The distance errors entered the fit the wrong way.** The original weighted
+  each galaxy by `1/(σ_v σ_d)²`, a product of two variances that is not the
+  variance of anything. They dominate here: σ_d/d runs to 30 %. Weighting by
+  velocity errors alone gives H₀ = 89.1 ± 2.0, because the distant,
+  poorly-measured galaxy is over-weighted. Using the effective variance
+  σ_v² + H₀²σ_d², iterated to convergence, gives 70.4 ± 5.6 — a different central
+  value *and* an honest uncertainty. The reference galaxy carries no distance
+  error, as in the original: its distance is the input, and its own apparent
+  size cancels out of it.
