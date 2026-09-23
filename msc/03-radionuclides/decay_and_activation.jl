@@ -8,7 +8,8 @@
 #   (b) ²⁷Al(n,γ)²⁸Al under a pulsed neutron flux: irradiation and decay
 #       alternating with period τ, solved analytically per cycle.
 #
-# Ported from Radionuclizi_4_1.jl and Radionuclizi_4_2.jl.
+# Ported from Radionuclizi_4_1.jl and Radionuclizi_4_2.jl on the `legacy` branch
+# (Julia-Workflow-FFUB/Radionuclizi_M_1/).
 #
 # Corrections:
 #
@@ -35,12 +36,16 @@ include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 
 const FIGURES = joinpath(@__DIR__, "figures")
 
-const YEAR = 3.15576e7                       # s
-"²³⁸U and ²³⁴Th half-lives in seconds."
+"Julian year [s]."
+const YEAR = 3.15576e7
+"²³⁸U half-life [s], NUBASE2020 (doi:10.1088/1674-1137/abddae): 4.468 × 10⁹ yr."
 const T_U238 = 4.468e9 * YEAR
+"²³⁴Th half-life [s], NUBASE2020: 24.10 d."
 const T_TH234 = 24.10 * 86400
-"²⁸Al half-life in seconds — the evaluated value, not the original 2.3 min."
+"²⁸Al half-life [s], NUBASE2020: 2.245 min; the original used 2.3 min."
 const T_AL28 = 2.245 * 60
+"Relative tolerance of the closed-form checks."
+const CHECK_TOLERANCE = 1e-9
 
 decay_constant(T½) = log(2) / T½
 
@@ -75,9 +80,16 @@ function main()
     @printf("λ₂/λ₁ = %.3e — the daughter equilibrates %.0e times faster than the parent\n",
         λ₂ / λ₁, λ₂ / λ₁)
     @printf("daughter maximum at t = %.3f yr = %.1f d\n", t_m / YEAR, t_m / 86400)
-    @printf("  the original time grid had a step of %.2e yr, so this sat at x = 0\n",
-        T_U238 / YEAR / 10)
     @printf("secular equilibrium ratio Λ₂/Λ₁ → %.6f\n\n", λ₂ / (λ₂ - λ₁))
+    # checks: the maximum is a maximum, and the ratio has reached its limit
+    # twenty daughter half-lives in
+    ε = 1e-3
+    bateman(t_m, λ₁, λ₂) >
+    max(bateman(t_m * (1 + ε), λ₁, λ₂), bateman(t_m * (1 - ε), λ₁, λ₂)) ||
+        error("t_m is not the maximum of the daughter activity")
+    t_eq = 20 * T_TH234
+    isapprox(bateman(t_eq, λ₁, λ₂) / exp(-λ₁ * t_eq), λ₂ / (λ₂ - λ₁); rtol = 1e-6) ||
+        error("secular equilibrium not reached at t = $t_eq s")
 
     λ_al = decay_constant(T_AL28)
     # the original set τ = 5·T½ and ran three activation/pause cycles
@@ -90,23 +102,25 @@ function main()
             n, pulsed_activity((2n - 1) * τ, λ_al, τ, K),
             100 * pulsed_activity((2n - 1) * τ, λ_al, τ, K) / K)
     end
+    # with τ = 5 T½ the first irradiation ends at exactly 1 − 2⁻⁵ of saturation
+    reached = pulsed_activity(τ, λ_al, τ, K) / K
+    isapprox(reached, 1 - 2.0^-5; rtol = CHECK_TOLERANCE) ||
+        error("activity after the first irradiation is $reached of saturation, not 1 − 2⁻⁵")
 
-    fig = Figure(size = (1000, 450))
+    fig = Figure(size = (1400, 640))
 
     ax1 = Axis(fig[2, 1], xlabel = L"Time $t$ [d]", ylabel = L"$\Lambda_2/\Lambda_0$",
         xscale = log10, xticks = logticks(-1, 3),)
     td = 10 .^ range(-1, 3, length = 500)
-    lines!(ax1, td, bateman.(td .* 86400, λ₁, λ₂), color = PALETTE.blue, linewidth = 1.8)
-    v = vlines!(ax1, [t_m / 86400], color = PALETTE.red, linestyle = :dash, linewidth = 1.3)
-    # Right-aligned to the left of the line. The maximum falls at the right-hand
-    # end of the decade range, so a label placed to its right was sliced in two
-    # by the axis frame and read "t_n".
+    lines!(ax1, td, bateman.(td .* 86400, λ₁, λ₂), color = PALETTE.blue)
+    v = vlines!(ax1, [t_m / 86400], color = PALETTE.red, linestyle = :dash,
+        linewidth = GUIDE_WIDTH,)
+    # the maximum falls near the right end of the range: label to its left
     text!(ax1, t_m / 86400 * 0.85, 0.35;
         text = rich(it("t"), subscript("m"), @sprintf(" = %.0f d", t_m / 86400)),
-        color = PALETTE.red, align = (:right, :center), fontsize = 15,)
+        color = PALETTE.red, align = (:right, :center), fontsize = ANNOTATION_SIZE,)
 
-    # Activity in units of 1e7: every tick otherwise repeated the factor, and
-    # Makie wrote the first of them as 1x10^7.
+    # activity in units of 1e7 s⁻¹, so the ticks do not each repeat the factor
     scale = 1e7
     ax2 = Axis(fig[2, 2], xlabel = L"Time $t$ [s]",
         ylabel = L"Activity $\Lambda$ [$10^{7}$ s$^{-1}$]",)
@@ -114,24 +128,18 @@ function main()
     for c in 0:2
         vspan!(ax2, 2c * τ, (2c + 1) * τ, color = (PALETTE.orange, 0.14))
     end
-    lines!(ax2, ts, pulsed_activity.(ts, λ_al, τ, K) ./ scale,
-        color = PALETTE.green, linewidth = 1.5,)
-    h = hlines!(ax2, [K / scale], color = PALETTE.black, linestyle = :dash, linewidth = 1.1)
-    reached = pulsed_activity(τ, λ_al, τ, K) / K
-    # headroom above the saturation line, the only band this panel leaves clear
+    lines!(ax2, ts, pulsed_activity.(ts, λ_al, τ, K) ./ scale, color = PALETTE.green)
+    h = hlines!(ax2, [K / scale], color = PALETTE.black, linestyle = :dash,
+        linewidth = GUIDE_WIDTH,)
     ylims!(ax2, -0.1, K / scale * 1.28)
     text!(ax2, 0.98, 0.97;
-        text = @sprintf("%.1f %% of saturation by the end of the first irradiation",
-            100 * reached),
-        space = :relative, align = (:right, :top), fontsize = 14,
+        text = @sprintf("%.1f %% of saturation after the first irradiation", 100 * reached),
+        space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,
         color = PALETTE.green,)
 
     Legend(fig[1, 1:2],
         [v, h, PolyElement(color = (PALETTE.orange, 0.35))],
-        [rich(superscript("234"), "Th maximum"), "Saturation activity",
-            "Flux on",],
-        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 26,)
-    rowsize!(fig.layout, 2, Relative(0.85))
+        [rich(superscript("234"), "Th maximum"), "Saturation activity", "Flux on"],)
     println("\nwrote ", savefigure(fig, FIGURES, "decay_and_activation"))
 end
 

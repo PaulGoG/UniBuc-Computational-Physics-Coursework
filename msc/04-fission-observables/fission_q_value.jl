@@ -1,103 +1,85 @@
-# Q-value of ²³⁵U(n_th,f) from the AME mass excesses,
+# Q value of ²³⁵U(n_th,f) from the AME2020 mass excesses,
 #
-#   Q(A_H, Z_H) = Δ(²³⁶U) − Δ(A_H, Z_H) − Δ(A_L, Z_L)
+#   Q(A_H, Z_H) = Δ(²³⁶U) − Δ(A_H, Z_H) − Δ(A₀ − A_H, Z₀ − Z_H),
 #
-# averaged over the isobaric charge distribution about the most probable charge
-# Z_p(A) = Z_UCD + ΔZ with ΔZ = −0.5 and an rms width of 0.6.
+# for heavy-fragment masses 118 to 160, averaged at each mass over the three
+# charges nearest the most probable one, Z_p(A_H) = Z_UCD(A_H) − 0.5, with the
+# weights of a Gaussian isobaric charge distribution of rms width 0.6:
 #
-# The mass range, the polarisation and the width are all set by the assignment
-# (Tudora, 10 Oct 2022): "A de la 76 la 160 (adica AH de la 118 la 160)", three
-# charges per A at the nearest integer either side of Z_p(A) = Z_UCD(A) + ΔZ(A),
-# polarisation 0.5 with + for the light fragment and − for the heavy, and a
-# Gaussian isobaric charge distribution of rms 0.6. ΔZ = −0.5 and rms = 0.6 are
-# the yield-weighted averages over the studied actinides, from the Wahl Z_p
-# model as tabulated in Wagemans, The Nuclear Fission Process, Fig. 85.
+#   Q(A_H) = Σ_Z p(Z) Q(A_H, Z) / Σ_Z p(Z),   σ_Q(A_H) = √Σ_Z [p(Z) σ_Q(A_H, Z)]² / Σ_Z p(Z).
 #
-# Ported from Fisiune_1.jl. The physics was right. The implementation had four
-# boolean re-filters of the whole array per inner iteration, parsed its CSV
-# inside the calculation rather than taking it as an argument — unlike every
-# sibling file — and used `round(Z_p)` as a loop bound, producing a float range
-# whose values were then pushed into an `Int[]` field. It also omitted the
-# `q > 0` guard that the identical code in Fisiune_2, _3 and _4 carries.
+# The polarisation of 0.5 and the width of 0.6 are rounded averages over the
+# actinides of Wahl's Z_p systematics (At. Data Nucl. Data Tables 39, 1 (1988),
+# doi:10.1016/0092-640X(88)90016-2).
+#
+# Ported from Fisiune_1.jl, whose physics is unchanged, the mass-excess
+# uncertainties included. The original parsed the mass table inside the
+# calculation, filtered the whole table four times per charge, and looped over
+# a range of `Float64` charges.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 
 using Printf, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
-include(joinpath(@__DIR__, "fission_data.jl"))
-
-const FIGURES = joinpath(@__DIR__, "figures")
-const DATA = joinpath(@__DIR__, "data")
-
-"Mass number of the compound system ²³⁶U."
-const A₀ = 236
-"Proton number of the compound system."
-const Z₀ = 92
-"Charge polarisation of the isobaric charge distribution."
-const ΔZ = -0.5
-"Rms width of the isobaric charge distribution."
-const σ_Z = 0.6
-"""
-Heavy-fragment mass range, as set by the assignment: A from 76 to 160, that is
-A_H from 118 to 160. ΔZ = −0.5 and rms = 0.6 are set there too, both as the
-yield-weighted averages over the studied actinides.
-"""
-const A_H_RANGE = 118:160
-
-"Unchanged-charge-density most probable charge, with polarisation."
-Z_p(A_H) = Z₀ * A_H / A₀ + ΔZ
-
-"Gaussian weight of charge Z about the most probable value."
-charge_weight(Z, A_H) = exp(-(Z - Z_p(A_H))^2 / (2σ_Z^2))
+include(joinpath(@__DIR__, "fission_core.jl"))
 
 function main()
     masses = load_masses(joinpath(DATA, "Defecte_masa", "AUDI2021.csv"))
-    Δ₀ = Δ(masses, Z₀, A₀)
-    @printf("Δ(²³⁶U) = %.1f keV, from %d tabulated nuclides\n", Δ₀, length(masses))
+    bins = tke_by_mass(yield_cells(load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR"))))
+    @printf("Δ(²³⁶U) = %.1f ± %.1f keV, %d nuclides tabulated\n", masses[(Z₀, A₀)]...,
+        length(masses))
 
-    A_H_range = A_H_RANGE
+    A = Int[]
     Q = Float64[]
-    A_kept = Int[]
-    for A_H in A_H_range
-        A_L = A₀ - A_H
-        num = 0.0
-        den = 0.0
-        # three charge splits about the most probable charge, as in Fisiune_1.jl
-        for Z_H in (round(Int, Z_p(A_H)) - 1):(round(Int, Z_p(A_H)) + 1)
-            Z_L = Z₀ - Z_H
-            δH = Δ(masses, Z_H, A_H)
-            δL = Δ(masses, Z_L, A_L)
-            (δH === nothing || δL === nothing) && continue
-            q = (Δ₀ - δH - δL) / 1000        # MeV
-            q > 0 || continue
-            w = charge_weight(Z_H, A_H)
-            num += w * q
-            den += w
+    σQ = Float64[]
+    A_split = Int[]                       # the individual charge splits
+    Q_split = Float64[]
+    for A_H in A_H_RANGE
+        charges = nearest_three_charges(A_H)
+        mean_q = charge_average(Z -> q_value(masses, Z, A_H), A_H, charges)
+        mean_q === nothing && continue
+        push!(A, A_H)
+        push!(Q, mean_q[1])
+        push!(σQ, mean_q[2])
+        for Z in charges
+            q = q_value(masses, Z, A_H)
+            q === nothing && continue
+            push!(A_split, A_H)
+            push!(Q_split, q[1])
         end
-        den > 0 || continue
-        push!(A_kept, A_H)
-        push!(Q, num / den)
     end
 
-    @printf("Q(A_H) over %d mass splits: mean %.2f MeV, range %.2f to %.2f\n",
-        length(Q), mean(Q), minimum(Q), maximum(Q))
-    @printf("maximum at A_H = %d\n", A_kept[argmax(Q)])
-    sym = findfirst(==(118), A_kept)
-    sym !== nothing && @printf("symmetric split A_H = 118: Q = %.2f MeV\n", Q[sym])
-    @printf("the textbook figure for ²³⁵U(n,f) is about 200 MeV\n")
+    # The mean that means something physically weights each mass by its yield. The
+    # matrix holds no yield above A_H = 158, so 159 and 160 carry zero weight.
+    Y = [haskey(bins, a) ? bins[a].Y : 0.0 for a in A]
+    Q_mean = sum(Q .* Y) / sum(Y)
+    σ_mass = sqrt(sum(abs2, σQ .* Y)) / sum(Y)
 
-    fig = Figure(size = (800, 470))
-    ax = Axis(fig[2, 1], xlabel = L"Heavy fragment mass $A_H$",
-        ylabel = L"$Q$ [MeV]",)
-    l = lines!(ax, A_kept, Q, color = PALETTE.blue, linewidth = 1.8)
-    h = hlines!(ax, [mean(Q)], color = PALETTE.red, linestyle = :dash, linewidth = 1.2)
-    text!(ax, 0.04, 0.06; text = @sprintf("mean %.1f MeV", mean(Q)),
-        space = :relative, align = (:left, :bottom), color = PALETTE.red, fontsize = 15,)
+    @printf("Q(A_H) for %d masses, A_H = %d–%d: %.2f to %.2f MeV, σ_Q from %.3f to %.3f MeV\n",
+        length(A), first(A), last(A), minimum(Q), maximum(Q), minimum(σQ), maximum(σQ))
+    @printf("maximum at A_H = %d: Q = %.2f ± %.2f MeV\n", A[argmax(Q)], maximum(Q),
+        σQ[argmax(Q)])
+    @printf("symmetric split A_H = %d: Q = %.2f ± %.2f MeV\n", A[1], Q[1], σQ[1])
+    @printf("yield-weighted mean ⟨Q⟩ = %.3f ± %.3f MeV (mass-excess errors), %d masses with a yield\n",
+        Q_mean, σ_mass, count(>(0), Y))
+    @printf("arithmetic mean over the %d mass points = %.2f MeV\n", length(A), mean(Q))
 
-    Legend(fig[1, 1], [l, h],
-        [L"$Q(A_H)$, charge-averaged", "Mean over mass splits"],
-        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 22,)
-    rowsize!(fig.layout, 2, Relative(0.86))
+    fig = Figure(size = (900, 600))
+    ax = Axis(fig[2, 1], xlabel = rich("Heavy-fragment mass ", it("A"), subscript("H")),
+        ylabel = rich(it("Q"), " [MeV]"),)
+    s = scatter!(ax, A_split, Q_split; color = (PALETTE.sky, 0.8), marker = :diamond,
+        markersize = MARKERSIZE.dense, strokecolor = PALETTE.blue,)
+    # σ_Q stays below 0.09 MeV, a third of the line width on this scale: no band is drawn
+    l = lines!(ax, A, Q; color = PALETTE.blue)
+    hlines!(ax, [Q_mean]; color = PALETTE.black, linestyle = :dash, linewidth = GUIDE_WIDTH)
+    text!(ax, last(A), Q_mean;
+        text = rich("Yield-weighted mean ", @sprintf("%.1f MeV", Q_mean)),
+        align = (:right, :bottom), offset = (-6, 4), fontsize = ANNOTATION_SIZE,)
+    xlims!(ax, first(A) - 1, last(A) + 1)
+
+    Legend(fig[1, 1], [s, l],
+        [rich(it("Q"), "(", it("A"), subscript("H"), ", ", it("Z"), subscript("H"), ")"),
+            rich(it("Q"), "(", it("A"), subscript("H"), "), charge-averaged")],)
     println("wrote ", savefigure(fig, FIGURES, "fission_q_value"))
 end
 

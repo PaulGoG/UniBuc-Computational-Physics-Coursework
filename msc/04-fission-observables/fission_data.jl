@@ -1,65 +1,70 @@
-# Loaders for the ²³⁵U(n_th,f) datasets used in this directory.
-#
-# All the originals accessed these tables by boolean masking inside nested
-# loops. `Fisiune_2.jl:TKE_A` alone made roughly 8000 full passes over the
-# 20 705-row yield table. Everything is indexed once here.
+# Loaders for the ²³⁵U(n_th,f) tables in `data/`. Every file is whitespace
+# separated with at most one header line, and is read once into a typed
+# container; nothing downstream filters a table by boolean mask.
 
-using CSV, DataFrames
+"One row of the yield matrix: heavy-fragment mass and charge, TKE [MeV], yield and its error [%]."
+struct YieldRow
+    A_H::Int
+    Z_H::Int
+    TKE::Int
+    Y::Float64
+    σY::Float64
+end
 
-"Straede triple-differential yield Y(A_H, Z_H, TKE) in % per fission."
+"Fields of each non-empty line of `path` after the first `skip` lines."
+function table_fields(path; skip = 0)
+    rows = Vector{Vector{SubString{String}}}()
+    for (i, line) in enumerate(eachline(path))
+        i <= skip && continue
+        fields = split(line)
+        isempty(fields) || push!(rows, fields)
+    end
+    return rows
+end
+
+"""
+    load_yields(path) -> Vector{YieldRow}
+
+The yield matrix Y(A_H, Z_H, TKE) in % per fission, heavy fragment only.
+"""
 function load_yields(path)
-    CSV.read(path, DataFrame; header = ["A_H", "Z_H", "TKE", "Y", "σY"],
-        skipto = 2, delim = ' ', ignorerepeated = true, silencewarnings = true,)
+    return [YieldRow(parse(Int, f[1]), parse(Int, f[2]), parse(Int, f[3]),
+                parse(Float64, f[4]), parse(Float64, f[5]))
+            for f in table_fields(path; skip = 1)]
 end
 
-"AME mass excesses keyed on (Z, A), in keV."
+"""
+    load_masses(path) -> Dict{Tuple{Int,Int},Tuple{Float64,Float64}}
+
+Atomic mass excess and its uncertainty in keV, keyed on `(Z, A)`.
+"""
 function load_masses(path)
-    df = CSV.read(path, DataFrame; header = ["Z", "A", "symbol", "Δ", "σΔ"],
-        delim = ' ', ignorerepeated = true, silencewarnings = true,)
-    Dict((r.Z, r.A) => Float64(r.Δ)
-    for r in eachrow(df)
-    if !ismissing(r.Z) && !ismissing(r.A) && !ismissing(r.Δ))
+    return Dict((parse(Int, f[1]), parse(Int, f[2])) =>
+                    (parse(Float64, f[4]), parse(Float64, f[5]))
+    for f in table_fields(path))
 end
 
-"Möller–Nix FRLDM ground-state β₂ keyed on (Z, A)."
+"Möller–Nix ground-state quadrupole deformation β₂ keyed on `(Z, A)`."
 function load_beta2(path)
-    t = Dict{Tuple{Int,Int},Float64}()
-    for (i, line) in enumerate(eachline(path))
-        i == 1 && continue
-        p = split(strip(line))
-        length(p) < 3 && continue
-        t[(parse(Int, p[1]), parse(Int, p[2]))] = parse(Float64, p[3])
-    end
-    return t
+    return Dict((parse(Int, f[1]), parse(Int, f[2])) => parse(Float64, f[3])
+    for f in table_fields(path; skip = 1))
 end
 
-"Gilbert–Cameron shell corrections S(N), S(Z) keyed on nucleon number."
+"""
+    load_gilbert_cameron(path) -> Dict{Int,@NamedTuple{S_N::Float64, S_Z::Float64}}
+
+Gilbert–Cameron shell corrections in MeV keyed on nucleon number: `S_N` when the
+key counts neutrons, `S_Z` when it counts protons.
+"""
 function load_gilbert_cameron(path)
-    S = Dict{Int,Tuple{Float64,Float64}}()
-    for (i, line) in enumerate(eachline(path))
-        i == 1 && continue
-        p = split(strip(line))
-        length(p) < 3 && continue
-        S[parse(Int, p[1])] = (parse(Float64, p[2]), parse(Float64, p[3]))
-    end
-    return S
+    return Dict(parse(Int, f[1]) => (S_N = parse(Float64, f[2]), S_Z = parse(Float64, f[3]))
+    for f in table_fields(path; skip = 1))
 end
 
-"Two-column measurement file with a trailing header comment: x, y, σy."
+"Three-column measurement file with one header line: abscissa, value, uncertainty."
 function load_measurement(path)
-    x = Float64[]
-    y = Float64[]
-    σ = Float64[]
-    for (i, line) in enumerate(eachline(path))
-        i == 1 && continue
-        p = split(strip(line))
-        length(p) < 3 && continue
-        push!(x, parse(Float64, p[1]))
-        push!(y, parse(Float64, p[2]))
-        push!(σ, parse(Float64, p[3]))
-    end
-    return (x = x, y = y, σ = σ)
+    fields = table_fields(path; skip = 1)
+    return (x = [parse(Float64, f[1]) for f in fields],
+        y = [parse(Float64, f[2]) for f in fields],
+        σ = [parse(Float64, f[3]) for f in fields])
 end
-
-"Mass excess lookup returning `nothing` rather than throwing."
-Δ(masses, Z, A) = get(masses, (Z, A), nothing)
