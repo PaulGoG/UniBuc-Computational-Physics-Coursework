@@ -2,75 +2,74 @@
 
 ![NO2 intercomparison](figures/doas_no2_intercomparison.png)
 
-NO₂ differential slant column densities retrieved by DOAS from two instruments
-on 18 March 2019 at 44° N, 28° E: a ground-based elevation-scanning MAX-DOAS and
-SWING, the BIRA-IASB UAV-borne whiskbroom imaging spectrometer. Both are QDOAS
-output fitting NO₂ jointly with O₃, O₄, H₂O and the Ring pseudo-absorber.
+NO₂ differential slant column densities (dSCD) retrieved by DOAS from two
+instruments operated side by side on the ground on 18 March 2019, at the
+position the files record as 44° N, 28° E with viewing azimuth 185°: a
+MAX-DOAS scanning the elevations 3, 6, 12, 18, 30, 48, 60 and 89°, and SWING,
+the BIRA-IASB whiskbroom imaging spectrometer built for UAV operation
+(Merlaud et al. 2018, doi:10.5194/amt-11-551-2018), here on the ground beside
+the MAX-DOAS, stepping its servo from 60° down to 6° in steps of 6°. Both
+retrievals are QDOAS output (BIRA-IASB, https://uv-vis.aeronomie.be/software/QDOAS/),
+NO₂ fitted jointly with O₃, O₄, H₂O and the Ring pseudo-absorber, with the fit
+residual RMS and the retrieval error of every column alongside.
 
-| Elevation | MAX-DOAS ⟨dSCD⟩ | SWING ⟨dSCD⟩ |
-|---|---|---|
-| 12° | 2.32 × 10¹⁶ | 7.38 × 10¹⁵ |
-| 18° | 1.31 × 10¹⁶ | 2.67 × 10¹⁶ |
-| 30° | 7.40 × 10¹⁵ | 1.03 × 10¹⁶ |
-| 48° | 4.90 × 10¹⁵ | 3.68 × 10¹⁵ |
-| 60° | 4.55 × 10¹⁵ | 1.28 × 10¹⁵ |
+Fits with residual RMS above 5 × 10⁻³ are excluded. The cut keeps 376 of 377
+MAX-DOAS and 445 of 510 SWING spectra, and it is not neutral between the
+instruments: every SWING spectrum at 6° has RMS between 7 and 13 × 10⁻³, so
+the whole SWING 6° series goes, together with the 12° spectra after 14:00 and
+six spectra at 48° and 60°. The comparison therefore covers the five
+elevations both instruments hold with at least five accepted spectra:
 
-molec cm⁻². The MAX-DOAS series falls monotonically with elevation, as the
-shortening slant path requires.
-
-Corrections to `SWING_DOAS.jl`:
-
-- **the plotted quantity was mislabelled.** `NO2.SlCol` is a differential *slant
-  column density* in molec cm⁻², not a concentration and not a mixing ratio. The
-  axis read "Concentratie NO₂" with no units
-- **the retrieval uncertainties were discarded.** `NO2.SlErr` is present in both
-  files and was never read, so the comparison had no error bars
-- **no quality filtering.** `NO2.RMS` spans two orders of magnitude in both
-  instruments and high-residual fits were plotted on equal footing with good
-  ones. An RMS ≤ 5 × 10⁻³ cut keeps 376/377 MAX-DOAS and 445/510 SWING spectra
-- `88 - servo_byte` was an undocumented magic constant, and the column kept the
-  name `…position_byte` after becoming degrees. It is empirically exact — the
-  bytes map onto a clean 6° grid matching the MAX-DOAS sequence — so it is kept,
-  named and explained
-- seconds were rounded rather than carried, producing `hh:mm:60` labels on seven
-  rows; `savefig` used a Windows separator into a directory that does not exist,
-  so on Linux it silently wrote files literally named `Grafice\MaxDoas.png`
-
-## What the quality cut removes
-
-The lab report this code was written for survives, and its headline observation
-is worth recording because the filter above deletes it.
-
-Reporting on the SWING series, it singles out *"excepție făcând unghiurile de 48
-și 60 de grade în jurul orei 11:20 unde se observă un pic neobișnuit al
-concentrației de NO₂"* — an unusual NO₂ peak at 48° and 60° around 11:20. The
-feature is real in the data, and it is an artefact:
-
-| Time | Elevation | dSCD [molec cm⁻²] | RMS | |
+| Elevation | MAX-DOAS ⟨dSCD⟩ | Spread | SWING ⟨dSCD⟩ | Spread |
 |---|---|---|---|---|
-| 11:20:35 | 60° | 6.16 × 10¹⁶ | 0.0350 | **rejected** |
-| 11:16:14 | 48° | 4.17 × 10¹⁶ | 0.0254 | **rejected** |
-| 11:13:31 | 18° | 1.96 × 10¹⁶ | 0.000792 | kept |
-| 11:18:57 | 18° | 1.71 × 10¹⁶ | 0.000758 | kept |
-| 11:12:59 | 24° | 1.05 × 10¹⁶ | 0.000506 | kept |
+| 12° | 2.32 | 0.63 | 0.74 | 0.55 |
+| 18° | 1.31 | 0.48 | 2.67 | 0.99 |
+| 30° | 0.74 | 0.40 | 1.03 | 0.39 |
+| 48° | 0.49 | 0.38 | 0.37 | 0.23 |
+| 60° | 0.46 | 0.34 | 0.13 | 0.22 |
 
-The two points singled out are the two largest dSCD in that window and they
-carry the worst spectral residuals in the entire SWING file, five to seven times
-the 5 × 10⁻³ threshold and thirty to seventy times the residuals of the good
-fits beside them. Four of the twenty-two spectra in the window are rejected;
-these are two of them. They are the two crosses in the residual panel of the
-figure.
+in 10¹⁶ molec cm⁻²; the spread is one standard deviation over the day. The
+MAX-DOAS means fall monotonically with elevation, as the shortening slant path
+requires, and the script asserts it. The SWING means do so from 18° upwards;
+its 12° mean is a third of the 18° one, with a retrieval error three times
+that of the other elevations, and its 6° series did not survive the cut at
+all, so SWING's two lowest elevations do not reproduce the MAX-DOAS series.
+The median retrieval errors are 3 × 10¹⁴ (MAX-DOAS) and 7 × 10¹⁴ molec cm⁻²
+(SWING), an order of magnitude below the spread over the day: the bars in the
+lower-right panel are the day's variability, not the fit.
 
-There *is* elevated NO₂ around 11:10–11:25 — the 18° and 24° points at
-1–2 × 10¹⁶ are three to four times their own medians, they survive the cut, and
-low elevations look through more polluted air, which is what one expects. The
-peak the report named is not it. That is the whole case for quality filtering,
-made concrete: without it a retrieval failure reads as a physical signal, and
-the report drew exactly that conclusion.
+Six SWING fits at 48° and 60° between 11:05 and 11:37 fail with RMS
+0.012–0.035 and columns 3 to 51 times the medians of their elevation angles;
+the largest SWING column of the day, 6.2 × 10¹⁶ molec cm⁻² at 60° at 11:20,
+is one of them and carries a retrieval error of 37 %. Without the cut they
+read as a tenfold NO₂ excess at high elevation lasting half an hour. The 18°
+and 24° columns of 1–2 × 10¹⁶ in the same window are three to four times
+their medians and survive; that is the elevated NO₂ of the late morning.
 
-## Caveat
+Corrections to `SWING_DOAS.jl` in `Julia-Workflow-FFUB/Teledetectie_L_4/` on
+the `legacy` branch:
 
-MAX-DOAS looks up from the ground and SWING looks down from a UAV, so at equal
-nominal elevation they are not sampling the same air mass. Turning dSCD into a
-vertical column needs differential air-mass factors, which is not attempted
-here.
+- the plotted quantity was labelled "Concentratie NO₂" without units; it is a
+  differential slant column density in molec cm⁻²
+- `NO2.SlErr` was never read, so the series carried no error bars
+- no quality filter was applied
+- `88 - servo_byte` was an undocumented constant, and the column kept the name
+  `…position_byte` after becoming degrees. It puts the bytes 28, 34, …, 82 on
+  the 6° grid of the MAX-DOAS sequence and is kept as the original's, named
+  and documented as empirical
+- time was rebuilt from the fractional-hour column with a rounding that
+  produced `hh:mm:60` on seven rows; it is now read from the files' own
+  hh:mm:ss column, asserted against the fractional hours to one second.
+  `savefig` used a Windows separator into a directory that does not exist,
+  so on Linux the original wrote files literally named `Grafice\MaxDoas.png`
+
+No air-mass factors are applied, so the dSCD are not converted to vertical
+columns, and the MAX-DOAS 3°, 6° and 89° series are not compared for lack of
+an accepted SWING counterpart.
+
+## Data
+
+| File | Content | Source |
+|---|---|---|
+| `MAXDOAS.csv` | 377 QDOAS NO₂ fit results, 09:25–15:14 UTC, tab-separated: date and time, position, elevation and azimuth, fit RMS, slant columns and errors of NO₂, O₃, O₄, H₂O and Ring, shift and stretch | Retrieval output supplied with the fourth-year remote-sensing laboratory; the MAX-DOAS instrument, its operator and the QDOAS settings are not recorded in this repository |
+| `SWING.csv` | 510 QDOAS NO₂ fit results, 09:46–14:35 UTC, with scans, integration time, servo byte and temperatures | Same provenance; the instrument is SWING, operated on the ground beside the MAX-DOAS |
