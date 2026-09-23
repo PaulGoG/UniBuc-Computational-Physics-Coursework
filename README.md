@@ -1,5 +1,7 @@
 # UniBuc Computational Physics Coursework
 
+[![CI](https://github.com/PaulGoG/UniBuc-Computational-Physics-Coursework/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/PaulGoG/UniBuc-Computational-Physics-Coursework/actions/workflows/CI.yml?query=branch%3Amain)
+
 Computational physics written during my studies at the Faculty of Physics,
 University of Bucharest — BSc 2017–2021, MSc 2021–2023. Originally C, C++,
 Octave and Julia; rewritten here in Julia, organised by degree and in
@@ -18,6 +20,8 @@ that run, say what they compute, and check themselves against something.
 ├── theme.jl                        shared figure style and colourblind-safe palette
 ├── .JuliaFormatter.toml            formatting rules, SciMLStyle
 ├── .github/workflows/CI.yml        formatting check, and one figure rendered from scratch
+├── CITATION.cff                    citation metadata, rendered by GitHub
+├── LICENSE                         MIT
 ├── bsc/
 │   ├── 01-oscillators-and-integrators/   year 1, 2017–2018, from C++
 │   ├── 02-chaos-and-attractors/          year 1, 2017–2018, from C++ and Octave
@@ -155,6 +159,19 @@ true of the EXFOR retrieval and fragment-temperature work it leans on.
 JINR Dubna in 2019. Its `sn_ia_distance_moduli.csv` is his reduction of the
 NED-D compilation of redshift-independent distances (Steer et al. 2017,
 doi:10.3847/1538-3881/153/1/37) and is used here with that attribution.
+
+## How to cite
+
+`CITATION.cff` carries the metadata; GitHub renders it as a citation block.
+
+```bibtex
+@software{Gogita_UniBuc_Computational_Physics_Coursework,
+  author = {Gogîță, Paul-Adrian},
+  title  = {UniBuc Computational Physics Coursework},
+  year   = {2026},
+  url    = {https://github.com/PaulGoG/UniBuc-Computational-Physics-Coursework}
+}
+```
 
 ## Licence
 

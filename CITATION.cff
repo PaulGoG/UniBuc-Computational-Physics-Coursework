@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: UniBuc Computational Physics Coursework
+message: If you use this material, please cite it as below.
+type: software
+authors:
+  - given-names: Paul-Adrian
+    family-names: Gogîță
+    affiliation: Faculty of Physics, University of Bucharest
+repository-code: https://github.com/PaulGoG/UniBuc-Computational-Physics-Coursework
+abstract: >-
+  Computational physics coursework of a BSc (2017-2021) and MSc (2021-2023) at
+  the Faculty of Physics, University of Bucharest, rewritten in Julia as
+  self-checking scripts: numerical integration, chaotic dynamics, Monte Carlo,
+  optics, cosmology, radiation-matter interaction, nuclear masses, fission
+  observables, DOAS remote sensing and a radiological screening exercise. The
+  material as originally submitted is kept on the legacy branch.
+keywords:
+  - computational physics
+  - coursework
+  - numerical methods
+  - nuclear physics
+  - cosmology
+  - Julia
+license: MIT
