@@ -30,7 +30,7 @@ jobs:
       - name: Check against .JuliaFormatter.toml
         shell: julia --color=yes {0}
         run: |
-          include("activate.jl")
+          include(joinpath(pwd(), "activate.jl"))
           using JuliaFormatter
           if !format("."; overwrite = false)
               @error """
