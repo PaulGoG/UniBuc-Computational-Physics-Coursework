@@ -5,7 +5,8 @@
 #
 # dominated by the ¹¹³Cd resonance at 0.178 eV.
 #
-# Ported from SigmaCdNatural.jl. The method was right. Three things were not.
+# Ported from SigmaCdNatural.jl on the `legacy` branch (Julia-Workflow-FFUB/IRM_M_1/).
+# The method was right. Three things were not.
 #
 #   1. **The result was never printed.** `σCd = sum(...)` as a bare top-level
 #      expression means `julia SigmaCdNatural.jl` produces no output whatsoever;
@@ -31,7 +32,11 @@ const FIGURES = joinpath(@__DIR__, "figures")
 "Energy at which the IAEA cross-section set is evaluated."
 const E_EVAL_EV = 0.25
 
-"Mass number, natural abundance in per cent, capture cross-section in barn."
+"""
+Mass number, natural abundance in per cent and (n,γ) cross-section in barn at
+0.25 eV, as entered in the 2021 file, which cites the IAEA neutron cross-section
+atlas (https://www-nds.iaea.org/ngatlas2/) for the cross-sections.
+"""
 const CADMIUM = [
     (A = 106, abundance = 1.25, σ = 0.30),
     (A = 108, abundance = 0.89, σ = 0.34),
@@ -47,6 +52,8 @@ function main()
     total_abundance = sum(i.abundance for i in CADMIUM)
     @printf("abundances sum to %.2f %% (tabulated values, not renormalised)\n",
         total_abundance)
+    abs(total_abundance - 100) < 0.1 ||
+        error("abundances sum to $total_abundance %, not 100 %")
 
     σ_nat = sum(i.abundance / 100 * i.σ for i in CADMIUM)
     @printf("\nσ_capture(natural Cd) at %.2f eV = %.1f b\n", E_EVAL_EV, σ_nat)
@@ -63,19 +70,16 @@ function main()
         CADMIUM[dominant].A,
         100 * CADMIUM[dominant].abundance / 100 * CADMIUM[dominant].σ / σ_nat)
 
-    fig = Figure(size = (820, 460))
+    fig = Figure(size = (900, 600))
     ax = Axis(fig[2, 1],
-        xlabel = "Mass number A", ylabel = "Contribution to σ [b]",
+        xlabel = L"Mass number $A$", ylabel = L"Contribution to $\sigma$ [b]",
         yscale = log10,
         xticks = ([i.A for i in CADMIUM], [latexstring(string(i.A)) for i in CADMIUM]),
         yticks = logticks(-3, 4; step = 2),)
     contributions = [i.abundance / 100 * i.σ for i in CADMIUM]
     barplot!(ax, [i.A for i in CADMIUM], contributions, color = PALETTE.blue,
-        strokewidth = 0.5, strokecolor = PALETTE.black,)
-    hlines!(ax, [σ_nat], color = PALETTE.red, linestyle = :dash, linewidth = 1.3)
-    # Headroom above the total, with the note in it: centred at 93 % of the
-    # panel its last word was drawn over the 113-Cd bar, orange on saturated
-    # blue.
+        strokewidth = 1.5, strokecolor = PALETTE.black,)
+    hlines!(ax, [σ_nat], color = PALETTE.red, linestyle = :dash, linewidth = GUIDE_WIDTH)
     ylims!(ax, nothing, σ_nat * 30)
     text!(ax, 0.98, 0.97;
         text = rich(
@@ -84,15 +88,13 @@ function main()
                 100 * CADMIUM[dominant].abundance / 100 *
                 CADMIUM[dominant].σ / σ_nat),
             superscript("113"), "Cd alone",),
-        space = :relative, align = (:right, :top), color = PALETTE.red, fontsize = 16,
-        justification = :right,)
+        space = :relative, align = (:right, :top), color = PALETTE.red,
+        fontsize = ANNOTATION_SIZE, justification = :right,)
 
     Legend(fig[1, 1],
-        [PolyElement(color = PALETTE.blue),
-            LineElement(color = PALETTE.red, linestyle = :dash, linewidth = 1.3),],
-        ["Isotopic contribution, abundance × σ", "Total, natural Cd"],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24,)
-    rowsize!(fig.layout, 2, Relative(0.86))
+        [PolyElement(color = PALETTE.blue, strokewidth = 1.5, strokecolor = PALETTE.black),
+            LineElement(color = PALETTE.red, linestyle = :dash, linewidth = GUIDE_WIDTH),],
+        ["Isotopic contribution, abundance × σ", "Total, natural Cd"],)
     println("wrote ", savefigure(fig, FIGURES, "natural_cd_cross_section"))
 end
 

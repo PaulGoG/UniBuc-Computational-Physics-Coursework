@@ -193,6 +193,21 @@ function rsci(x::Real; digits::Integer = 2)
 end
 
 """
+    errorbars_unstroked!(ax, args...; kwargs...)
+
+`errorbars!` whose whisker caps carry no stroke. Makie draws the caps as a
+scatter plot, which otherwise takes the marker stroke of this theme and turns
+black whatever the bar colour.
+"""
+function errorbars_unstroked!(ax, args...; kwargs...)
+    bars = errorbars!(ax, args...; kwargs...)
+    for child in bars.plots
+        child isa Scatter && (child.strokewidth = 0)
+    end
+    return bars
+end
+
+"""
     savefigure(fig, dir, name)
 
 Write `fig` to `dir/name.png` well above 300 dpi, creating `dir` if needed.
