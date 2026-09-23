@@ -1,291 +1,245 @@
-# Prompt-fission neutron spectrum of ²³⁵U(n_th,f): the Los Alamos
-# (Madland–Nix) model, and Maxwellian fits to four measured spectra.
+# Prompt-fission neutron spectrum of ²³⁵U(n_th,f): the Los Alamos (Madland–Nix)
+# model averaged over the mass yield, and Maxwellian fits to four measured
+# spectra.
 #
 # Madland–Nix with a constant compound-nucleus cross-section and a triangular
-# residual-temperature distribution:
+# residual-temperature distribution (Madland and Nix, Nucl. Sci. Eng. 81, 213
+# (1982), doi:10.13182/NSE82-5):
 #
-#   N(E) = 1/(3√(E_f T_m)) [ u₂^{3/2}E₁(u₂) − u₁^{3/2}E₁(u₁) + γ(3/2,u₂) − γ(3/2,u₁) ]
+#   N(E) = 1/(3√(E_f T_m)) [u₂^{3/2}E₁(u₂) − u₁^{3/2}E₁(u₁) + γ(3/2,u₂) − γ(3/2,u₁)]
 #   u₁ = (√E − √E_f)²/T_m,   u₂ = (√E + √E_f)²/T_m
 #
-# Ported from Fisiune_4.jl and Fisiune_5.jl.
+# which integrates to one over E ∈ [0, ∞) for every E_f and T_m; `main` asserts
+# this for every fragment. Fisiune_4.jl on the `legacy` branch
+# (Julia-Workflow-FFUB/Fisiune_M_2/) wrote the prefactor as
+# `(1/3*sqrt(E_F*T_MAX))`, which Julia parses as (1/3)√(E_f T_m): it multiplied
+# where the formula divides, and its spectrum integrates to E_f T_m instead of
+# one. E_f and T_m both vary with fragment mass, so the error reweights the
+# mass average and does not cancel under the renormalisation applied
+# afterwards. Both forms are evaluated below.
 #
-# The prefactor and the χ² convention are both settled by the course's own
-# notes (Tudora, *Modele de emisie prompta globala* and *Aplicatie fit cu
-# spectru Maxwellian*), which were recovered after this file was first written.
+# Per fragment mass, as in Fisiune_4.jl: ⟨TKE⟩(A) from the yield cells, TXE =
+# Q(A, Z_p) + Sₙ(²³⁶U) − TKE(A) at the single most probable charge
+# Z_p = round(Z_UCD − 0.5), T_m = √(C·TXE/A₀) with C = 10 MeV, E_f per nucleon
+# from momentum conservation, and the light- and heavy-fragment spectra
+# averaged and weighted by Y(A).
 #
-# **The prefactor was wrong.** The original wrote
-#
-#     return (1/3*sqrt(E_F*T_MAX)) * ( ... )
-#
-# which Julia parses as `(1/3)*sqrt(E_f·T_m)`, because `/` and `*` share
-# precedence and associate left to right. The Madland–Nix prefactor is
-# **1/(3√(E_f T_m))** — the code multiplied by √(E_f T_m)/3 where it had to
-# divide. Since E_f and T_m both vary with fragment mass, the error does *not*
-# cancel under the Maxwellian renormalisation applied afterwards; it reweights
-# the mass-averaged sum. Both forms are evaluated below so the size of the
-# distortion is visible. The course notes print the spectrum with the
-# 1/(3√(E_f T_max)) prefactor explicitly, so this is a transcription slip in the
-# original rather than a difference of convention.
-#
-# The level-density constant likewise has a source: ⟨a⟩ = A₀/C with C = 11 MeV
-# for an optical-model compound cross-section and **C = 10 MeV for a constant
-# one**, which is the case used here.
-#
-# Two inefficiencies, both removed: E₁(z) and γ(3/2,x) were each re-integrated
-# from scratch with `quadgk` at every evaluation — about 34 000 adaptive
-# quadratures per run, where `SpecialFunctions` has both in closed form; and
-# `Fisiune_5.jl` recomputed the Maxwellian's integral over the measured window
-# by quadrature for every data point at every optimiser iteration. That
-# integral does not depend on the point but it does depend on T_M, so it is
-# kept — a measurement covers a finite window, and data normalised to unit area
-# over that window has to be compared with a model normalised over the same
-# window — and evaluated once per trial temperature from the closed-form
-# distribution function instead.
-#
-# **A retraction.** An earlier version of this header held that `Fisiune_5.jl`
-# was wrong to divide χ² by N rather than by ν = N − 1. It was not: the course
-# defines χ² = (1/n)Σ(yᵢ − f(xᵢ))²/σᵢ², divided by the number of points, and the
-# original was following that definition. The reduced χ² over ν = N − 1 is kept
-# here because one parameter is fitted and that is the standard reading, but the
-# difference is a convention and the original was not in error. With N in the
-# hundreds the two differ by well under a percent; the reference fits quoted
-# below are on the course's convention.
-#
-# For comparison, the fits the course quotes: Hambsch & Kornilov ²³⁵U(n_th,f)
-# → T_M = 1.297 MeV at χ² = 2.034; Mannhart ²⁵²Cf → 1.402 and 1.396 MeV at
-# χ² = 2.513 and 3.256.
-#
-# `Fisiune_5.jl` did bound its optimiser at T_M = 0, where T_M^{-3/2} is
-# infinite; that is fixed.
+# The Maxwellian fits compare data and model both normalised to unit area over
+# the measured window, the data by the trapezoid rule; χ² is reduced by
+# ν = N − 1 for the one fitted parameter, where Fisiune_5.jl divided by N. That
+# file also bounded its optimiser at T_M = 0, where T_M^{-3/2} is infinite, and
+# both files re-integrated E₁, γ(3/2, x) and the window integral by quadrature
+# at every evaluation, where SpecialFunctions has them in closed form.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 
-using Printf, SpecialFunctions, Optim, Statistics
+using Printf, SpecialFunctions, Optim, Statistics, QuadGK
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
-include(joinpath(@__DIR__, "fission_data.jl"))
+include(joinpath(@__DIR__, "fission_core.jl"))
 
-const FIGURES = joinpath(@__DIR__, "figures")
-const DATA = joinpath(@__DIR__, "data")
+"Level-density constant of T_m = √(C·TXE/A₀) [MeV], as set in Fisiune_4.jl."
+const C_LEVEL_DENSITY = 10.0
+"Neutron-energy grid of the mass-averaged spectrum [MeV]."
+const E_GRID = 10 .^ range(-1.3, log10(20), length = 260)
+"Bounds of the Maxwellian temperature search [MeV]."
+const T_BOUNDS = (0.3, 3.0)
+"Relative tolerance on the unit normalisation of the Madland–Nix spectrum."
+const NORMALISATION_TOLERANCE = 1e-6
 
 "Exponential integral E₁."
 E₁(z) = expint(z)
 "Lower incomplete gamma γ(a, x)."
 γ_lower(a, x) = gamma(a) * gamma_inc(a, x)[1]
 
-"Maximum residual temperature, T_m = √(C·TXE/A) with C = 10 MeV as in the original."
-T_max(A, TXE; C = 10.0) = sqrt(C * TXE / A)
-
 """
-    E_f_pair(A, A_H, TKE)
+    madland_nix(E, E_f, T_m; correct = true)
 
-Average fragment kinetic energy per nucleon for the light and heavy fragment,
-from momentum conservation: E_L = TKE·A_H/A, so E_f_L = E_L/A_L.
-"""
-function E_f_pair(A, A_H, TKE)
-    A_L = A - A_H
-    return ((A_H / A_L) * TKE / A, (A_L / A_H) * TKE / A)
-end
-
-"""
-    madland_nix(E, E_f, T_m; correct)
-
-Madland–Nix spectrum at neutron energy `E` for average fragment kinetic energy
-per nucleon `E_f` and maximum residual temperature `T_m`. `correct = false`
-reproduces the original prefactor.
+Madland–Nix spectrum at neutron energy `E` for the fragment kinetic energy per
+nucleon `E_f` and maximum residual temperature `T_m`, unit-normalised over
+[0, ∞). `correct = false` uses the prefactor of Fisiune_4.jl, (1/3)√(E_f T_m).
 """
 function madland_nix(E, E_f, T_m; correct = true)
     u₁ = (sqrt(E) - sqrt(E_f))^2 / T_m
     u₂ = (sqrt(E) + sqrt(E_f))^2 / T_m
     bracket = u₂^1.5 * E₁(u₂) - u₁^1.5 * E₁(u₁) + γ_lower(1.5, u₂) - γ_lower(1.5, u₁)
-    prefactor = correct ? 1 / (3 * sqrt(E_f * T_m)) : (1 / 3) * sqrt(E_f * T_m)
+    prefactor = correct ? 1 / (3 * sqrt(E_f * T_m)) : sqrt(E_f * T_m) / 3
     return prefactor * bracket
 end
 
-"Maxwellian spectrum of temperature `T`, normalised to unit integral."
+"Maxwellian spectrum of temperature `T`, unit-normalised over [0, ∞)."
 maxwellian(E, T) = 2 / sqrt(π) * T^(-1.5) * sqrt(E) * exp(-E / T)
 
-"""
-    maxwellian_cdf(E, T)
-
-Fraction of the Maxwellian of temperature `T` lying below energy `E`,
-`erf(√(E/T)) − (2/√π) √(E/T) exp(−E/T)`.
-"""
+"Fraction of the Maxwellian of temperature `T` below `E`: erf(√(E/T)) − (2/√π)√(E/T) e^{−E/T}."
 function maxwellian_cdf(E, T)
     x = sqrt(E / T)
     return erf(x) - 2 / sqrt(π) * x * exp(-x^2)
 end
 
-"""
-    windowed_maxwellian(E, T, E_min, E_max)
-
-The Maxwellian normalised to unit integral over `[E_min, E_max]` rather than
-over `[0, ∞)`. A measured spectrum covers a finite window — the Göök laboratory
-set holds 84 % of the distribution — so this is the model that data normalised
-to unit area over that window has to be compared with.
-"""
+"The Maxwellian normalised to unit integral over the window `[E_min, E_max]`."
 windowed_maxwellian(E, T, E_min, E_max) = maxwellian(E, T) / (maxwellian_cdf(E_max, T) -
                                            maxwellian_cdf(E_min, T))
 
 trapezoid_area(E, N) = sum((N[1:(end - 1)] .+ N[2:end]) ./ 2 .* diff(E))
 
 """
-    fit_maxwellian(E, N, σN)
+    fit_maxwellian(E, N, σN) -> (T, χ²/ν)
 
-Least-squares Maxwellian temperature. Data and model are both normalised to
-unit integral over the measured window, the data by the trapezoid rule, so that
-shape rather than scale is fitted. Returns T_M and the reduced χ².
+Least-squares Maxwellian temperature, data and model both unit-normalised over
+the measured window, so that shape rather than scale is fitted.
 """
 function fit_maxwellian(E, N, σN)
     area = trapezoid_area(E, N)
-    n = N ./ area
-    s = σN ./ area
+    n, s = N ./ area, σN ./ area
     E_min, E_max = extrema(E)
     χ²(T) = sum(((n .- windowed_maxwellian.(E, T, E_min, E_max)) ./ s) .^ 2)
-    # bounded: the original allowed T_M = 0, where T^(-3/2) is infinite
-    res = optimize(χ², 0.3, 3.0, Brent())
-    T = Optim.minimizer(res)
+    T = Optim.minimizer(optimize(χ², T_BOUNDS..., Brent()))
     return T, χ²(T) / (length(E) - 1)
 end
 
 """
-    mass_averaged_spectrum(E_grid, fragments; correct)
+    mass_averaged_spectrum(E_grid, fragments; correct = true)
 
-N(E) averaged over the mass yield, as the original did: for each fragment mass
-the light- and heavy-fragment spectra are averaged and weighted by Y(A). This is
-the calculation the file exists to perform, and it is where the prefactor error
-matters — E_f and T_m both vary with A_H, so a prefactor carrying them cannot be
-absorbed into an overall normalisation.
+N(E) averaged over the mass yield: for each fragment mass the light- and
+heavy-fragment spectra are averaged and weighted by Y(A).
 """
 function mass_averaged_spectrum(E_grid, fragments; correct = true)
-    N = zeros(length(E_grid))
-    for (i, E) in enumerate(E_grid)
-        num = 0.0
-        den = 0.0
-        for f in fragments
-            N_L = madland_nix(E, f.E_f_L, f.T_m; correct = correct)
-            N_H = madland_nix(E, f.E_f_H, f.T_m; correct = correct)
-            num += f.Y * 0.5 * (N_L + N_H)
-            den += f.Y
-        end
-        N[i] = num / den
+    return map(E_grid) do E
+        num = sum(f.Y * (madland_nix(E, f.E_f_L, f.T_m; correct) +
+                   madland_nix(E, f.E_f_H, f.T_m; correct)) / 2 for f in fragments)
+        num / sum(f.Y for f in fragments)
     end
-    return N
 end
 
-"Trapezoid weights for a non-uniform grid."
-trapz_weights(x) = [i == 1 ? (x[2]-x[1])/2 :
-                    i == length(x) ? (x[end]-x[end - 1])/2 :
-                    (x[i + 1]-x[i - 1])/2 for i in eachindex(x)]
+"Trapezoid weights of a non-uniform grid."
+trapezoid_weights(x) = [i == 1 ? (x[2] - x[1]) / 2 :
+                        i == length(x) ? (x[end] - x[end - 1]) / 2 :
+                        (x[i + 1] - x[i - 1]) / 2 for i in eachindex(x)]
 
 function main()
-    # per-mass TXE, TKE and Y(A) from the yield matrix, exactly as the original
-    # file built them, so the mass average below is over the same quantities
-    y = load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR"))
+    cells = yield_cells(load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR")))
     masses = load_masses(joinpath(DATA, "Defecte_masa", "AUDI2021.csv"))
-    A₀, Z₀ = 236, 92
-    Δ₀ = Δ(masses, Z₀, A₀)
-    S_n = (Δ(masses, 92, 235) + Δ(masses, 0, 1) - Δ₀) / 1000
+    bins = tke_by_mass(cells)
+    S_n = separation_energy(masses, Z₀, A₀)[1]
 
     fragments = NamedTuple[]
-    for a in sort(unique(y.A_H))
-        sub = y[y.A_H .== a, :]
-        Y = sum(sub.Y)
-        Y > 0 || continue
-        TKE = sum(sub.TKE .* sub.Y) / Y
-        Zp = round(Int, Z₀ * a / A₀ - 0.5)
-        δH = Δ(masses, Zp, a)
-        δL = Δ(masses, Z₀ - Zp, A₀ - a)
-        (δH === nothing || δL === nothing) && continue
-        TXE = (Δ₀ - δH - δL) / 1000 + S_n - TKE
+    for a in sort!(collect(keys(bins)))
+        Z_p = round(Int, most_probable_charge(a))
+        q = q_value(masses, Z_p, a)
+        q === nothing && continue
+        TXE = q[1] + S_n - bins[a].TKE
         TXE > 0 || continue
-        efl, efh = E_f_pair(A₀, a, TKE)
-        push!(fragments, (A_H = a, Y = Y, TKE = TKE, TXE = TXE,
-            T_m = T_max(A₀, TXE), E_f_L = efl, E_f_H = efh,))
+        T_m = sqrt(C_LEVEL_DENSITY * TXE / A₀)
+        A_L = A₀ - a
+        push!(fragments,
+            (A_H = a, Y = bins[a].Y, TXE = TXE, T_m = T_m,
+                E_f_L = a / A_L * bins[a].TKE / A₀, E_f_H = A_L / a * bins[a].TKE / A₀,),)
     end
-    @printf("mass average over %d fragment masses, A_H %d–%d\n",
-        length(fragments), fragments[1].A_H, fragments[end].A_H)
-    @printf("  T_m spans %.3f–%.3f MeV, E_f spans %.3f–%.3f MeV\n\n",
-        minimum(f.T_m for f in fragments), maximum(f.T_m for f in fragments),
+    @printf("mass average over %d fragment masses, A_H %d–%d; T_m %.3f–%.3f MeV, E_f %.3f–%.3f MeV\n",
+        length(fragments), fragments[1].A_H, fragments[end].A_H,
+        extrema(f.T_m for f in fragments)...,
         minimum(min(f.E_f_L, f.E_f_H) for f in fragments),
         maximum(max(f.E_f_L, f.E_f_H) for f in fragments))
 
-    E = 10 .^ range(-1.3, log10(20), length = 260)
-    good = mass_averaged_spectrum(E, fragments)
-    bad = mass_averaged_spectrum(E, fragments; correct = false)
-    w = trapz_weights(E)
+    # the closed form integrates to one for every fragment; the original
+    # prefactor gives E_f T_m instead
+    worst = 0.0
+    worst_original = (0.0, Inf)
+    for f in fragments, E_f in (f.E_f_L, f.E_f_H)
 
-    @printf("Madland–Nix prefactor: correct 1/(3√(E_f·T_m)), original (1/3)√(E_f·T_m)\n")
-    E_mean_good = sum(w .* E .* good) / sum(w .* good)
-    E_mean_bad = sum(w .* E .* bad) / sum(w .* bad)
-    @printf("mass-averaged <E>:  correct %.4f MeV,  original prefactor %.4f MeV\n",
-        E_mean_good, E_mean_bad)
-    @printf("equivalent Maxwellian (2/3)<E>: %.4f vs %.4f MeV\n",
-        2E_mean_good/3, 2E_mean_bad/3)
-    @printf("evaluated value for ²³⁵U(n_th,f): 1.32 MeV\n")
-    @printf("the two differ by %.2f %% in <E> — the prefactor carries E_f and T_m,\n",
-        100 * (E_mean_bad / E_mean_good - 1))
-    @printf("both of which vary with A_H, so it reweights the mass average and\n")
-    @printf("cannot be absorbed into an overall normalisation.\n\n")
+        norm = quadgk(E -> madland_nix(E, E_f, f.T_m), 0, Inf; rtol = 1e-9)[1]
+        worst = max(worst, abs(norm - 1))
+        bad = quadgk(E -> madland_nix(E, E_f, f.T_m; correct = false), 0, Inf; rtol = 1e-9)[1]
+        worst_original = (max(worst_original[1], bad), min(worst_original[2], bad))
+    end
+    @printf("∫N(E)dE over [0, ∞): 1 to within %.1e for every fragment with the correct prefactor; ",
+        worst)
+    @printf("%.2f to %.2f with the original one\n", worst_original[2], worst_original[1])
+    worst < NORMALISATION_TOLERANCE ||
+        error("the Madland–Nix spectrum is not unit-normalised: $worst")
 
-    files = [("Göök, lab", "U5SPGOOK.DAT", PALETTE.blue),
-        ("Vorobyev, lab", "U5SPVORO.DAT", PALETTE.orange),
-        ("Göök, CM light", "U5SPCMLF.DAT", PALETTE.green),
-        ("Göök, CM heavy", "U5SPCMHF.DAT", PALETTE.purple),]
-    results = map(files) do (name, file, colour)
+    good = mass_averaged_spectrum(E_GRID, fragments)
+    bad = mass_averaged_spectrum(E_GRID, fragments; correct = false)
+    w = trapezoid_weights(E_GRID)
+    E_mean = sum(w .* E_GRID .* good) / sum(w .* good)
+    E_mean_bad = sum(w .* E_GRID .* bad) / sum(w .* bad)
+    @printf("mass-averaged ⟨E⟩ = %.4f MeV (equivalent Maxwellian temperature 2⟨E⟩/3 = %.4f MeV); ",
+        E_mean, 2E_mean / 3)
+    @printf("with the original prefactor %.4f MeV, %.2f %% higher\n\n", E_mean_bad,
+        100 * (E_mean_bad / E_mean - 1))
+
+    # the window normalisation in closed form against quadrature
+    T_test, window = 1.3, (0.55, 12.5)
+    quad = quadgk(E -> maxwellian(E, T_test), window...)[1]
+    assert_close("Maxwellian window integral",
+        maxwellian_cdf(window[2], T_test) -
+        maxwellian_cdf(window[1], T_test), quad;
+        rtol = 1e-10,)
+
+    files = [("Göök, lab", "U5SPGOOK.DAT", PALETTE.blue, :circle),
+        ("Vorobyev, lab", "U5SPVORO.DAT", PALETTE.orange, :rect),
+        ("Göök, CM light", "U5SPCMLF.DAT", PALETTE.green, :utriangle),
+        ("Göök, CM heavy", "U5SPCMHF.DAT", PALETTE.purple, :diamond),]
+    results = map(files) do (name, file, colour, marker)
         d = load_measurement(joinpath(DATA, "Date_experimentale", "Spectru_n", file))
         keep = d.σ .> 0
         T, χ²ν = fit_maxwellian(d.x[keep], d.y[keep], d.σ[keep])
-        @printf("%-16s %3d points, T_M = %.4f MeV, χ²/ν = %.2f\n",
-            name, count(keep), T, χ²ν)
-        (name = name, d = d, keep = keep, T = T, χ²ν = χ²ν, colour = colour)
+        held = maxwellian_cdf(maximum(d.x[keep]), T) - maxwellian_cdf(minimum(d.x[keep]), T)
+        @printf("%-15s %3d points, %.2f–%.2f MeV holding %.1f %% of the Maxwellian: T_M = %.4f MeV, χ²/ν = %.2f\n",
+            name, count(keep), extrema(d.x[keep])..., 100held, T, χ²ν)
+        (; name, E = d.x[keep], N = d.y[keep], σ = d.σ[keep], T, χ²ν, colour, marker)
     end
 
-    fig = Figure(size = (1000, 460))
+    # --- figure ---------------------------------------------------------------
+    fig = Figure(size = (1600, 700))
     ax1 = Axis(fig[2, 1], xlabel = L"Neutron energy $E$ [MeV]",
-        ylabel = L"$N(E)$ [arb.]", xscale = log10, yscale = log10,
+        ylabel = L"$N(E)$ [MeV$^{-1}$]", xscale = log10, yscale = log10,
         xticks = logticks(-1, 1), yticks = logticks(-4, 0),)
-    l_g = lines!(ax1, E, good ./ maximum(good), color = PALETTE.blue, linewidth = 1.8)
-    l_b = lines!(ax1, E, bad ./ maximum(bad), color = PALETTE.red,
-        linewidth = 1.6, linestyle = :dash,)
-    ylims!(ax1, 1e-4, 2)
-    text!(ax1, 0.03, 0.06;
-        text = "shapes coincide after normalising;\nthe error is in the weight each\nfragment mass carries",
-        space = :relative, align = (:left, :bottom), fontsize = 14,)
+    l_g = lines!(ax1, E_GRID, good, color = PALETTE.blue)
+    l_b = lines!(
+        ax1, E_GRID, bad ./ (sum(w .* bad)), color = PALETTE.red, linestyle = :dash,)
+    ylims!(ax1, 1e-4, 1.2)
+    text!(ax1, 0.03, 0.05;
+        text = rich(
+            rich("⟨", it("E"), @sprintf("⟩ = %.3f MeV", E_mean), color = PALETTE.blue),
+            "\n",
+            rich(@sprintf("%.3f MeV with the original prefactor", E_mean_bad), color = PALETTE.red),),
+        space = :relative, align = (:left, :bottom), fontsize = ANNOTATION_SIZE,)
 
-    ax2 = Axis(fig[2, 2], xlabel = L"Neutron energy $E$ [MeV]",
-        ylabel = "Spectrum / Maxwellian fit",)
-    # Error bars, not a smoothing or a cut: the centre-of-mass sets look like
-    # noise above a few MeV, and the uncertainties show that those excursions
-    # cross unity.
-    handles = []
+    ax2 = Axis(fig[2, 2], xlabel = L"Neutron energy $E$ [MeV]", ylabel = "Spectrum / Maxwellian fit")
+    handles = Any[]
     for r in results
-        area = trapezoid_area(r.d.x[r.keep], r.d.y[r.keep])
-        denom = windowed_maxwellian.(r.d.x[r.keep], r.T, extrema(r.d.x[r.keep])...)
-        ratio_data = (r.d.y[r.keep] ./ area) ./ denom
-        ratio_err = (r.d.σ[r.keep] ./ area) ./ denom
-        errorbars!(ax2, r.d.x[r.keep], ratio_data, ratio_err,
-            color = (r.colour, 0.3), whiskerwidth = 0, linewidth = 1.0,)
+        area = trapezoid_area(r.E, r.N)
+        model = windowed_maxwellian.(r.E, r.T, extrema(r.E)...)
+        ratio = r.N ./ area ./ model
+        errorbars_unstroked!(
+            ax2, r.E, ratio, r.σ ./ area ./ model, color = (r.colour, 0.5),
+            linewidth = GUIDE_WIDTH, whiskerwidth = 0,)
         push!(handles,
-            scatterlines!(ax2, r.d.x[r.keep], ratio_data,
-                color = r.colour, markersize = MARKERSIZE.cloud + 1, linewidth = 1.2,),)
+            scatterlines!(ax2, r.E, ratio, color = r.colour, marker = r.marker,
+                markersize = MARKERSIZE.dense, linewidth = GUIDE_WIDTH,),)
     end
-    hlines!(ax2, [1.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
-    text!(ax2, 13.7, 1.02; text = "Maxwellian fit", space = :data,
-        align = (:right, :bottom), fontsize = 13, color = PALETTE.black,)
-    ylims!(ax2, 0.6, 1.62)
-    # The two centre-of-mass sets are counting-limited above about 6 MeV and
-    # their excursions ran off the top of the panel; the ratio is only
-    # informative where the measurement has counts.
+    hlines!(ax2, [1.0], color = PALETTE.black, linestyle = :dash, linewidth = GUIDE_WIDTH)
+    text!(ax2, 13.7, 1.02; text = "Maxwellian fit", align = (:right, :bottom),
+        fontsize = ANNOTATION_SIZE,)
+    # the centre-of-mass sets are counting-limited above about 6 MeV
     xlims!(ax2, 0, 14)
+    ylims!(ax2, 0.6, 1.62)
 
-    Legend(fig[1, 1:2], [[l_g, l_b]; handles],
-        [["Madland–Nix, correct", "Madland–Nix, original prefactor"];
-         [rich(r.name, ", ", it("T"), subscript("M"),
-              @sprintf(" = %.2f MeV, ", r.T), it("χ"), superscript("2"), "/",
-              it("ν"), @sprintf(" = %.2f", r.χ²ν)) for r in results]],
-        orientation = :horizontal, framevisible = false, labelsize = 14,
-        nbanks = 2, colgap = 14,)
-    rowsize!(fig.layout, 2, Relative(0.80))
+    # fitted temperatures as a block in the empty lower left of the model panel,
+    # above the mean energies; the ratio panel has data wherever a block of this
+    # size would go
+    fit_line(r) = rich(
+        r.name, ": ", it("T"), subscript("M"), @sprintf(" = %.3f MeV, ", r.T),
+        it("χ"), superscript("2"), "/", it("ν"), @sprintf(" = %.2f", r.χ²ν), color = r.colour,)
+    text!(ax1, 0.03, 0.33;
+        text = rich(
+            "Maxwellian fits\n", fit_line(results[1]), "\n", fit_line(results[2]), "\n",
+            fit_line(results[3]), "\n", fit_line(results[4]),),
+        space = :relative, align = (:left, :bottom), fontsize = ANNOTATION_SIZE,)
+
+    Legend(fig[1, 1:2], [[l_g, l_b], handles],
+        [["Correct prefactor", "Original prefactor"], [r.name for r in results]],
+        ["Madland–Nix", "Maxwellian fits"]; titleposition = :left, nbanks = 2, groupgap = 30,)
     println("\nwrote ", savefigure(fig, FIGURES, "neutron_spectrum"))
 end
 

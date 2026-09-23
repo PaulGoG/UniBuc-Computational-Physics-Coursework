@@ -79,7 +79,7 @@ function main()
 
     Legend(fig[1, 1], [s, l],
         [rich(it("Q"), "(", it("A"), subscript("H"), ", ", it("Z"), subscript("H"), ")"),
-            rich(it("Q"), "(", it("A"), subscript("H"), "), charge-averaged")],)
+            rich(it("Q"), "(", it("A"), subscript("H"), "), charge-averaged"),],)
     println("wrote ", savefigure(fig, FIGURES, "fission_q_value"))
 end
 

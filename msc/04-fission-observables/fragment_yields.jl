@@ -1,259 +1,219 @@
 # Pre-neutron fragment distributions of ²³⁵U(n_th,f) from the Straede
-# Y(A_H, Z_H, TKE) matrix: mass yield, charge yield with its even–odd
-# staggering, neutron-number yield, the TKE distribution, ⟨TKE⟩(A_H), and the
-# total excitation energy TXE(A) = Q(A) + S_n(²³⁶U) − TKE(A).
+# Y(A_H, Z_H, TKE) matrix: mass, charge, neutron-number and TKE yields, ⟨TKE⟩(A),
+# the total excitation energy TXE(A) = Q(A) + Sₙ(²³⁶U) − TKE(A), the
+# single-fragment kinetic energies, and the yield-weighted totals with their
+# uncertainties.
 #
-# Ported from Fisiune_2.jl.
+# What the matrix measures is Y(A_H, TKE): the five charge rows of each
+# (A_H, TKE) cell split one measured yield by fractions that are identical
+# across TKE for a given mass, to 3 × 10⁻⁶ (asserted below), so Y(Z), Y(N) and
+# the even–odd staggering of Y(Z) describe the charge model imposed on the
+# matrix, not a measurement. The uncertainties are propagated at the level of
+# the measured cells: the rows of one cell share one relative error and add
+# linearly, distinct cells add in quadrature, and every total is a weighted
+# mean over cells of a quantity fixed per cell, so its variance is
+# Σ_c [(q_c − ⟨q⟩) σY_c / ΣY]². Averaging first over TKE and propagating at
+# the mass level, as an earlier version of this script did, drops the
+# within-mass spread of TKE and halves σ⟨TKE⟩.
 #
-# **Y(N) was over-counted.** The original computed
-#
-#     y_N = sum(dy.Y[dy.A_H .- dy.Z_H .== A_H - Z_H])
-#
-# inside the double loop over (A_H, Z_H). That sum depends only on
-# N = A_H − Z_H, yet it was recomputed and re-added once per (A_H, Z_H) pair
-# mapping to the same N — and with five charge splits per mass, several pairs do.
-# Y(N) was therefore weighted by the multiplicity of (A, Z) pairs per N, which
-# distorts the shape; the normalisation applied afterwards hides the absolute
-# error but not the distortion.
-#
-# Also corrected:
-#
-#   * uncertainties were added **linearly** (`.+=`) in three places while the
-#     comments stated quadrature, and the σ computed two lines above used
-#     `sqrt(sum(...^2))` — the two conventions disagreed within one function;
-#   * `Sortare_distributie` assumed the abscissa contained every integer between
-#     its extremes with no gaps and no duplicates. A gap gives a `BoundsError`, a
-#     duplicate a silent length mismatch. The author hit this: there are five
-#     commented-out `deleteat!` lines in `Fisiune_3.jl` documenting the problem;
-#   * `Energie_separare` returned a bare `NaN` on failure and a 2-vector on
-#     success, and the caller indexed `[1]` and `[2]` regardless, so the failure
-#     branch would have raised a `BoundsError` on `NaN[2]`.
+# Ported from Fisiune_2.jl on the `legacy` branch (Julia-Workflow-FFUB/
+# Fisiune_M_2/). Its Y(N) summed over all rows with a given N inside the
+# double loop over (A_H, Z_H), once per pair mapping to that N — the total
+# came to 805 % instead of 100 %, reproduced below; three of its uncertainty
+# accumulations added linearly where the comments said quadrature; its
+# `Sortare_distributie` assumed an abscissa without gaps or duplicates; and its
+# `Energie_separare` returned a bare `NaN` on failure that the caller indexed.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 
 using Printf, Statistics
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
-include(joinpath(@__DIR__, "fission_data.jl"))
+include(joinpath(@__DIR__, "fission_core.jl"))
 
-const FIGURES = joinpath(@__DIR__, "figures")
-const DATA = joinpath(@__DIR__, "data")
-const A₀, Z₀ = 236, 92
+"Tolerance on the charge fractions of a mass being the same in every TKE cell."
+const CHARGE_MODEL_TOLERANCE = 1e-5
+"Yield below which a charge or TKE bin is not drawn [%]."
+const DRAW_FLOOR = 0.05
 
-"Marginalise the yield matrix over a key function, correctly — once per row."
-function marginal(df, key)
-    acc = Dict{Int,Float64}()
-    err = Dict{Int,Float64}()
-    for r in eachrow(df)
-        k = key(r)
-        acc[k] = get(acc, k, 0.0) + r.Y
-        err[k] = get(err, k, 0.0) + r.σY^2      # quadrature, as the comments said
+"""
+    charge_fraction_spread(rows)
+
+Largest difference, over all masses, between the charge fractions Y(Z | A, TKE)
+of two TKE cells of the same mass. Zero if the charge split is a fixed model.
+"""
+function charge_fraction_spread(rows)
+    by_cell = Dict{Tuple{Int,Int},Dict{Int,Float64}}()
+    for r in rows
+        d = get!(by_cell, (r.A_H, r.TKE), Dict{Int,Float64}())
+        d[r.Z_H] = get(d, r.Z_H, 0.0) + r.Y
     end
-    ks = sort(collect(keys(acc)))
-    return ks, [acc[k] for k in ks], [sqrt(err[k]) for k in ks]
+    reference = Dict{Int,Dict{Int,Float64}}()
+    spread = 0.0
+    for ((A, _), d) in by_cell
+        total = sum(values(d))
+        total > 0 || continue
+        f = Dict(Z => y / total for (Z, y) in d)
+        if haskey(reference, A)
+            for (Z, v) in f
+                spread = max(spread, abs(v - get(reference[A], Z, NaN)))
+            end
+        else
+            reference[A] = f
+        end
+    end
+    return spread
 end
 
-"Even–odd staggering of the charge yield."
+"Even–odd staggering δ = (ΣY_even − ΣY_odd)/(ΣY_even + ΣY_odd) of a charge yield."
 function even_odd_staggering(Z, Y)
-    even = sum(Y[iseven.(Z)])
-    odd = sum(Y[isodd.(Z)])
+    even, odd = sum(Y[iseven.(Z)]), sum(Y[isodd.(Z)])
     return (even - odd) / (even + odd)
 end
 
-"Charge polarisation of the isobaric distribution, as in `fission_q_value.jl`."
-const ΔZ_POL = -0.5
-"Rms width of the isobaric charge distribution."
-const σ_Z = 0.6
-
-"""
-    charge_averaged_q(masses, Δ₀, A_H)
-
-Q value for the mass split `A_H`, averaged over the isobaric charge
-distribution: the three charges nearest Z_p(A) = Z_UCD(A) + ΔZ, weighted by a
-Gaussian of rms 0.6, which is what the assignment specifies and what
-`fission_q_value.jl` already does.
-
-Taking the single most probable charge instead — as this file did — raises ⟨Q⟩
-by about 0.5 MeV, and carries that straight into ⟨TXE⟩. The charge nearest Z_p
-is not the charge whose Q value equals the distribution's mean, because the mass
-surface curves across the three.
-"""
-function charge_averaged_q(masses, Δ₀, A_H)
-    Zp = Z₀ * A_H / A₀ + ΔZ_POL
-    centre = round(Int, Zp)
-    num = 0.0
-    den = 0.0
-    for z in (centre - 1, centre, centre + 1)
-        δH = Δ(masses, z, A_H)
-        δL = Δ(masses, Z₀ - z, A₀ - A_H)
-        (δH === nothing || δL === nothing) && continue
-        w = exp(-(z - Zp)^2 / (2σ_Z^2))
-        num += w * (Δ₀ - δH - δL) / 1000
-        den += w
+"The Y(N) of Fisiune_2.jl, summed once per (A_H, Z_H) pair mapping to each N."
+function overcounted_neutron_yield(rows)
+    by_N = Dict{Int,Float64}()
+    for r in rows
+        by_N[r.A_H - r.Z_H] = get(by_N, r.A_H - r.Z_H, 0.0) + r.Y
     end
-    return den > 0 ? num / den : nothing
-end
-
-"""
-    yield_weighted_average(q, Y, σY)
-
-Yield-weighted mean of `q` and its uncertainty, by the course's formula
-
-    δ²⟨q⟩ = Σᵢ (Yᵢ δqᵢ / ΣY)² + Σᵢ ((qᵢ − ⟨q⟩) δYᵢ / ΣY)²
-
-with the first term dropped here: every quantity averaged in this file is
-either an exact bin label or is derived from mass excesses whose uncertainties
-the loader does not retain. Only the yield errors contribute.
-"""
-function yield_weighted_average(q, Y, σY)
-    ΣY = sum(Y)
-    m = sum(q .* Y) / ΣY
-    σ = sqrt(sum(abs2, (q .- m) .* σY ./ ΣY))
-    return m, σ
+    pairs = unique((r.A_H, r.Z_H) for r in rows)
+    over = Dict{Int,Float64}()
+    for (A, Z) in pairs
+        over[A - Z] = get(over, A - Z, 0.0) + by_N[A - Z]
+    end
+    ks = sort!(collect(keys(over)))
+    return ks, [over[k] for k in ks]
 end
 
 function main()
-    y = load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR"))
+    rows = load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR"))
     masses = load_masses(joinpath(DATA, "Defecte_masa", "AUDI2021.csv"))
-    @printf("Straede matrix: %d rows, A_H %d–%d, Z_H %d–%d, TKE %d–%d MeV\n",
-        nrow(y), minimum(y.A_H), maximum(y.A_H), minimum(y.Z_H), maximum(y.Z_H),
-        minimum(y.TKE), maximum(y.TKE))
-    @printf("total yield %.3f %% (heavy fragment only; ×2 for both fragments)\n\n",
-        sum(y.Y))
+    cells = yield_cells(rows)
+    @printf("Straede matrix: %d rows in %d (A_H, TKE) cells; A_H %d–%d, Z_H %d–%d, TKE %d–%d MeV\n",
+        length(rows), length(cells), extrema(r.A_H for r in rows)...,
+        extrema(r.Z_H for r in rows)...,
+        extrema(r.TKE for r in rows)...)
+    @printf("total yield %.3f %% (heavy fragment only)\n", sum(c.Y for c in cells))
 
-    A, Y_A, _ = marginal(y, r -> r.A_H)
-    Z, Y_Z, _ = marginal(y, r -> r.Z_H)
-    N, Y_N, _ = marginal(y, r -> r.A_H - r.Z_H)
-    T, Y_T, _ = marginal(y, r -> r.TKE)
+    spread = charge_fraction_spread(rows)
+    @printf("charge fractions Y(Z | A, TKE) differ across TKE by at most %.1e: an imposed charge split\n",
+        spread)
+    spread < CHARGE_MODEL_TOLERANCE ||
+        error("the charge fractions vary across TKE by $spread; they are not a fixed model")
 
-    @printf("Y(A) peaks at A_H = %d with %.3f %%\n", A[argmax(Y_A)], maximum(Y_A))
-    @printf("Y(Z) peaks at Z_H = %d,  Y(N) peaks at N = %d\n", Z[argmax(Y_Z)],
-        N[argmax(Y_N)])
-    @printf("even–odd staggering of Y(Z): δ = %.4f\n", even_odd_staggering(Z, Y_Z))
-    @printf("⟨TKE⟩ over the whole matrix = %.2f MeV\n", sum(y.TKE .* y.Y) / sum(y.Y))
+    A, Y_A, σY_A = marginal(rows, r -> r.A_H)
+    Z, Y_Z, _ = marginal(rows, r -> r.Z_H)
+    N, Y_N, _ = marginal(rows, r -> r.A_H - r.Z_H)
+    T, Y_T, _ = marginal(rows, r -> r.TKE)
+    δ = even_odd_staggering(Z, Y_Z)
+    @printf("\nY(A) peaks at A_H = %d with %.3f ± %.3f %%\n", A[argmax(Y_A)], maximum(Y_A),
+        σY_A[argmax(Y_A)])
+    @printf("Y(Z) peaks at Z_H = %d, Y(N) at N = %d; even–odd staggering of the charge model δ = %.4f\n",
+        Z[argmax(Y_Z)], N[argmax(Y_N)], δ)
+    N_over, Y_over = overcounted_neutron_yield(rows)
+    @printf("Y(N) of Fisiune_2.jl: total %.1f %% instead of %.1f %%, peak at N = %d instead of %d\n",
+        sum(Y_over), sum(Y_N), N_over[argmax(Y_over)], N[argmax(Y_N)])
 
-    # the original Y(N), reproducing the over-count
-    bad = Dict{Int,Float64}()
-    for A_H in minimum(y.A_H):maximum(y.A_H)
-        sub = y[y.A_H .== A_H, :]
-        isempty(sub) && continue
-        for Z_H in minimum(sub.Z_H):maximum(sub.Z_H)
-            n = A_H - Z_H
-            bad[n] = get(bad, n, 0.0) + sum(y.Y[y.A_H .- y.Z_H .== n])
-        end
-    end
-    ks = sort(collect(keys(bad)))
-    over = [bad[k] for k in ks]
-    @printf("\noriginal Y(N) over-count: total %.1f vs %.3f, peak moves from N = %d to %d\n",
-        sum(over), sum(Y_N), N[argmax(Y_N)], ks[argmax(over)])
-
-    # <TKE>(A) and TXE(A)
-    Δ₀ = Δ(masses, Z₀, A₀)
-    Δn = Δ(masses, 0, 1)
-    Δ_U235 = Δ(masses, 92, 235)
-    S_n = (Δ_U235 + Δn - Δ₀) / 1000
-    @printf("S_n(²³⁶U) = %.3f MeV\n", S_n)
-
-    # single-fragment kinetic energies from momentum conservation,
-    # KE_L = TKE·A_H/A₀ and KE_H = TKE·A_L/A₀ — computed by Fisiune_2.jl:KE_A
-    TKE_A = Float64[]
-    TXE_A = Float64[]
+    # per-mass quantities: ⟨TKE⟩(A) from the cells, Q(A) charge-averaged as in
+    # fission_q_value.jl, TXE and the momentum-conservation split of TKE
+    bins = tke_by_mass(cells)
+    S_n = separation_energy(masses, Z₀, A₀)[1]
+    @printf("\nSₙ(²³⁶U) = %.3f MeV\n", S_n)
     A_keep = Int[]
-    KE_L = Float64[]
-    KE_H = Float64[]
-    for a in A
-        sub = y[y.A_H .== a, :]
-        sum(sub.Y) > 0 || continue
-        tke = sum(sub.TKE .* sub.Y) / sum(sub.Y)
-        q = charge_averaged_q(masses, Δ₀, a)
+    TKE_A, TXE_A, Q_A = Float64[], Float64[], Float64[]
+    for a in sort!(collect(keys(bins)))
+        q = charge_average(Zh -> q_value(masses, Zh, a), a, nearest_three_charges(a))
         q === nothing && continue
         push!(A_keep, a)
-        push!(TKE_A, tke)
-        push!(TXE_A, q + S_n - tke)
-        push!(KE_L, tke * a / A₀)
-        push!(KE_H, tke * (A₀ - a) / A₀)
+        push!(TKE_A, bins[a].TKE)
+        push!(Q_A, q[1])
+        push!(TXE_A, q[1] + S_n - bins[a].TKE)
     end
-    @printf("KE_L ranges %.1f–%.1f MeV, KE_H ranges %.1f–%.1f MeV\n",
-        minimum(KE_L), maximum(KE_L), minimum(KE_H), maximum(KE_H))
-    @printf("  check: KE_L + KE_H = TKE to %.2e MeV\n",
-        maximum(abs.(KE_L .+ KE_H .- TKE_A)))
-    @printf("⟨TKE⟩(A) ranges %.1f–%.1f MeV, TXE(A) ranges %.1f–%.1f MeV\n",
-        minimum(TKE_A), maximum(TKE_A), minimum(TXE_A), maximum(TXE_A))
+    KE_L = TKE_A .* A_keep ./ A₀
+    KE_H = TKE_A .* (A₀ .- A_keep) ./ A₀
+    @printf("⟨TKE⟩(A) %.1f–%.1f MeV, TXE(A) %.1f–%.1f MeV, KE_L %.1f–%.1f MeV, KE_H %.1f–%.1f MeV\n",
+        extrema(TKE_A)..., extrema(TXE_A)..., extrema(KE_L)..., extrema(KE_H)...)
 
-    # The five yield-weighted totals the assignment asks for. Only ⟨TKE⟩ was
-    # reported before.
-    wA = [sum(y.Y[y.A_H .== a]) for a in A_keep]
-    σwA = [sqrt(sum(abs2, y.σY[y.A_H .== a])) for a in A_keep]
-    Q_A = TXE_A .- S_n .+ TKE_A
-    println()
-    for (name, q, unit) in (("⟨A_H⟩", Float64.(A_keep), ""),
-        ("⟨A_L⟩", Float64.(A₀ .- A_keep), ""),
-        ("⟨TKE⟩", TKE_A, " MeV"),
-        ("⟨Q⟩", Q_A, " MeV"),
-        ("⟨TXE⟩", TXE_A, " MeV"))
-        m, σ = yield_weighted_average(q, wA, σwA)
-        @printf("  %-7s = %8.3f ± %.3f%s\n", name, m, σ, unit)
+    # the five totals, each a weighted mean over cells of a quantity fixed per
+    # cell: A_H, A_L and TKE are the cell's labels, Q and TXE take the mass's Q(A)
+    Q_of = Dict(zip(A_keep, Q_A))
+    used = [c for c in cells if haskey(Q_of, c.A_H)]
+    Y_c = [c.Y for c in used]
+    σ_c = [c.σY for c in used]
+    totals = (
+        ("⟨A_H⟩", [float(c.A_H) for c in used], ""),
+        ("⟨A_L⟩", [float(A₀ - c.A_H) for c in used], ""),
+        ("⟨TKE⟩", [float(c.TKE) for c in used], " MeV"),
+        ("⟨Q⟩", [Q_of[c.A_H] for c in used], " MeV"),
+        ("⟨TXE⟩", [Q_of[c.A_H] + S_n - c.TKE for c in used], " MeV"),
+    )
+    println("\nyield-weighted totals, uncertainty from the cell yields:")
+    means = Dict{String,Float64}()
+    for (name, q, unit) in totals
+        m, σ = yield_weighted_mean(q, Y_c, σ_c)
+        means[name] = m
+        @printf("  %-6s = %9.4f ± %.4f%s\n", name, m, σ, unit)
     end
-    keL = yield_weighted_average(KE_L, wA, σwA)[1]
-    keH = yield_weighted_average(KE_H, wA, σwA)[1]
-    tke = yield_weighted_average(TKE_A, wA, σwA)[1]
-    @printf("  %-7s = %8.3f MeV\n", "⟨KE_L⟩", keL)
-    @printf("  %-7s = %8.3f MeV\n", "⟨KE_H⟩", keH)
-    @printf("The uncertainty carries the yield errors only: A and TKE are exact bin\n")
-    @printf("labels, and the AME mass-excess errors behind Q and TXE are not\n")
-    @printf("propagated, because the mass loader does not retain them.\n")
-    @printf("\nAgainst the values Straede publishes for this same matrix:\n")
-    @printf("  ⟨TKE⟩   170.692 ± 0.005 MeV   here %.3f, low by %.3f\n", tke, 170.692 - tke)
-    @printf("  ⟨KE_L⟩  98.30 MeV             here %.3f, high by %.2f\n", keL, keL - 98.30)
-    @printf("  ⟨KE_H⟩  69.07 MeV             here %.3f, high by %.2f\n", keH, keH - 69.07)
-    @printf("The matrix is self-consistent — KE_L + KE_H reproduces TKE to 1e-14 —\n")
-    @printf("so the gaps are between this file and the published reduction, not\n")
-    @printf("inside the arithmetic. The KE split here is the momentum-conservation\n")
-    @printf("one, TKE·A_complement/A₀, which is pre-neutron; a post-neutron split\n")
-    @printf("would move both in the direction seen.\n")
+    assert_close("⟨A_H⟩ + ⟨A_L⟩", means["⟨A_H⟩"] + means["⟨A_L⟩"], A₀; atol = 1e-9)
+    assert_close("⟨TXE⟩ − ⟨Q⟩ − Sₙ + ⟨TKE⟩",
+        means["⟨TXE⟩"] - means["⟨Q⟩"] - S_n + means["⟨TKE⟩"], 0.0;
+        atol = 1e-9,)
+    ke_L = yield_weighted_mean(KE_L, [bins[a].Y for a in A_keep], zeros(length(A_keep)))[1]
+    ke_H = yield_weighted_mean(KE_H, [bins[a].Y for a in A_keep], zeros(length(A_keep)))[1]
+    @printf("  ⟨KE_L⟩ = %.3f MeV, ⟨KE_H⟩ = %.3f MeV, sum %.3f\n", ke_L, ke_H, ke_L + ke_H)
+    # at the mass level the within-mass spread of TKE is lost
+    tke_mass = yield_weighted_mean(TKE_A, [bins[a].Y for a in A_keep],
+        [sqrt(sum(abs2, c.σY for c in used if c.A_H == a)) for a in A_keep],)
+    @printf("  σ⟨TKE⟩ propagated at the mass level instead: %.4f MeV\n", tke_mass[2])
 
-    fig = Figure(size = (1020, 640))
+    # --- figure ---------------------------------------------------------------
+    fig = Figure(size = (1400, 1080))
+    yield_label(v) = rich(it("Y"), "(", v, ") [%]")
 
-    # One colour per quantity across the four panels. The yields are all the
-    # same quantity measured against different variables, so they share the
-    # blue; the energies of the fourth panel take their own.
-    ax1 = Axis(fig[1, 1], xlabel = L"$A_H$", ylabel = L"Y($A_H$) [%]")
-    lines!(ax1, A, Y_A, color = PALETTE.blue, linewidth = 1.6)
-    peak = A[argmax(Y_A)]
+    ax1 = Axis(fig[2, 1], xlabel = rich("Heavy-fragment mass ", it("A"), subscript("H")),
+        ylabel = yield_label(rich(it("A"), subscript("H"))),)
+    errorbars_unstroked!(ax1, A, Y_A, σY_A, color = PALETTE.blue, linewidth = GUIDE_WIDTH,
+        whiskerwidth = 6,)
+    scatterlines!(ax1, A, Y_A, color = PALETTE.blue, markersize = MARKERSIZE.dense)
     text!(ax1, 0.97, 0.95;
-        text = rich("Peak at ", it("A"), subscript("H"),
-            @sprintf(" = %d, %.2f %%", peak, maximum(Y_A))),
-        space = :relative, align = (:right, :top), fontsize = 14, color = PALETTE.blue,)
+        text = rich("Peak ", it("A"), subscript("H"), @sprintf(" = %d, %.2f %%",
+            A[argmax(Y_A)], maximum(Y_A))),
+        space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE, color = PALETTE.blue,)
 
-    ax2 = Axis(fig[1, 2], xlabel = L"$Z_H$", ylabel = L"Y($Z_H$) [%]")
-    barplot!(ax2, Z, Y_Z, color = PALETTE.blue, strokewidth = 0.4)
-    # the tail bins carry a yield of order 1e-3 % and read as stray marks at zero
-    xlims!(ax2, minimum(Z[Y_Z .> 0.05]) - 1, maximum(Z[Y_Z .> 0.05]) + 1)
+    ax2 = Axis(fig[2, 2], xlabel = rich("Heavy-fragment charge ", it("Z"), subscript("H")),
+        ylabel = yield_label(rich(it("Z"), subscript("H"))),)
+    barplot!(
+        ax2, Z, Y_Z, color = PALETTE.blue, strokewidth = 1.5, strokecolor = PALETTE.black,)
+    drawn = Y_Z .> DRAW_FLOOR
+    xlims!(ax2, minimum(Z[drawn]) - 1, maximum(Z[drawn]) + 1)
+    text!(ax2, 0.03, 0.95;
+        text = rich("Imposed charge split\n", it("δ"), @sprintf(" = %.3f", δ)),
+        space = :relative, align = (:left, :top), fontsize = ANNOTATION_SIZE, color = PALETTE.blue,)
 
-    ax3 = Axis(fig[2, 1], xlabel = "TKE [MeV]", ylabel = "Y(TKE) [%]")
-    lines!(ax3, T, Y_T, color = PALETTE.blue, linewidth = 1.6)
-    # Y(TKE) is zero below about 140 MeV and the axis started at 105.
-    keep_T = Y_T .> 1e-3
-    xlims!(ax3, minimum(T[keep_T]) - 3, maximum(T[keep_T]) + 3)
+    ax3 = Axis(fig[3, 1], xlabel = "TKE [MeV]", ylabel = yield_label("TKE"))
+    scatterlines!(ax3, T, Y_T, color = PALETTE.blue, markersize = MARKERSIZE.dense)
+    drawn_T = Y_T .> 1e-3
+    xlims!(ax3, minimum(T[drawn_T]) - 3, maximum(T[drawn_T]) + 3)
+    vlines!(ax3, [means["⟨TKE⟩"]], color = PALETTE.black,
+        linestyle = :dash, linewidth = GUIDE_WIDTH,)
+    text!(ax3, 0.97, 0.5; text = rich("⟨TKE⟩ = ", @sprintf("%.2f MeV", means["⟨TKE⟩"])),
+        space = :relative, align = (:right, :center), fontsize = ANNOTATION_SIZE,)
 
-    ax4 = Axis(fig[2, 2], xlabel = L"$A_H$", ylabel = "Energy [MeV]")
-    l_tke = lines!(ax4, A_keep, TKE_A, color = PALETTE.blue, linewidth = 1.6)
-    l_txe = lines!(ax4, A_keep, TXE_A, color = PALETTE.red, linewidth = 1.6)
-    l_kel = lines!(
-        ax4, A_keep, KE_L, color = PALETTE.green, linewidth = 1.6, linestyle = :dash,)
-    l_keh = lines!(
-        ax4, A_keep, KE_H, color = PALETTE.purple, linewidth = 1.6, linestyle = :dash,)
-    # Headroom: at :rt this legend sat on the ⟨TKE⟩ curve, which runs across the
-    # top of the panel, and the curve crossed its KE_H swatch.
-    ylims!(ax4, 0, maximum(TKE_A) * 1.42)
-    ke = rich(it("KE"))
-    axislegend(ax4, [l_tke, l_txe, l_kel, l_keh],
-        [rich("⟨", it("TKE"), "⟩(", it("A"), subscript("H"), ")"),
-            rich(it("TXE"), "(", it("A"), subscript("H"), ")"),
+    ax4 = Axis(fig[3, 2], xlabel = rich("Heavy-fragment mass ", it("A"), subscript("H")),
+        ylabel = "Energy [MeV]",)
+    l_tke = lines!(ax4, A_keep, TKE_A, color = PALETTE.blue)
+    l_txe = lines!(ax4, A_keep, TXE_A, color = PALETTE.red)
+    l_kel = lines!(ax4, A_keep, KE_L, color = PALETTE.green, linestyle = :dash)
+    l_keh = lines!(ax4, A_keep, KE_H, color = PALETTE.purple, linestyle = :dashdot)
+    ylims!(ax4, 0, maximum(TKE_A) * 1.12)
+
+    ke = rich("KE")
+    Legend(fig[1, 1:2], [l_tke, l_txe, l_kel, l_keh],
+        [rich("⟨TKE⟩(", it("A"), subscript("H"), ")"),
+            rich("TXE(", it("A"), subscript("H"), ")"),
             rich(ke, subscript("L"), "(", it("A"), subscript("H"), ")"),
             rich(ke, subscript("H"), "(", it("A"), subscript("H"), ")"),],
-        position = :lt, framevisible = false, labelsize = 14, nbanks = 2,
-        padding = 2,)
-
+        "Energies"; titleposition = :left,)
     println("\nwrote ", savefigure(fig, FIGURES, "fragment_yields"))
 end
 

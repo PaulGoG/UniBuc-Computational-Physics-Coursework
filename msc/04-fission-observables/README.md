@@ -1,255 +1,188 @@
 # Fission observables — MSc year 2 (2022–2023)
 
-Neutron-induced fission of ²³⁵U at thermal energy, from the Straede
-Y(A_H, Z_H, TKE) matrix, the AME mass evaluation, Möller–Nix deformations,
-Gilbert–Cameron level densities, and four measured ν(A) and neutron-spectrum
-datasets.
-
-## `fission_data.jl`
-
-Loaders and indices for all of the above. The originals accessed these tables by
-boolean masking inside nested loops; `Fisiune_2.jl:TKE_A` alone made roughly
-8000 full passes over the 20 705-row yield matrix.
+Neutron-induced fission of ²³⁵U at thermal energy, from a Y(A_H, Z_H, TKE)
+matrix, the AME2020 masses, the FRDM ground-state deformations, the
+Gilbert–Cameron shell corrections, and four measured ν(A) and four measured
+neutron-spectrum sets. Ported from `Fisiune_1.jl` to `Fisiune_5.jl` in
+`Julia-Workflow-FFUB/Fisiune_M_2/` on the `legacy` branch. `fission_data.jl`
+reads every table once into typed containers; `fission_core.jl` holds the
+compound system, the isobaric charge distribution, Q values and separation
+energies from the mass table, the reduction of the yield matrix to its
+measured cells, and the yield-weighted mean with its uncertainty. Every
+script asserts an identity or a closed form.
 
 ## `fission_q_value.jl`
 
 ![Q value](figures/fission_q_value.png)
 
-Q(A_H) averaged over the isobaric charge distribution. Mean **183.7 MeV**, range
-163.3–196.0, peaking at **A_H = 130** — at the ¹³²Sn shell closure, where it
-must.
+Q(A_H, Z_H) = Δ(²³⁶U) − Δ(A_H, Z_H) − Δ(A₀ − A_H, Z₀ − Z_H) for heavy-fragment
+masses 118 to 160, averaged at each mass over the three charges nearest
+Z_p(A_H) = Z_UCD(A_H) − 0.5 with the weights of a Gaussian isobaric charge
+distribution of rms width 0.6, the mass-excess uncertainties propagated in
+quadrature. The maximum is 196.03 ± 0.01 MeV at A_H = 130, the ¹³²Sn shell
+closure; the yield-weighted mean over the 41 masses with a yield is
+⟨Q⟩ = 186.62 MeV, while the arithmetic mean over the 43 mass points, which is
+what the original reported, is 183.70 MeV. The polarisation and width are
+rounded values of the Wahl Z_p systematics (At. Data Nucl. Data Tables **39**,
+1 (1988), doi:10.1016/0092-640X(88)90016-2).
 
 ## `fragment_yields.jl`
 
 ![Fragment yields](figures/fragment_yields.png)
 
+What the matrix measures is Y(A_H, TKE) over 4141 cells, 118 ≤ A_H ≤ 158 and
+100 ≤ TKE ≤ 200 MeV. The five charge rows of each cell split one measured yield
+by fractions that are identical across TKE for a given mass, to 3 × 10⁻⁶,
+which the script asserts: Y(Z), Y(N) and the even–odd staggering
+δ = 0.121 describe the charge split imposed on the matrix, not a measurement.
+
 | Quantity | Value |
 |---|---|
-| Y(A) peak | A_H = **140**, 6.71 % |
-| Y(Z) peak | Z_H = **54** (Xe) |
-| Even–odd staggering δ | 0.121 |
-| ⟨TKE⟩ | **170.549 MeV** |
-| ⟨A_H⟩ / ⟨A_L⟩ | **139.323 / 96.677** |
-| ⟨Q⟩ | **186.624 MeV** |
-| ⟨TXE⟩ | **22.621 MeV** |
-| S_n(²³⁶U) | **6.546 MeV** |
-| TXE(A) | 20.7–44.0 MeV |
-| KE_L(A) | 77.9–101.1 MeV |
-| KE_H(A) | 49.0–80.2 MeV |
+| Y(A) peak | A_H = 140, 6.71 ± 0.14 % |
+| Y(Z) peak | Z_H = 54 (imposed split) |
+| ⟨A_H⟩ | 139.323 ± 0.019 |
+| ⟨A_L⟩ | 96.677 ± 0.019 |
+| ⟨TKE⟩ | 170.549 ± 0.047 MeV |
+| ⟨Q⟩ | 186.624 ± 0.023 MeV |
+| ⟨TXE⟩ | 22.621 ± 0.041 MeV |
+| ⟨KE_L⟩, ⟨KE_H⟩ | 100.55, 69.99 MeV |
+| S_n(²³⁶U) | 6.546 MeV |
+| ⟨TKE⟩(A), TXE(A) | 148.3–178.7, 22.0–40.7 MeV |
 
-The single-fragment kinetic energies follow from momentum conservation,
-KE_L = TKE·A_H/A₀; they close against TKE to 2.8 × 10⁻¹⁴ MeV.
+Every total is a weighted mean over the measured cells of a quantity fixed
+per cell — the cell's A_H, A_L or TKE, the mass's Q(A), and
+Q(A) + S_n − TKE for TXE — so its variance is Σ_c [(q_c − ⟨q⟩) σY_c/ΣY]², with
+the rows of one cell added linearly (they share one relative error) and the
+cells in quadrature. Propagated at the mass level instead, after averaging TKE
+within each mass, σ⟨TKE⟩ comes out 0.022 MeV: the within-mass spread of TKE is
+lost. The identities ⟨A_H⟩ + ⟨A_L⟩ = 236 and ⟨TXE⟩ = ⟨Q⟩ + S_n − ⟨TKE⟩ are
+asserted; the single-fragment energies follow from momentum conservation,
+KE_L = TKE·A_H/A₀. The mass-excess uncertainties behind Q are not carried into
+the totals; they are at most 0.09 MeV per mass.
 
-⟨TKE⟩ and S_n both reproduce the evaluated values to three digits. All five
-yield-weighted totals the assignment asks for are now reported, with the
-uncertainty propagated by the course's formula
-δ²⟨q⟩ = Σ((qᵢ − ⟨q⟩)δYᵢ/ΣY)², which carries the yield errors; the AME
-mass-excess errors behind Q and TXE are not propagated, because the mass loader
-does not retain them.
-
-### Checked against the submitted portfolio
-
-The portfolio submitted for this course survives in a private repository. Its
-results are raster images inside the document, so they were read by OCR. Four of
-the five totals agree to every digit the OCR resolves:
-
-| | Portfolio | This repository |
-|---|---|---|
-| ⟨A_H⟩ | 139.32 ± 0.01319 | **139.323 ± 0.013** |
-| ⟨A_L⟩ | 96.68 ± 0.01319 | **96.677 ± 0.013** |
-| ⟨TKE⟩ | 170.549 ± 0.03179 | **170.549 ± 0.015** |
-| ⟨Q⟩ | 186.6 ± 0.016 | **186.624 ± 0.016** |
-| ⟨TXE⟩ | 22.6 ± 0.019 | **22.621 ± 0.002** |
-
-**⟨Q⟩ and ⟨TXE⟩ only agree after a fix the portfolio exposed.** This file was
-taking the single most probable charge for each mass split, where the assignment
-specifies averaging over the three nearest charges on the isobaric Gaussian —
-which `fission_q_value.jl` was already doing. The mass surface curves across
-those three, so the charge nearest Z_p is not the charge whose Q equals the
-distribution's mean: taking it raised ⟨Q⟩ by 0.50 MeV and carried the same error
-straight into ⟨TXE⟩. Averaging brings both onto the portfolio's values.
-
-### The multiplicity, and how the portfolio found the error
-
-The portfolio gives **⟨ν⟩ = 2.538 ± 0.00041** per fragment pair.
-`neutron_multiplicity.jl` gave **2.826** on what is meant to be the same energy
-balance, and finding out why took two fixes.
-
-The first was the charge averaging above, which moved it to 2.826 from 2.883.
-The second was the average itself: **ν was being averaged over mass splits with
-equal weight.** Every other total in this module is yield-weighted, and ν has to
-be too. The splits are not equivalent — the near-symmetric ones carry TXE about
-3.5 MeV above the yield-weighted mean while contributing a yield around 10⁻⁴ of
-the peak — so counting them equally inflates the answer. Yield-weighted:
-
-| | ⟨TXE⟩ | ⟨ν⟩ |
-|---|---|---|
-| Unweighted over mass splits | 26.115 MeV | 2.826 |
-| **Yield-weighted** | **22.621 MeV** | **2.573** |
-| Portfolio | 22.6 | 2.538 |
-| Evaluated, ²³⁵U(n_th,f) | — | 2.42 |
-
-1.4 % from the portfolio, against 11 % before, and the model now sits +6 % above
-the evaluated value rather than +17 %. The residual +6 % is the model itself:
-prompt γ emission competes for the same excitation energy and carries off 6–7 MeV
-per fission, which this balance does not account for.
-
-This one is worth stating plainly: the discrepancy was only visible because the
-submitted portfolio survived and could be read. Nothing internal to the code
-flagged it, because an unweighted mean of a physically meaningful quantity looks
-entirely reasonable until you compare it with something.
-
-### Against the published values
-
-Against the values Straede publishes for this same matrix — the yield file is
-Ch. Straede, C. Budtz-Jørgensen, H.-H. Knitter, *Nucl. Phys. A* **462** (1987)
-85 — ⟨TKE⟩ comes out **0.143 MeV low** (170.549 against 170.692 ± 0.005) and the
-kinetic-energy split **2.25 and 0.92 MeV high** (100.55/69.99 against
-98.30/69.07). The matrix is self-consistent, KE_L + KE_H reproducing TKE to
-10⁻¹⁴ MeV, so the gaps sit between this data file and the published reduction
-rather than inside the arithmetic. The split used here is the
-momentum-conservation one, TKE·A_complement/A₀, which is pre-neutron; a
-post-neutron split moves both in the direction seen.
-
-**Y(N) was over-counted.** The original summed over all rows with a given
-N = A_H − Z_H *inside* the double loop over (A_H, Z_H), so the sum was re-added
-once per (A, Z) pair mapping to that N — and with five charge splits per mass,
-several do. The measured effect: total yield **805.4 %** instead of 100.2 %, an
-eightfold inflation, with the peak displaced from N = 87 to N = 86. The
-normalisation applied afterwards hid the absolute error but not the distortion.
-
-Also corrected: uncertainties added linearly in three places while the comments
-stated quadrature; and `Sortare_distributie` assumed its abscissa contained
-every integer between its extremes with no gaps or duplicates — the author hit
-this, and five commented-out `deleteat!` lines in `Fisiune_3.jl` document it.
+`Fisiune_2.jl` summed Y(N) over all rows with a given N inside the double
+loop over (A_H, Z_H), once per pair mapping to that N: its total came to
+805 % instead of 100 % and its peak moved from N = 87 to 86, reproduced by the
+script. Three of its uncertainty accumulations added linearly where the
+comments said quadrature.
 
 ## `neutron_spectrum.jl`
 
 ![Neutron spectrum](figures/neutron_spectrum.png)
 
-Madland–Nix spectrum, **averaged over the mass yield** as the original did —
-per-mass TXE, TKE, T_m = √(10·TXE/A) and E_f, with the light- and
-heavy-fragment spectra averaged and weighted by Y(A) over 41 masses — and
-Maxwellian fits to four measured spectra.
+The Madland–Nix spectrum (Nucl. Sci. Eng. **81**, 213 (1982),
+doi:10.13182/NSE82-5) with a constant compound-nucleus cross-section and a
+triangular residual-temperature distribution,
 
-The mass average is what makes the prefactor error measurable. T_m spans
-0.936–1.365 MeV and E_f spans 0.310–1.273 MeV across the fragments, so a
-prefactor carrying both cannot be absorbed into an overall normalisation:
-
-| | ⟨E⟩ | (2/3)⟨E⟩ |
-|---|---|---|
-| Correct prefactor | 2.1025 MeV | 1.4017 MeV |
-| Original prefactor | 2.2025 MeV | 1.4683 MeV |
-
-a **4.76 %** shift in the mean energy. Real, and in the direction that matters,
-but modest — worth stating precisely rather than left as an assertion. The
-correct equivalent Maxwellian temperature of 1.40 MeV sits above the evaluated
-1.32, which is the Los Alamos model with C = 10 rather than a coding issue.
-
-| Dataset | T_M [MeV] | χ²/ν |
-|---|---|---|
-| Göök, lab | 1.2946 | 3.95 |
-| Vorobyev, lab | 1.3603 | 2.61 |
-| Göök, CM light | 0.7998 | 5.04 |
-| Göök, CM heavy | 0.8413 | 1.88 |
-
-The two laboratory temperatures bracket the evaluated ~1.32 MeV for
-²³⁵U(n_th,f), the Göök value agreeing with the 1.297 MeV the course quotes for
-the Hambsch and Kornilov set, and the centre-of-mass values sit well below
-them, as removing the fragment motion requires.
-
-Data and model are both normalised to unit area over the measured window. The
-window matters: the Göök laboratory spectrum runs from 0.55 to 12.5 MeV and
-holds 84 % of the Maxwellian, so comparing it with a Maxwellian normalised over
-all energies offsets the whole ratio by a fifth, drags T_M up to 1.322 MeV and
-returns χ²/ν = 54.9 for what is in fact a good fit.
-
-**The Madland–Nix prefactor was wrong.** The original wrote
-
-```julia
-return (1/3*sqrt(E_F*T_MAX)) * ( ... )
+```
+N(E) = 1/(3√(E_f T_m)) [u₂^{3/2} E₁(u₂) − u₁^{3/2} E₁(u₁) + γ(3/2, u₂) − γ(3/2, u₁)],
+u₁,₂ = (√E ∓ √E_f)² / T_m,
 ```
 
-which parses as `(1/3)·√(E_f·T_m)`, since `/` and `*` share precedence and
-associate left to right. The prefactor is **1/(3√(E_f T_m))** — it multiplied
-where it had to divide. Because E_f and T_m both vary with fragment mass, the
-error does not cancel under the Maxwellian renormalisation applied afterwards;
-it reweights the mass average.
+averaged over the mass yield as `Fisiune_4.jl` did: per heavy-fragment mass,
+TXE = Q(A, Z_p) + S_n − ⟨TKE⟩(A) at the single most probable charge,
+T_m = √(C·TXE/A₀) with C = 10 MeV as in that file, E_f per nucleon from
+momentum conservation, the light- and heavy-fragment spectra averaged and
+weighted by Y(A) over 41 masses. T_m spans 0.94–1.37 MeV and E_f 0.31–1.27 MeV.
 
-E₁(z) and γ(3/2,x) were also re-integrated with `quadgk` at every evaluation,
-some 34 000 adaptive quadratures per run, where `SpecialFunctions` has both in
-closed form. `Fisiune_5.jl` bounded its optimiser at T_M = 0, where T_M^{-3/2}
-is infinite.
+The closed form integrates to one over [0, ∞) for every E_f and T_m, which the
+script asserts for each fragment to 10⁻⁹. `Fisiune_4.jl` wrote the prefactor
+as `(1/3*sqrt(E_F*T_MAX))`, which Julia parses as (1/3)√(E_f T_m): its
+spectrum integrates to E_f T_m, between 0.31 and 1.33 across the fragments,
+so the error reweights the mass average rather than cancelling under the
+renormalisation applied afterwards. The mass-averaged mean energy is
+⟨E⟩ = 2.103 MeV (equivalent Maxwellian temperature 2⟨E⟩/3 = 1.402 MeV) against
+2.203 MeV with the original prefactor, 4.8 % higher.
 
-**Retracted.** This README previously held that `Fisiune_5.jl` was wrong to
-divide χ² by N rather than by ν = N − 1. It was not. The course defines
-χ² = (1/n)Σ(yᵢ − f(xᵢ))²/σᵢ², over the number of points, and the original
-followed that definition. The reduced χ² over ν is kept here because one
-parameter is fitted, but it is a convention and the original was not in error.
-The course's own reference fits, on its convention: Hambsch & Kornilov
-²³⁵U(n_th,f) → T_M = 1.297 MeV at χ² = 2.034; Mannhart ²⁵²Cf → 1.402 and
-1.396 MeV at χ² = 2.513 and 3.256.
+Maxwellian fits to the four measured spectra, data and model both normalised
+to unit area over the measured window and χ² reduced by ν = N − 1:
+
+| Dataset | Window [MeV] | Fraction of the Maxwellian in the window | T_M [MeV] | χ²/ν |
+|---|---|---|---|---|
+| Göök, laboratory | 0.55–12.5 | 84 % | 1.295 | 3.95 |
+| Vorobyev, laboratory | 0.22–16.7 | 96 % | 1.360 | 2.61 |
+| Göök, centre of mass, light fragment | 0.05–6.95 | 99 % | 0.800 | 5.04 |
+| Göök, centre of mass, heavy fragment | 0.05–6.95 | 99 % | 0.841 | 1.88 |
+
+The window matters: a Maxwellian normalised over all energies compared with
+the Göök laboratory spectrum, which holds 84 % of it, offsets the whole ratio
+by a fifth and returns T_M = 1.322 MeV at χ²/ν = 55. The centre-of-mass sets
+sit well below the laboratory ones, as removing the fragment motion requires,
+and are counting-limited above about 6 MeV. `Fisiune_5.jl` divided χ² by N
+rather than ν, a convention, and bounded its optimiser at T_M = 0, where
+T_M^{−3/2} is infinite; both files re-integrated E₁, γ(3/2, x) and the window
+integral by quadrature at every evaluation.
 
 ## `neutron_multiplicity.jl`
 
 ![Neutron multiplicity](figures/neutron_multiplicity.png)
 
-ν(A) from the energy balance `Fisiune_3.jl` used,
+ν(A) from the energy balance of `Fisiune_3.jl`,
 
 ```
-ν_pair = (TXE − q) / (⟨ε⟩ + ⟨S_n⟩ + p),   ⟨ε⟩ = 4T_m/3,  T_m = √(TXE/a_tot)
-p = 6.71 − Z²·0.156/A = 1.116 MeV        q = 0.75 + Z²·0.088/A = 3.905 MeV
+ν_pair = (TXE − q) / (⟨ε⟩ + ⟨S_n⟩ + p),   ⟨ε⟩ = 4T_m/3,   T_m = √(TXE/(a_L + a_H)),
+p = 6.71 − 0.156 Z₀²/A₀ = 1.115 MeV,     q = 0.75 + 0.088 Z₀²/A₀ = 3.906 MeV,
 ```
 
-against Göök, Maslin, Nishio and Vorobyev.
+with the Gilbert–Cameron level-density parameter a = A[0.00917 (S_Z + S_N) +
+0.142] (Can. J. Phys. **43**, 1446 (1965), doi:10.1139/p65-139). The pair
+multiplicity is split by the heavy fragment's share R of the excitation
+energy. `Fisiune_3.jl` takes R from the scission-point deformation: each
+fragment pays the liquid-drop energy of deforming from its FRDM ground-state
+β₂ to a scission β(Z), piecewise linear through (28, 0), (41, 0.58),
+(44, 0.58), (50, 0) and (65, 0.6), and the remainder is shared in the ratio of
+the level-density parameters. The statistical limit R = a_H/(a_L + a_H) is
+computed alongside. Everything is evaluated per (A_H, Z_H) over the charges
+the mass table lists, averaged over Z_H with the Gaussian isobaric weights,
+and weighted by the mass yield.
 
-⟨ν_pair⟩ = **2.573**, yield-weighted, against the evaluated **2.42**, +6 %. The
-residual is the model: prompt γ emission competes for the same excitation energy and carries off
-6–7 MeV per fission, which this balance does not account for. The measured sets
-average 1.16–1.32 neutrons per fragment, consistent with 2.42 for the pair.
+| | Yield-weighted |
+|---|---|
+| ⟨ν_pair⟩ | 2.538 |
+| ⟨ν_pair⟩, unweighted over masses | 2.827 |
+| ⟨TXE⟩ | 22.56 MeV |
+| R, scission deformation | 0.398 |
+| R, level densities alone | 0.463 |
 
-The pair multiplicity is split between fragments by the ratio of their
-level-density parameters. The original took that ratio from its scission-point
-deformation energies; that model is not reproduced, and the level-density ratio
-is the statistical-equilibrium limit of the same quantity.
+Against the measured sets, whose own yield-weighted per-fragment means give
+2.40–2.46 neutrons per pair:
 
-The defect fixed from `Fisiune_3.jl`:
+| Dataset | Points | 2 ν̄ measured | Deformation partition, χ²/N, rms | Level densities, χ²/N, rms |
+|---|---|---|---|---|
+| Göök | 79 | 2.460 | 76, 0.36 | 192, 0.48 |
+| Maslin | 48 | 2.434 | 31, 0.37 | 24, 0.39 |
+| Nishio | 59 | 2.403 | 8.9, 0.17 | 17, 0.23 |
+| Vorobyev | 97 | 2.409 | 67, 0.33 | 112, 0.40 |
 
-```julia
-for Z_H in minimum(dGC.n):maximum(dGC.n)
-```
+The deformation partition of the original reproduces the sawtooth better on
+three of the four sets, and it is what the figure draws; the level-density
+partition is drawn dashed. The model sits 3–6 % above the measured pair
+values: prompt γ emission competes for the same excitation energy and this
+balance does not account for it. The script asserts that β(Z) vanishes at the
+closed shells Z = 28 and 50, that 0 < R < 1 for every split, and that
+ν_H + ν_L = ν_pair at every mass.
 
-bounded the loop over *fragment proton number* by the index column of the
-Gilbert–Cameron table, so Z_H ran 11 to 150. Unphysical pairs such as
-(A_H = 130, Z_H = 100) survived the guards and polluted the level-density
-distribution and everything averaged over it. The charge range now comes from
-the yield matrix, which spans Z_H = 44–63.
+`Fisiune_3.jl` bounded its charge loop by the index column of the
+Gilbert–Cameron table, 11 to 150; charges far from Z_p enter with a Gaussian
+weight below 10⁻⁵ beyond |Z − Z_p| = 3, so the bound cost time, not results.
+Its `Energie_separare` returned `[S, σ]` on success and a bare `NaN` on
+failure, indexed by the caller regardless. `Dump.jl` referenced names it
+neither defined nor imported and was never included; it is not ported.
 
-**Retracted.** This README previously called the six constants of the
-scission-point deformation model in `Fisiune_3.jl` — `a = 0.58/13`, `b = -28*a`,
-`-0.58/6`, `0.6/15`, `-50*a` — "undocumented, with no source", and declined to
-reproduce the model on that ground. They were a table. Tudora's notes on the
-partition of TXE give β at scission as a piecewise-linear function of fragment
-charge through five breakpoints,
+**Open questions.** The p and q terms, the constants of the liquid-drop
+deformation energy (15.4941, 17.9439, 1.7826, 0.7053, 1.1529 MeV), the β(Z)
+breakpoints and the level-density constant C = 10 MeV of the spectrum are
+those of the 2023 files, which record no source for them; they are used as
+found. The charge split of the yield matrix is imposed; by whom, and on what
+model, the file does not say.
 
-| Z | 28 | 41 | 44 | 50 | 65 |
-|---|---|---|---|---|---|
-| β | 0 | 0.58 | 0.58 | 0 | 0.6 |
+## Data
 
-and interpolating between them reproduces all six constants exactly. The
-parameterisation is now implemented, and plotted against the Möller–Nix
-ground-state β₂ as the assignment asks — the right-hand panel above. It is its
-own check: the two zeros fall on the closed shells at Z = 28 and Z = 50.
-
-With the liquid-drop deformation energy from the same notes, the heavy
-fragment's share of the excitation energy comes out **⟨R⟩ = 0.453** against
-**0.503** from the level-density ratio alone — a 10 % shift, from just above
-half to just below. ν(A) is still computed from the level-density ratio, because
-the deformation route adds a parameterised β(Z) and a liquid-drop energy on top
-of it and there is nothing here to validate that against; both are reported
-rather than chosen between.
-
-`Dump.jl` is deleted: it referenced `distributie_bidym`, `Y`, `y_A`, `DataFrame`
-and `CSV`, none of which it defined or imported, so it could not run and was
-never included by anything. Its one useful routine, the (A,Z)-resolved
-⟨TKE⟩(A,Z), is subsumed by the marginalisation in `fragment_yields.jl`.
+| File | Content | Source |
+|---|---|---|
+| `Yield/U5YAZTKE.STR` | Y(A_H, Z_H, TKE) [%] and its error, 20 705 rows, five charges per (A_H, TKE) cell | Header `5Z/A Y(A,TKE) Straede`: the Y(A, TKE) of Straede, Budtz-Jørgensen and Knitter, Nucl. Phys. A **462**, 85 (1987), doi:10.1016/0375-9474(87)90381-2 (EXFOR 23591), with a charge split imposed on it; the split and the digitisation are not recorded |
+| `Date_experimentale/Multiplicitate_n/U5NUA*.DAT` | ν(A) and its error per fragment mass | Göök, Hambsch, Oberstedt and Vidali, Phys. Rev. C **98**, 044615 (2018), doi:10.1103/PhysRevC.98.044615; Maslin, Rodgers and Core, Phys. Rev. **164**, 1520 (1967), doi:10.1103/PhysRev.164.1520; Nishio, Nakagome, Yamamoto and Kimura, Nucl. Phys. A **632**, 540 (1998), doi:10.1016/S0375-9474(98)00008-6; Vorobyev et al., EPJ Web Conf. **8**, 03004 (2010), doi:10.1051/epjconf/20100803004. The files carry the first author's name only; the digitisation is not recorded |
+| `Date_experimentale/Spectru_n/U5SP*.DAT` | Neutron spectra with errors: Göök laboratory frame, Göök centre of mass for the light and heavy fragment, Vorobyev laboratory frame | The Göök sets from the measurement of Phys. Rev. C **98**, 044615 (2018); the Vorobyev set from the same group's ²³⁵U measurements (EPJ Web Conf. **8**, 03004 (2010) describes them); the exact publication and digitisation are not recorded in the files |
+| `Defecte_masa/AUDI2021.csv`, `AUDI95.csv` | AME2020 and AME1995 mass excesses | As in `msc/03-radionuclides`, byte-identical copies |
+| `Parametrizari_auxiliare/B2MOLLER.ANA` | Z, A, ground-state β₂ | FRDM, Möller, Nix, Myers and Swiatecki, At. Data Nucl. Data Tables **59**, 185 (1995), doi:10.1006/adnd.1995.1002, via `moller.dat` of RIPL-1 as the header says |
+| `Parametrizari_auxiliare/SZSN.GC` | Nucleon number, shell corrections S(N) and S(Z) [MeV] | Gilbert and Cameron, Can. J. Phys. **43**, 1446 (1965), doi:10.1139/p65-139; the extraction is not recorded |

@@ -29,7 +29,7 @@ The yield matrix Y(A_H, Z_H, TKE) in % per fission, heavy fragment only.
 """
 function load_yields(path)
     return [YieldRow(parse(Int, f[1]), parse(Int, f[2]), parse(Int, f[3]),
-                parse(Float64, f[4]), parse(Float64, f[5]))
+                parse(Float64, f[4]), parse(Float64, f[5]),)
             for f in table_fields(path; skip = 1)]
 end
 
@@ -57,7 +57,8 @@ Gilbert–Cameron shell corrections in MeV keyed on nucleon number: `S_N` when t
 key counts neutrons, `S_Z` when it counts protons.
 """
 function load_gilbert_cameron(path)
-    return Dict(parse(Int, f[1]) => (S_N = parse(Float64, f[2]), S_Z = parse(Float64, f[3]))
+    return Dict(parse(Int, f[1]) =>
+                    (S_N = parse(Float64, f[2]), S_Z = parse(Float64, f[3]))
     for f in table_fields(path; skip = 1))
 end
 
@@ -66,5 +67,5 @@ function load_measurement(path)
     fields = table_fields(path; skip = 1)
     return (x = [parse(Float64, f[1]) for f in fields],
         y = [parse(Float64, f[2]) for f in fields],
-        σ = [parse(Float64, f[3]) for f in fields])
+        σ = [parse(Float64, f[3]) for f in fields],)
 end
