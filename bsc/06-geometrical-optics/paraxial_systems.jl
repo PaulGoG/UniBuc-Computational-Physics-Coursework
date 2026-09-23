@@ -6,20 +6,24 @@
 # the system matrix is accumulated from the last surface backwards, so that
 # S = M_N T_{N-1} M_{N-1} … T_1 M_1 acts as v_out = S·v_in.
 #
-# Ported from Erlfe.m and Tessar.m (Octave). The matrix convention, the
-# accumulation order and the index bookkeeping in the originals were all
-# correct. Three things were not.
+# Ported from Erlfe.m and Tessar.m in Code_Archive/Optics/ on the `legacy`
+# branch. The matrix convention, the accumulation order and the index
+# bookkeeping there are correct. The principal-plane separation is written
+# `sum(d) - abs(zH1) - abs(zH2)`, right only when both principal planes fall on
+# one side; the files' own diagrams place H1 at -zH1 from the first vertex and
+# H2 at sum(d)+zH2 from the last, so the separation is sum(d) + zH1 + zH2, which
+# agrees with the original formula for these two prescriptions and would not
+# for a design with a principal plane on the other side. `f = -1/S(1,2)` is
+# labelled "Convergenta sistemului" there; that is the focal length, and the
+# convergence is P = 1/f = -S(1,2). "Erlfe" is Erfle, the 1921 wide-field
+# eyepiece.
 #
-#   1. The principal-plane separation was computed as
-#          delta = sum(d) - abs(zH1) - abs(zH2)
-#      which is right only when both principal planes happen to fall on one
-#      side. The files' own diagrams place H1 at -zH1 from the first vertex and
-#      H2 at sum(d)+zH2 from the last, so the separation is sum(d) + zH1 + zH2.
-#      Printed delta and plotted geometry therefore disagreed whenever a
-#      principal plane changed sign.
-#   2. `f = -1/S(1,2)` was labelled "Convergenta sistemului". That is the focal
-#      length; the convergence (optical power) is P = 1/f = -S(1,2).
-#   3. "Erlfe" is a misspelling of **Erfle**, the 1921 wide-field eyepiece.
+# `main` asserts the engine on a thin lens against the lensmaker formula, the
+# unit determinant of each system matrix (air on both sides), and Newton's
+# conjugate relation (z₁ − z_F1)(z₂ − z_F2) = f², object distances counted
+# to the left of V₁ and image distances to the right of V_N, for one object
+# position of
+# each design.
 #
 # Both designs are strictly paraxial here, as they were originally: no real ray
 # trace, no aberrations, and a single refractive index per glass. The last point
@@ -27,10 +31,15 @@
 # and triplet in the Erfle exist precisely to achromatise, and without dispersion
 # data that cannot be evaluated at all.
 
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
 using Printf, LinearAlgebra
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 
 const FIGURES = joinpath(@__DIR__, "figures")
+
+"Relative tolerance of the closed-form checks."
+const CHECK_TOLERANCE = 1e-9
 
 "Refraction at a single surface of radius `R` between media `n` and `n′`."
 refraction(n, n′, R) = [1.0 (n - n′)/R; 0.0 1.0]
@@ -137,6 +146,12 @@ function main()
     results = map((ERFLE, TESSAR)) do sys
         S = system_matrix(sys.R, sys.n, sys.d)
         c = cardinal(S, sys.d)
+        abs(det(S) - 1) < CHECK_TOLERANCE ||
+            error("$(sys.name): det S = $(det(S)), not 1 with air on both sides")
+        z₁ = 2 * c.f                       # an object at twice the focal length
+        z₂ = conjugate(S, z₁).z₂
+        isapprox((z₁ - c.zf1) * (z₂ - c.zf2), c.f^2; rtol = CHECK_TOLERANCE) ||
+            error("$(sys.name): Newton's relation fails at z₁ = $z₁")
         @printf("\n%s  (%d surfaces, Σd = %.2f mm)\n", sys.name, length(sys.R), sum(sys.d))
         @printf("  focal length f       = %+9.4f mm\n", c.f)
         @printf("  power      P = 1/f   = %+9.6f mm⁻¹\n", c.power)
@@ -145,20 +160,21 @@ function main()
         @printf("  principal   zH1, zH2 = %+9.4f, %+9.4f mm\n", c.zH1, c.zH2)
         @printf("  interstice H1H2      = %+9.4f mm   (original formula gave %+9.4f)\n",
             c.interstice, sum(sys.d) - abs(c.zH1) - abs(c.zH2))
+        @printf("  det S = %.12f;  Newton (z₁ − z_F1)(z₂ − z_F2) = f² holds at z₁ = 2f\n",
+            det(S))
         (sys = sys, S = S, c = c)
     end
 
-    fig = Figure(size = (1000, 520))
+    fig = Figure(size = (1200, 720))
     for (row, r) in enumerate(results)
         Σd = sum(r.sys.d)
         span = maximum(abs, [r.c.zf1, r.c.zf2, r.c.zH1, r.c.zH2, Σd]) * 1.25
 
-        # These panels carry no ordinate, so a y-axis and its gridlines would be
-        # decoration: only the axial coordinate means anything.
+        # no ordinate: only the axial coordinate means anything
         ax = Axis(fig[row, 1], xlabel = row == 2 ? "Axial position [mm]" : "",
             ylabel = r.sys.name, yticksvisible = false, yticklabelsvisible = false,
             ygridvisible = false,)
-        hlines!(ax, [0.0], color = PALETTE.black, linewidth = 1.0)
+        hlines!(ax, [0.0], color = PALETTE.black, linewidth = GUIDE_WIDTH)
 
         # the glass block, from the first vertex to the last
         poly!(ax, Point2f[(0, -0.5), (Σd, -0.5), (Σd, 0.5), (0, 0.5)],
@@ -166,29 +182,28 @@ function main()
         text!(ax, Σd / 2, -0.62;
             text = rich(
                 "Glass, ", it("V"), subscript("1"), " to ", it("V"), subscript("2"),),
-            color = PALETTE.sky,
-            align = (:center, :top), fontsize = 14,)
+            color = PALETTE.sky, align = (:center, :top), fontsize = ANNOTATION_SIZE,)
 
-        # H₁ and H₂ can sit within a millimetre of each other, so their labels
-        # are staggered vertically rather than allowed to collide
+        # H₁ and H₂ can sit within a millimetre of each other: their labels are
+        # staggered vertically
         cardinal(sym, k) = rich(it(sym), subscript(k))
         for (x, sym, k, col, dy) in ((0.0, "V", "1", PALETTE.black, 0.62),
             (Σd, "V", "2", PALETTE.black, 0.62),
             (-r.c.zf1, "F", "1", PALETTE.blue, 0.62),
             (Σd + r.c.zf2, "F", "2", PALETTE.blue, 0.62),
-            (-r.c.zH1, "H", "1", PALETTE.green, 1.05),
+            (-r.c.zH1, "H", "1", PALETTE.green, 1.1),
             (Σd + r.c.zH2, "H", "2", PALETTE.green, 0.62))
-            scatter!(ax, [x], [0.0], color = col, markersize = MARKERSIZE.data)
+            scatter!(ax, [x], [0.0], color = col, markersize = MARKERSIZE.emphasis)
             text!(ax, x, dy; text = cardinal(sym, k), color = col,
-                align = (:center, :bottom), fontsize = 16,)
+                align = (:center, :bottom), fontsize = ANNOTATION_SIZE,)
         end
         xlims!(ax, -span, Σd + span)
-        ylims!(ax, -1.35, 1.6)
+        ylims!(ax, -1.45, 1.75)
         text!(ax, 0.99, 0.05;
             text = rich(it("f"), @sprintf(" = %.2f mm,   ", r.c.f), it("H"),
                 subscript("1"), it("H"), subscript("2"),
                 @sprintf(" = %.2f mm", r.c.interstice)),
-            space = :relative, align = (:right, :bottom), fontsize = 15,)
+            space = :relative, align = (:right, :bottom), fontsize = ANNOTATION_SIZE,)
     end
 
     path = savefigure(fig, FIGURES, "paraxial_systems")

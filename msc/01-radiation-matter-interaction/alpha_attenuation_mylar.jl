@@ -1,86 +1,105 @@
-# Energy loss of α particles through stacked Mylar absorber foils. The residual
-# energy ε is measured after each absorber thickness and Δε = ε₀ - ε(x) fitted
-# linearly, which is the constant-stopping-power (thin-absorber) approximation
-# to the electronic stopping power of Mylar.
+# Energy loss of α particles through stacked Mylar absorbers. The residual energy
+# ε is measured after each absorber setting x, and the constant-stopping-power
+# (thin-absorber) model
 #
-# Ported from Atenuare_alpha.jl. Corrections:
+#   ε(x) = ε₀ − S x
 #
-#   1. **The fit was unweighted** although a per-point uncertainty was computed
-#      and drawn as error bars — so the bars displayed did not enter the χ².
-#   2. The uncertainties are correlated: every Δε shares the same reference
-#      measurement ε₀, so treating the points as independent understates the
-#      slope uncertainty. The covariance is built explicitly below.
-#   3. The model has a free intercept, but Δε(0) = 0 by construction. The
-#      intercept is now fitted, reported, and tested against zero rather than
-#      ignored.
-#   4. `stderror` was never called and the fitted coefficients were never
-#      printed; the script's only output was a figure.
+# is fitted by weighted least squares to all five measurements, each with its
+# own uncertainty and independent of the others.
 #
-# A caveat on the abscissa, which the original labelled "x (μm)": the fitted
-# slope is about 2.5× the tabulated electronic stopping power of Mylar in this
-# energy range, and a 1.85 MeV residual after 8 μm is hard to reconcile with the
-# ≈30 μm range of a 4.9 MeV α in Mylar. The abscissa is more likely a foil
-# count, or an areal thickness, than a length in micrometres. It is left as
-# supplied and labelled neutrally.
+# Ported from Atenuare_alpha.jl on the `legacy` branch
+# (`Julia-Workflow-FFUB/IRM_M_1/`). The original differenced the data first,
+# Δε = ε(0) − ε(x), fitted the four differences unweighted with a free intercept,
+# drew error bars that did not enter the fit, and never printed the
+# coefficients. Differencing correlates the points through the shared ε(0);
+# with that covariance written out and no intercept — Δε(0) = 0 by
+# construction — the differenced fit is identical to the five-point fit above,
+# which `main` asserts. A free intercept in the differenced model is a redundant
+# parameter and widens the slope error by 1.7×.
+#
+# The abscissa is the absorber setting as recorded, which the original labelled
+# "x (μm)". Read as micrometres the slope would be about three times the
+# electronic stopping power of Mylar between 4 and 5 MeV, 115–135 keV µm⁻¹
+# (ASTAR, Berger et al., NIST Standard Reference Database 124,
+# doi:10.18434/T4NC7P), and a 1.85 MeV residual after 8 µm is not compatible
+# with the ≈ 29 µm CSDA range of a 4.9 MeV α in Mylar. The setting is more
+# likely a foil count; it is labelled neutrally.
 
-using Printf, Statistics, LinearAlgebra
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
+using Printf, LinearAlgebra, Distributions
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
+include(joinpath(@__DIR__, "radiation_matter_core.jl"))
 
 const FIGURES = joinpath(@__DIR__, "figures")
 
 "Absorber setting, as recorded."
 const X = [0.0, 2.0, 4.0, 6.0, 8.0]
-"Residual α energy in keV."
+"Residual α energy [keV]."
 const ε = [4880.0, 4080.0, 3850.0, 2340.0, 1850.0]
-"Peak width / uncertainty in keV."
+"Uncertainty of each residual energy [keV], as recorded."
 const σε = [500.0, 700.0, 970.0, 1100.0, 1740.0]
+"""
+ASTAR electronic stopping power of α particles in Mylar at 5 and 4 MeV
+[keV µm⁻¹]: 813.8 and 948.5 MeV cm² g⁻¹ at ρ = 1.40 g cm⁻³ (doi:10.18434/T4NC7P).
+"""
+const MYLAR_STOPPING = (114.0, 133.0)
+"ASTAR CSDA range of a 5 MeV α in Mylar [µm]: 4.037 × 10⁻³ g cm⁻² at 1.40 g cm⁻³."
+const MYLAR_RANGE_5MEV = 28.8
 
 function main()
-    x = X[2:end]
-    Δε = ε[1] .- ε[2:end]
-    # full covariance: every point shares ε₀, so the off-diagonal is σ₀²
+    n = length(X)
+    fit = generalised_least_squares(hcat(ones(n), -X), ε, Diagonal(σε .^ 2))
+    ε₀, S = fit.p
+    σε₀, σS = sqrt.(diag(fit.cov))
+
+    # the differenced form of the original, with the covariance the shared ε(0)
+    # induces and no intercept: the same estimate, the same error, the same χ²
+    x, Δε = X[2:end], ε[1] .- ε[2:end]
     C = [i == j ? σε[1]^2 + σε[i + 1]^2 : σε[1]^2 for i in eachindex(x), j in eachindex(x)]
+    differenced = generalised_least_squares(reshape(x, :, 1), Δε, C)
+    @assert isapprox(differenced.p[1], S; rtol = 1e-9) &&
+            isapprox(differenced.cov[1, 1], σS^2; rtol = 1e-9) &&
+            isapprox(differenced.χ², fit.χ²; rtol = 1e-7) "differenced fit through the " *
+                                                          "origin differs from the five-point fit"
+    # ... and with the free intercept the original's model implied
+    free = generalised_least_squares(hcat(ones(length(x)), x), Δε, C)
+    σS_free = sqrt(free.cov[2, 2])
 
-    M = hcat(ones(length(x)), x)
-    W = inv(C)
-    p = (M' * W * M) \ (M' * W * Δε)
-    cov_p = inv(M' * W * M)
-    σp = sqrt.(diag(cov_p))
-    residuals = Δε .- M * p
-    χ² = residuals' * W * residuals
+    @printf("ε(x) = ε₀ − S x, weighted least squares on %d points, %d dof\n", n, fit.dof)
+    @printf("  S  = %s keV per setting\n", pm_string(S, σS))
+    @printf("  ε₀ = %s keV  (measured at x = 0: %.0f ± %.0f)\n", pm_string(ε₀, σε₀), ε[1],
+        σε[1])
+    @printf("  χ² = %.2f, p = %.2f\n", fit.χ², ccdf(Chisq(fit.dof), fit.χ²))
+    @printf("differenced, free intercept: S = %s, intercept %s keV; slope error ×%.2f\n",
+        pm_string(free.p[2], σS_free), pm_string(free.p[1], sqrt(free.cov[1, 1])),
+        σS_free / σS)
+    @printf("read as µm: %.0f keV/µm against ASTAR %.0f–%.0f keV/µm for Mylar at 4–5 MeV; ",
+        S, MYLAR_STOPPING...)
+    @printf("CSDA range of a 5 MeV α in Mylar %.1f µm\n", MYLAR_RANGE_5MEV)
 
-    @printf("intercept = %8.1f ± %.1f keV   (expected 0; that is %.2fσ away)\n",
-        p[1], σp[1], abs(p[1]) / σp[1])
-    @printf("slope     = %8.1f ± %.1f keV per absorber unit\n", p[2], σp[2])
-    @printf("χ² = %.2f on %d dof\n", χ², length(x) - 2)
-    @printf("\nif the abscissa were µm this would be %.0f keV/µm; the tabulated\n", p[2])
-    @printf("electronic stopping power of Mylar near 4 MeV is ≈150 keV/µm, so the\n")
-    @printf("abscissa is probably not a length in micrometres.\n")
+    fig = Figure(size = (900, 600))
+    ax = Axis(fig[2, 1], xlabel = "Absorber setting",
+        ylabel = L"Residual energy $\varepsilon$ [keV]", xticks = 0:2:8,)
+    xf = range(-0.3, maximum(X) + 0.3, length = 50)
+    l_fit = lines!(ax, xf, ε₀ .- S .* xf, color = PALETTE.blue)
+    errorbars_unstroked!(
+        ax, X, ε, σε, color = PALETTE.orange, linewidth = GUIDE_WIDTH, whiskerwidth = 10,)
+    l_dat = scatter!(ax, X, ε, color = PALETTE.orange)
+    text!(ax, 0.97, 0.95;
+        text = rich(
+            rich(
+                it("S"), " = ", pm_string(S, σS), " keV per setting", color = PALETTE.blue,),
+            "\n", rich(it("ε"), subscript("0"), " = ", pm_string(ε₀, σε₀), " keV",
+                color = PALETTE.blue,),
+            "\n", rich(
+                it("χ"), superscript("2"), @sprintf("/dof = %.2f/%d", fit.χ², fit.dof),
+                color = PALETTE.blue,),),
+        space = :relative, align = (:right, :top), justification = :right,
+        fontsize = ANNOTATION_SIZE,)
+    xlims!(ax, -0.4, 8.4)
 
-    fig = Figure(size = (800, 480))
-    ax = Axis(fig[2, 1], xlabel = "Absorber setting", ylabel = L"$\Delta\varepsilon$ [keV]")
-    xf = range(0, maximum(x) * 1.08, length = 100)
-    l_fit = lines!(ax, xf, p[1] .+ p[2] .* xf, color = PALETTE.blue, linewidth = 1.6)
-    errorbars!(ax, x, Δε, sqrt.(diag(C)), color = PALETTE.orange, whiskerwidth = 10)
-    l_dat = scatter!(ax, x, Δε, color = PALETTE.orange, markersize = MARKERSIZE.data)
-    l_ref = scatter!(ax, [0.0], [0.0], color = PALETTE.black,
-        markersize = MARKERSIZE.data, marker = :diamond,)
-    text!(ax, 0.03, 0.93;
-        text = rich("slope = ",
-            replace(@sprintf("%.0f ± %.0f", p[2], σp[2]), "-" => "−"),
-            " keV per unit\nintercept = ",
-            replace(@sprintf("%.0f ± %.0f", p[1], σp[1]), "-" => "−"),
-            " keV, ", @sprintf("%.2fσ", abs(p[1]) / σp[1]),
-            " from the zero it must be\n", it("χ"), superscript("2"),
-            @sprintf(" = %.2f on %d degrees of freedom", χ², length(x) - 2)),
-        space = :relative, align = (:left, :top), fontsize = 15, color = PALETTE.blue,)
-
-    Legend(fig[1, 1], [l_dat, l_ref, l_fit],
-        ["Measured, correlated errors",
-            rich("Reference measurement ", it("ε"), subscript("0")),
-            "Weighted linear fit",],
-        orientation = :horizontal, framevisible = false, labelsize = 16, colgap = 22,)
-    rowsize!(fig.layout, 2, Relative(0.86))
+    Legend(fig[1, 1], [l_dat, l_fit], ["Measured", "Weighted linear fit"])
     println("wrote ", savefigure(fig, FIGURES, "alpha_attenuation_mylar"))
 end
 

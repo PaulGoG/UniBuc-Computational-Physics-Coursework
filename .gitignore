@@ -1,5 +1,5 @@
-# Manifest.toml is tracked: these are scripts, not a library, and pinning the
-# resolved versions is what makes a figure reproducible on another machine.
+# The environment resolves against [compat] in Project.toml.
+Manifest.toml
 
 # Build products of the C/C++ sources
 *.o

@@ -1,151 +1,148 @@
 # Refractive index of a prism against wavelength, measured by minimum deviation
-# on a goniometer, and the Cauchy relation fitted to it.
+# on a goniometer, and the Cauchy relation fitted to it,
 #
-#   n(λ) = A + B/λ²
+#   n(λ) = A + B/λ².
 #
-# `data/prism_goniometer.csv` is the first- or second-year Origin lab sheet
-# `PrismaOptica.opj`: six Hg and Cd lines from 4050 to 6700 Å, each with the two
-# goniometer readings α₁ and α₂, the minimum deviation, and the refractive index
-# the student derived. There is no companion Julia file — this analysis did not
-# exist in the original; the data sat in an Origin project.
+# `data/prism_goniometer.csv` holds six lines from 4050 to 6700 Å with the two
+# goniometer readings α₁ and α₂ at minimum deviation on either side of the
+# straight-through direction, δ_min = (α₂ − α₁)/2, and the index
+# n = sin[(A_p + δ_min)/2] / sin(A_p/2) computed at the time. The readings are
+# from a first-year optics laboratory of mine; the file was assembled from that
+# record and no code accompanied it.
 #
-# The reason to write it now is that
-# `msc/02-experimental-methods/hg_spectroscope_calibration.jl` has to *assume*
-# the drum reading of a prism spectroscope is linear in the refractive index,
-# and fits a Cauchy relation to the drum reading on that assumption. Here the
-# refractive index is measured directly, so the same relation can be tested
-# against n itself rather than against a proxy for it.
+# Checks made in `main`: δ_min is (α₂ − α₁)/2 to round-off; the n column is
+# reproduced from δ_min with an apex angle of 59.9° to 3 × 10⁻⁶, which fixes the
+# apex angle the column was computed with and checks its arithmetic — it is not
+# an independent measurement of the prism, since n was derived from δ_min and
+# A_p in the first place; and n falls with λ.
 #
-# Three internal checks, all of which the data pass:
-#
-#   1. the tabulated minimum deviation must be (α₂ − α₁)/2;
-#   2. the apex angle recovered from n = sin[(A+δ)/2]/sin(A/2) must be the same
-#      for all six lines, since it is a property of the prism and not of the
-#      light — it is over-determined six times over;
-#   3. n must fall monotonically with wavelength, as normal dispersion requires.
+# The two-parameter Cauchy fit is reported with the standard errors of its
+# coefficients and its residuals are expressed, through dn/dδ, as the error of
+# the minimum-deviation setting they would correspond to. A three-parameter
+# fit is made for comparison; it lowers the residuals but returns B < 0, which
+# no glass has, so the residual structure is read as measurement error in the
+# setting rather than as a failure of the dispersion model. The index is also
+# compared with N-BK7 from the Schott Sellmeier coefficients, as a crown glass
+# of the same class, not as an identification.
 
-using Printf, CSV, DataFrames, Statistics
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
+
+using Printf, CSV, DataFrames, Statistics, LinearAlgebra
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 
 const FIGURES = joinpath(@__DIR__, "figures")
 const DATA = joinpath(@__DIR__, "data")
 
+"Apex angle [deg] that reproduces the n column of the data file from its δ_min column."
+const APEX = 59.9
+"Tolerance on the reproduction of the n column, which carries five decimals."
+const INDEX_TOLERANCE = 1e-5
+"Goniometer reading resolution [deg]."
+const READING_RESOLUTION = 0.01
 """
-    apex_angle(δ, n)
-
-Apex angle of a prism in degrees, from the minimum deviation `δ` in degrees and
-the refractive index `n`, by inverting
-
-    n = sin[(A + δ)/2] / sin(A/2)
-
-The inversion is a bisection on a function that is monotone in `A` over the
-physical range, which is ample for six points and needs no derivative.
+Sellmeier coefficients of Schott N-BK7 for λ in µm,
+n² − 1 = Σ Bᵢ λ² / (λ² − Cᵢ) (Schott optical glass data sheet, N-BK7).
 """
-function apex_angle(δ, n)
-    f(A) = sind((A + δ) / 2) - n * sind(A / 2)
-    lo, hi = 20.0, 89.0
-    f(lo) * f(hi) > 0 && return NaN
-    for _ in 1:200
-        mid = (lo + hi) / 2
-        f(lo) * f(mid) <= 0 ? (hi = mid) : (lo = mid)
-    end
-    return (lo + hi) / 2
-end
+const BK7 = (B = (1.03961212, 0.231792344, 1.01046945),
+    C = (0.00600069867, 0.0200179144, 103.560653),)
+
+"Refractive index of a prism of apex angle `A` [deg] at minimum deviation `δ` [deg]."
+prism_index(A, δ) = sind((A + δ) / 2) / sind(A / 2)
+
+"dn/dδ [deg⁻¹] of `prism_index` at the same arguments."
+index_slope(A, δ) = cosd((A + δ) / 2) / (2 * sind(A / 2)) * π / 180
+
+"N-BK7 refractive index at `λ_µm` from the Sellmeier equation."
+bk7_index(λ_µm) = sqrt(1 + sum(BK7.B[i] * λ_µm^2 / (λ_µm^2 - BK7.C[i]) for i in 1:3))
 
 """
-    cauchy_fit(λ_µm, n)
+    cauchy_fit(λ_µm, n; terms = 2)
 
-Least-squares fit of `n = A + B/λ²`, returning `(A, B, R²)` with `B` in µm².
-
-The model is linear in its two parameters once 1/λ² is taken as the regressor,
-so it solves in one step; no optimiser is needed and none is used.
+Least-squares fit of `n = A + B/λ² (+ C/λ⁴)`, linear in its coefficients.
+Returns the coefficients, their standard errors from the residual variance on
+`length(n) − terms` degrees of freedom, the residuals and the residual standard
+deviation.
 """
-function cauchy_fit(λ_µm, n)
-    x = 1 ./ λ_µm .^ 2
-    X = hcat(ones(length(x)), x)
+function cauchy_fit(λ_µm, n; terms = 2)
+    terms in (2, 3) || throw(ArgumentError("terms must be 2 or 3, got $terms"))
+    X = hcat(ones(length(n)), 1 ./ λ_µm .^ 2, (1 ./ λ_µm .^ 4)[:, 1:(terms - 2)])
     p = X \ n
-    resid = n .- X * p
-    R² = 1 - sum(abs2, resid) / sum(abs2, n .- mean(n))
-    return p[1], p[2], R², resid
+    r = n .- X * p
+    dof = length(n) - terms
+    s² = sum(abs2, r) / dof
+    σ = sqrt.(diag(s² * inv(X' * X)))
+    return p, σ, r, sqrt(s²)
 end
 
 function main()
     d = CSV.read(joinpath(DATA, "prism_goniometer.csv"), DataFrame)
     λ_µm = d.lambda_A ./ 1e4
+    @printf("%d lines, %d–%d Å\n", nrow(d), minimum(d.lambda_A), maximum(d.lambda_A))
 
-    @printf("%d spectral lines, %d–%d Å\n",
-        nrow(d), minimum(d.lambda_A), maximum(d.lambda_A))
-
-    # check 1: the minimum deviation is half the difference of the two readings
     δ_derived = (d.alpha2_deg .- d.alpha1_deg) ./ 2
-    worst = maximum(abs.(δ_derived .- d.delta_min_deg))
-    @printf("check: δ_min = (α₂ − α₁)/2 to %.1e degrees\n", worst)
+    worst_δ = maximum(abs.(δ_derived .- d.delta_min_deg))
+    worst_n = maximum(abs.(prism_index.(APEX, d.delta_min_deg) .- d.n))
+    @printf("δ_min = (α₂ − α₁)/2 to %.1e°; n column reproduced with A_p = %.1f° to %.1e\n",
+        worst_δ, APEX, worst_n)
+    worst_δ < 1e-10 || error("δ_min is not half the difference of the readings")
+    worst_n < INDEX_TOLERANCE || error("the n column is not prism_index($APEX°, δ_min)")
+    issorted(d.n[sortperm(d.lambda_A)]; rev = true) || error("n does not fall with λ")
 
-    # check 2: the apex angle is a property of the prism, not of the light
-    A_recovered = apex_angle.(d.delta_min_deg, d.n)
-    @printf("check: apex angle from each line = %.4f ± %.4f°  (spread %.1e°)\n",
-        mean(A_recovered), std(A_recovered),
-        maximum(A_recovered) - minimum(A_recovered))
-    @printf("       six independent determinations of one angle, agreeing to the\n")
-    @printf("       fourth decimal — the n column is consistent with a %.1f° prism.\n",
-        round(mean(A_recovered); digits = 1))
+    slope = index_slope.(APEX, d.delta_min_deg)
+    @printf("dn/dδ = %.4f per degree; a reading resolution of %.2f° in each α is %.1e in n\n",
+        mean(slope), READING_RESOLUTION, READING_RESOLUTION / sqrt(2) * mean(slope))
 
-    # check 3: normal dispersion
-    @printf("check: n falls monotonically with λ — %s\n",
-        issorted(d.n[sortperm(d.lambda_A)]; rev = true) ? "yes" : "NO")
-
-    A_c, B_c, R², resid = cauchy_fit(λ_µm, d.n)
-    println()
-    @printf("Cauchy n = A + B/λ²:  A = %.5f,  B = %.5f µm²,  R² = %.5f\n", A_c, B_c, R²)
-    @printf("residual RMS = %.2e, largest %.2e\n",
-        sqrt(mean(abs2, resid)), maximum(abs.(resid)))
-    @printf("BK7 borosilicate crown for comparison: A ≈ 1.5046, B ≈ 0.00420 µm²\n")
-    @printf("so this is a crown glass, and the fit lands within 0.5 %% of BK7 in A.\n")
-    println()
-    @printf("R² = %.3f on six points is not a good fit. The residuals do not scatter:\n",
-        R²)
-    @printf("they run + + − − + + across the series, a smooth arc rather than noise,\n")
-    @printf("which is the signature of a two-parameter Cauchy relation being too few\n")
-    @printf("across %.0f–%.0f Å, not of measurement noise.\n",
-        minimum(d.lambda_A), maximum(d.lambda_A))
-    @printf("The spectroscope calibration in msc/02 sees the same structure\n")
-    @printf("in its residuals, and this is why: the model, not the instrument.\n")
+    p2, σ2, r2, s2 = cauchy_fit(λ_µm, d.n)
+    p3, σ3, r3, s3 = cauchy_fit(λ_µm, d.n; terms = 3)
+    rms2, rms3 = sqrt(mean(abs2, r2)), sqrt(mean(abs2, r3))
+    arcmin(residual) = 60 * residual / mean(slope)
+    @printf("\nCauchy, two terms:   A = %.4f ± %.4f,  B = %.5f ± %.5f µm² (%.0f %%);  residual rms %.1e = %.1f′ in δ_min, largest %.1f′\n",
+        p2[1], σ2[1], p2[2], σ2[2], 100σ2[2] / p2[2], rms2,
+        arcmin(rms2), arcmin(maximum(abs.(r2))))
+    @printf("Cauchy, three terms: A = %.4f ± %.4f,  B = %.5f ± %.5f µm²,  C = %.6f ± %.6f µm⁴;  residual rms %.1e = %.1f′\n",
+        p3[1], σ3[1], p3[2], σ3[2], p3[3], σ3[3], rms3, arcmin(rms3))
+    println("residuals of the two-term fit, ×10³: ", join(round.(r2 .* 1e3; digits = 2), ", "))
+    Δbk7 = d.n .- bk7_index.(λ_µm)
+    @printf("N-BK7 at the same wavelengths: n − n_BK7 from %+.1e to %+.1e; its two-term Cauchy coefficients over this range are A = %.4f, B = %.5f µm²\n",
+        minimum(Δbk7), maximum(Δbk7), cauchy_fit(λ_µm, bk7_index.(λ_µm))[1]...)
 
     # --- figure ---------------------------------------------------------------
-    fig = Figure(size = (1050, 520))
-
-    ax1 = Axis(fig[1, 1], xlabel = L"Wavelength $\lambda$ [Å]",
-        ylabel = L"Refractive index $n$",
-        xticks = ([4000, 5000, 6000, 7000], [L"4000", L"5000", L"6000", L"7000"]),)
-    λf = range(minimum(d.lambda_A) * 0.97, maximum(d.lambda_A) * 1.03, length = 300)
-    lines!(ax1, λf, A_c .+ B_c ./ (λf ./ 1e4) .^ 2,
-        color = PALETTE.blue, linewidth = 1.8, label = L"Cauchy $A + B/\lambda^2$",)
-    scatter!(ax1, d.lambda_A, d.n, color = PALETTE.orange,
-        markersize = MARKERSIZE.data, label = "Measured",)
+    fig = Figure(size = (1400, 620))
+    ticks = ([4000, 5000, 6000, 7000], [L"4000", L"5000", L"6000", L"7000"])
+    ax1 = Axis(
+        fig[2, 1], xlabel = L"Wavelength $\lambda$ [Å]", ylabel = L"Refractive index $n$",
+        xticks = ticks,)
+    λf = range(3900, 6900, length = 300)
+    l_fit = lines!(ax1, λf, p2[1] .+ p2[2] ./ (λf ./ 1e4) .^ 2, color = PALETTE.blue)
+    l_bk7 = lines!(
+        ax1, λf, bk7_index.(λf ./ 1e4), color = PALETTE.black, linestyle = :dash,
+        linewidth = GUIDE_WIDTH,)
+    l_dat = scatter!(ax1, d.lambda_A, d.n, color = PALETTE.orange)
     text!(ax1, 0.96, 0.94;
-        text = rich(it("A"), @sprintf(" = %.4f\n", A_c), it("B"),
-            @sprintf(" = %.5f µm²\n", B_c), it("R"), superscript("2"),
-            @sprintf(" = %.3f", R²)),
-        space = :relative, align = (:right, :top), fontsize = 15, color = PALETTE.blue,
-        justification = :right,)
-    axislegend(ax1; position = :lb, framevisible = false, labelsize = 14, padding = 4)
+        text = rich(it("A"), @sprintf(" = %.4f ± %.4f\n", p2[1], σ2[1]), it("B"),
+            @sprintf(" = %.5f ± %.5f µm²", p2[2], σ2[2])),
+        space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,
+        color = PALETTE.blue, justification = :right,)
     xlims!(ax1, 3850, 6950)
 
-    ax2 = Axis(fig[1, 2], xlabel = L"Wavelength $\lambda$ [Å]",
-        ylabel = L"Residual $n - n_{\mathrm{Cauchy}}$ [$10^{-3}$]",
-        xticks = ([4000, 5000, 6000, 7000], [L"4000", L"5000", L"6000", L"7000"]),)
-    hlines!(ax2, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
-    # The residual of the measured index keeps the measurement's colour and is
-    # distinguished by weight, rather than becoming a third quantity.
-    lines!(ax2, d.lambda_A, resid .* 1e3, color = (PALETTE.orange, 0.55), linewidth = 1.2)
-    scatter!(ax2, d.lambda_A, resid .* 1e3, color = PALETTE.orange,
-        markersize = MARKERSIZE.data,)
-    text!(ax2, 0.5, 0.04;
-        text = "A smooth arc, not scatter:\nthe model is too simple here",
-        space = :relative, align = (:center, :bottom), fontsize = 14, color = PALETTE.orange,)
-
+    ax2 = Axis(fig[2, 2], xlabel = L"Wavelength $\lambda$ [Å]",
+        ylabel = L"Residual $n - n_{\mathrm{Cauchy}}$ [$10^{-3}$]", xticks = ticks,)
+    hlines!(ax2, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = GUIDE_WIDTH)
+    band = 1e3 * READING_RESOLUTION / sqrt(2) * mean(slope)
+    hspan!(ax2, -band, band, color = (PALETTE.black, 0.08))
+    scatterlines!(
+        ax2, d.lambda_A, r2 .* 1e3, color = PALETTE.orange, linewidth = GUIDE_WIDTH,)
+    text!(ax2, 0.97, 0.04;
+        text = rich(
+            @sprintf("rms %.1f × 10⁻³, %.0f′ in the deviation setting\n", rms2 * 1e3,
+                arcmin(rms2)),
+            "Band: reading resolution",),
+        space = :relative, align = (:right, :bottom), fontsize = ANNOTATION_SIZE,
+        justification = :right, color = PALETTE.orange,)
     xlims!(ax2, 3850, 6950)
-    colgap!(fig.layout, 1, 30)
+
+    Legend(fig[1, 1:2], [l_dat, l_fit, l_bk7],
+        ["Measured", L"Cauchy $A + B/\lambda^2$", "N-BK7, Sellmeier"],)
     println("\nwrote ", savefigure(fig, FIGURES, "prism_dispersion"))
 end
 

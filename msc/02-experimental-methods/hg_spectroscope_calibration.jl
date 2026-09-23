@@ -6,43 +6,37 @@
 # under the working assumption that the drum reading is linear in the refractive
 # index, which holds near minimum deviation.
 #
-# **This is MSc coursework, not BSc.** It was filed under geometrical optics
-# until the source file turned up as `CALIBRARE.jl` in the Metode Experimentale
-# in Fizica directory of MSc year 1, alongside the submitted reports for the
-# interferometry and polarimetry labs of the same course. Its own title line,
-# "Etalonarea spectroscopului cu lampa de Hg", is a standard experimental-methods
-# lab rather than an optical-design exercise. Moved here.
+# Ported from Calibrare_Hg.jl in Julia-Workflow-FFUB/Single_Files/ on the
+# `legacy` branch, which lists 5789.66 Å beside 5790.65 Å at adjacent drum
+# divisions 35 and 36. There is no Hg I line at 5789.66 Å: the yellow doublet
+# is 5769.60 and 5790.66 Å (NIST Atomic Spectra Database, doi:10.18434/T4W30F),
+# and with the drum reading increasing towards shorter wavelengths division 36
+# is the 5769.60 Å member. The value is corrected; it moves the fit by less
+# than its own scatter. The model is linear in its coefficients, so it is
+# solved in one least-squares step rather than with the Levenberg–Marquardt
+# iteration from p₀ = [1, 1] of the original, which also never printed A and B
+# nor displayed its figure. Regressing the drum reading on the wavelength is
+# the right direction: λ is the reference and the reading carries the error.
 #
-# Ported from Calibrare_Hg.jl. Three corrections.
-#
-#   1. **A transcription error in the reference data.** The original listed
-#      5789.66 Å next to 5790.65 Å at adjacent drum divisions 35 and 36. No Hg I
-#      line exists at 5789.66; the second member of the yellow doublet is
-#      5769.60 Å, and a 1 Å splitting across one division is impossible at the
-#      ~13 Å/division local dispersion. Corrected below.
-#   2. The model is **linear in its parameters**, so Levenberg-Marquardt with a
-#      finite-difference Jacobian started from p0 = [1, 1] — nine orders of
-#      magnitude from B ≈ 2×10⁹ — was gratuitous. Solved here in one least-
-#      squares step.
-#   3. The original computed A and B and then discarded them: no `display`, the
-#      `savefig` commented out, and the fitted values never printed. Running it
-#      as a script produced nothing at all. Residuals and standard errors are
-#      reported here, which is the actual deliverable of an instrument
-#      calibration.
-#
-# Regressing drum reading on wavelength is the statistically correct direction:
-# λ is the reference and the drum reading carries the measurement error.
+# The fitted dispersion also says how far apart two lines should read. The
+# far-red pair 7091.99 and 7081.88 Å sits at divisions 2 and 7, five divisions
+# for 10 Å where the fit gives a quarter of one; those readings are kept as
+# recorded and the discrepancy is printed.
+
+include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 
 using Printf, Statistics, LinearAlgebra
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 
 const FIGURES = joinpath(@__DIR__, "figures")
 
-"Hg I air wavelengths in ångström, as read on the spectroscope."
+"Hg I air wavelengths [Å] of the lines read on the spectroscope."
 const λ = [7091.99, 7081.88, 6907.16, 6716.17, 5790.65, 5769.60,
     5460.74, 4916.04, 4358.35, 4077.81, 4046.56,]
-"Drum divisions."
+"Drum readings [div], as recorded."
 const x = [2.0, 7, 15, 17, 35, 36, 60, 85, 120, 180, 200]
+"The wavelength the original listed for division 36 [Å]."
+const λ_ORIGINAL_36 = 5789.66
 
 """
     cauchy_fit(λ, x)
@@ -63,8 +57,8 @@ end
 
 function main()
     p, σ, residuals, R² = cauchy_fit(λ, x)
-    @printf("A = %10.4f ± %.4f divisions\n", p[1], σ[1])
-    @printf("B = %10.4e ± %.2e division·Å²\n", p[2], σ[2])
+    @printf("A = %10.4f ± %.4f div\n", p[1], σ[1])
+    @printf("B = %10.4e ± %.2e div Å²\n", p[2], σ[2])
     @printf("R² = %.6f,  RMS residual = %.3f divisions\n",
         R², sqrt(mean(abs2, residuals)))
     @printf("largest residual %.3f divisions at λ = %.2f Å\n",
@@ -72,45 +66,46 @@ function main()
 
     # what the uncorrected 5789.66 value would have done
     λ_original = copy(λ)
-    λ_original[6] = 5789.66
+    λ_original[6] = λ_ORIGINAL_36
     _, _, res_original, R²_original = cauchy_fit(λ_original, x)
-    @printf("with the original value 5789.66 Å: R² = %.6f, RMS residual = %.3f\n",
-        R²_original, sqrt(mean(abs2, res_original)))
+    @printf("with the original value %.2f Å: R² = %.6f, RMS residual = %.3f\n",
+        λ_ORIGINAL_36, R²_original, sqrt(mean(abs2, res_original)))
 
-    fig = Figure(size = (900, 520))
+    # the drum spacing of each adjacent pair against the fitted dispersion
+    println("\nadjacent lines: recorded spacing against the fitted dispersion 2B Δλ/λ³")
+    for i in 1:(length(λ) - 1)
+        predicted = 2 * p[2] * (λ[i] - λ[i + 1]) / ((λ[i] + λ[i + 1]) / 2)^3
+        @printf("  %.2f–%.2f Å: %5.1f div recorded, %5.2f div from the fit\n",
+            λ[i], λ[i + 1], x[i + 1] - x[i], predicted)
+    end
+
+    fig = Figure(size = (900, 760))
 
     ax1 = Axis(fig[2, 1], ylabel = "Drum reading [div]")
     λf = range(minimum(λ) * 0.97, maximum(λ) * 1.03, length = 400)
-    l_fit = lines!(ax1, λf, p[1] .+ p[2] ./ λf .^ 2, color = PALETTE.blue, linewidth = 1.5)
-    l_dat = scatter!(ax1, λ, x, color = PALETTE.orange, markersize = MARKERSIZE.data)
+    l_fit = lines!(ax1, λf, p[1] .+ p[2] ./ λf .^ 2, color = PALETTE.blue)
+    l_dat = scatter!(ax1, λ, x, color = PALETTE.orange)
     hidexdecorations!(ax1, grid = false)
-    # B carries units and an exponent; @sprintf("%e") wrote it 4.321e+09.
     text!(ax1, 0.97, 0.93;
-        text = rich(it("A"), replace(@sprintf(" = %.2f div,   ", p[1]), "-" => "−"),
-            it("B"), " = ",
-            rsci(p[2]; digits = 3), " Å²,   ", it("R"), superscript("2"),
-            @sprintf(" = %.3f", R²)),
-        space = :relative, align = (:right, :top), fontsize = 15, color = PALETTE.blue,)
+        text = rich(
+            it("A"), replace(@sprintf(" = %.1f ± %.1f div\n", p[1], σ[1]), "-" => "−"),
+            it("B"), " = ", rsci(p[2]; digits = 3), " ± ", rsci(σ[2]; digits = 2), " div Å²\n",
+            it("R"), superscript("2"), @sprintf(" = %.3f", R²)),
+        space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,
+        color = PALETTE.blue, justification = :right,)
 
-    ax2 = Axis(fig[3, 1], xlabel = L"Wavelength $\lambda$ [Å]",
-        ylabel = "Residual [div]",)
-    # One zero line, not two: the stem baseline drew a second on top of this.
-    hlines!(ax2, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
+    ax2 = Axis(fig[3, 1], xlabel = L"Wavelength $\lambda$ [Å]", ylabel = "Residual [div]")
+    hlines!(ax2, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = GUIDE_WIDTH)
     stem!(ax2, λ, residuals, color = PALETTE.orange, stemcolor = PALETTE.orange,
-        trunkcolor = :transparent, markersize = MARKERSIZE.data,)
+        trunkcolor = :transparent, stemwidth = GUIDE_WIDTH,)
     text!(ax2, 0.97, 0.06;
-        text = @sprintf("RMS residual %.1f div on a 2–200 div range",
-            sqrt(mean(abs2, residuals))),
-        space = :relative, align = (:right, :bottom), fontsize = 15,
+        text = @sprintf("rms %.1f div on a 2–200 div range", sqrt(mean(abs2, residuals))),
+        space = :relative, align = (:right, :bottom), fontsize = ANNOTATION_SIZE,
         color = PALETTE.orange,)
 
     linkxaxes!(ax1, ax2)
-    Legend(fig[1, 1], [l_dat, l_fit],
-        ["Hg I lines", L"Cauchy $x = A + B/\lambda^2$"],
-        orientation = :horizontal, framevisible = false, labelsize = 17, colgap = 24,)
-
+    Legend(fig[1, 1], [l_dat, l_fit], ["Hg I lines", L"Cauchy $x = A + B/\lambda^2$"])
     rowsize!(fig.layout, 2, Relative(0.62))
-    rowgap!(fig.layout, 8)
     path = savefigure(fig, FIGURES, "hg_spectroscope_calibration")
     println("wrote ", path)
 end

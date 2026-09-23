@@ -1,84 +1,113 @@
 # Interaction of radiation with matter — MSc year 1 (2021–2022)
 
+Four scripts from the laboratory course, ported from the Julia files in
+`Julia-Workflow-FFUB/IRM_M_1/` on the `legacy` branch. `radiation_matter_core.jl`
+holds the linear least squares with a general data covariance that two of them
+share. Every result below is asserted in the script that produces it, against a
+tabulated value, a statistical identity or an evaluated datum.
+
 ## `bethe_bloch_stopping_power.jl`
 
 ![Bethe-Bloch](figures/bethe_bloch_stopping_power.png)
 
-Electronic stopping power of a 5 MeV α in silicon: **1473 MeV cm⁻¹**, or
-632 MeV cm² g⁻¹, with I = 172.3 eV from the Sternheimer–Barkas parametrisation.
+Electronic stopping power of a 5 MeV α in silicon from the Bethe–Bloch formula
+with the Sternheimer–Barkas mean excitation potential, I = 172.3 eV:
+1473 MeV cm⁻¹, or 632 MeV cm² g⁻¹. ASTAR (Berger, Coursey, Zucker and Chang,
+NIST Standard Reference Database 124, doi:10.18434/T4NC7P) gives
+617.4 MeV cm² g⁻¹, so the formula sits 2.4 % high, as it must without the shell
+and Barkas corrections at β = 0.052. Integrating 1/(dE/dx) from 0.5 to 5 MeV
+gives a CSDA range of 21.6 µm against 22.0 µm from the ASTAR ranges at the two
+energies. Both comparisons are asserted within 5 %.
 
-Integrating 1/(dE/dx) gives a CSDA range of **21.6 µm** from 0.5 MeV, against a
-full range of about 25 µm for a 5 MeV α in silicon. The deficit is the
-sub-0.5 MeV portion, where the Bethe logarithm turns over and the formula stops
-describing the physics — the shell and Barkas corrections it omits are no longer
-small at β = 0.052.
-
-The formula was transcribed correctly in the original. What was missing was context: the
-target material is named nowhere in the file, A was written as 28 rather than
-28.085, and the log argument typed the same sub-expression twice instead of
-squaring it, hiding that the second factor is W_max.
+The formula was transcribed correctly in `Calcul_Bethe_Bloch.jl`. The target
+material is named nowhere in that file, A is written as 28 rather than 28.085,
+and the logarithm's argument types the same sub-expression twice instead of
+squaring it, which hides that the second factor is W_max.
 
 ## `alpha_attenuation_mylar.jl`
 
 ![Alpha attenuation](figures/alpha_attenuation_mylar.png)
 
-Energy loss of α particles through stacked Mylar foils, fitted with the **full
-covariance** — every Δε shares the same reference measurement ε₀, so the points
-are correlated and treating them as independent understates the slope error.
+Residual energy of α particles after each of five absorber settings of stacked
+Mylar, fitted with `ε(x) = ε₀ − S x` by weighted least squares on all five
+measurements: S = 380 ± 150 keV per setting, ε₀ = 4900 ± 450 keV,
+χ² = 0.31 on 3 degrees of freedom.
 
-Slope 392 ± 246 keV per absorber unit, intercept −98 ± 1155 keV, which is 0.08σ
-from the zero it must be by construction. χ² = 0.30 on 2 dof.
+`Atenuare_alpha.jl` differenced the data first, Δε = ε(0) − ε(x), and fitted
+the four differences unweighted with a free intercept, drawing error bars that
+did not enter the fit and never printing the coefficients. Differencing
+correlates the points through the shared ε(0). With that covariance written out
+and no intercept — Δε(0) = 0 by construction — the differenced fit returns the
+same slope, error and χ² as the five-point fit, which the script asserts. A
+free intercept in the differenced model is a redundant parameter: it comes
+back as −100 ± 1200 keV and widens the slope error by 1.66×.
 
-The original fitted **unweighted** while drawing error bars that therefore did
-not enter the χ², never called `stderror`, and never printed the coefficients —
-its only output was a figure.
-
-A caveat on the abscissa, labelled "x (μm)" in the original: the fitted slope is
-392 keV per unit, while the tabulated electronic stopping power of Mylar near
-4 MeV is ≈150 keV/µm, and a 1.85 MeV residual after 8 µm cannot be reconciled
-with the ≈30 µm range of a 4.9 MeV α. The abscissa is more likely a foil count
-than a length. It is left as supplied and labelled neutrally.
+**Open question.** The abscissa is the absorber setting as recorded, which the
+original labelled "x (μm)". Read as micrometres the slope would be
+375 keV µm⁻¹, about three times the electronic stopping power of Mylar between
+4 and 5 MeV (115–135 keV µm⁻¹, ASTAR), and a 1.85 MeV residual after 8 µm is
+not compatible with the 28.8 µm CSDA range of a 5 MeV α in Mylar. The setting
+is more likely a foil count. It is labelled neutrally.
 
 ## `natural_cd_cross_section.jl`
 
 ![Cd cross-section](figures/natural_cd_cross_section.png)
 
-Abundance-weighted neutron capture cross-section of natural cadmium:
-**2203 b at 0.25 eV**, of which **¹¹³Cd alone supplies 99.93 %** through its
-0.178 eV resonance.
+Abundance-weighted (n,γ) cross-section of natural cadmium at 0.25 eV from the
+eight stable isotopes: 2203 b, of which ¹¹³Cd supplies 99.93 % through its
+0.178 eV resonance. The abundances and cross-sections are those entered in
+`SigmaCdNatural.jl`, which cites the IAEA neutron cross-section atlas for the
+latter; the abundances are asserted to sum to 100 % within 0.1.
 
-Carrying the energy into the result is the point. The conventional number for
-natural Cd is 2520 b at the 2200 m s⁻¹ thermal point (0.0253 eV, where
-σ(¹¹³Cd) = 20 600 b), and a reader seeing a bare "2203 b" will assume that is
-what is meant. The original **never printed the result at all** — a bare
-top-level expression, so running the file produced no output — and its arrays
-were positional, with nothing tying σ = 18 000 b to ¹¹³Cd.
+The energy is part of the result. The conventional number for natural Cd is
+2520 b at the 2200 m s⁻¹ thermal point (0.0253 eV, where σ(¹¹³Cd) = 20 600 b),
+and a bare "2203 b" would be read as that. The original never printed the
+result — a bare top-level expression, so running the file produced no output —
+and its arrays were positional, with nothing tying σ = 18 000 b to ¹¹³Cd.
 
 ## `neutron_activation_halflives.jl`
 
 ![Activation half-lives](figures/neutron_activation_halflives.png)
 
-Three activation products from the linearised decay law, weighted with the full
-Poisson covariance including the correlation through the shared reference count.
+Half-lives of three activation products from counts accumulated in successive
+equal acquisition intervals, by weighted least squares of ln N = a − λt with
+Poisson weights on every recorded point, and the NaI(Tl) energy calibration
+that identifies the ¹²⁸I photopeak. Reference half-lives from NUBASE2020
+(Kondev et al., Chin. Phys. C **45**, 030001 (2021),
+doi:10.1088/1674-1137/abddae).
 
-| Product | Measured T½ | Literature | Agreement |
-|---|---|---|---|
-| ²⁸Al | 2.354 ± 0.076 min | 2.245 | 1.4σ |
-| ²⁷Mg | 14.23 ± 2.57 min | 9.458 | 1.9σ |
-| ¹²⁸I | 21.76 ± 2.09 min | 24.99 | 1.5σ |
+| Product | Points | T½ [min] | χ²/ν | NUBASE2020 [min] |
+|---|---|---|---|---|
+| ²⁸Al | 5 | 2.290 ± 0.045 | 4.2/3 | 2.245 ± 0.005 |
+| ²⁷Mg | 5 | 9.30 ± 0.72 | 46.7/3 | 9.435 ± 0.027 |
+| ¹²⁸I | 4 | 22.6 ± 1.4 | 0.4/2 | 24.99 ± 0.02 |
 
-The NaI(Tl) energy calibration puts the studied peak at **441.1 ± 12.1 keV**;
-¹²⁸I emits a γ at 442.9 keV, a 0.15σ identification. It is an extrapolation —
-the lowest calibration point is channel 77 and the peak is at 67 — which the
-original did not say, and it reported the energy with no uncertainty at all
-although it is what identifies the nuclide.
+²⁸Al and ¹²⁸I agree with the evaluated values within 1.0σ and 1.7σ. The ²⁷Mg
+series is not Poisson-compatible with a single exponential (p = 4 × 10⁻¹⁰): its
+second count is 3.5σ below its neighbours; the error scaled by √(χ²/ν) is
+2.8 min, and the central value still lands on the evaluated one.
 
-`ReactiiNeutronice.jl` fitted with **no weights** and never called `stderror`,
-so it printed half-lives as bare numbers with no uncertainty, while its sibling
-weighted the identical kind of data. Where weights were used they were `wt = N`,
-implying Var[ln(N₀/N)] = 1/N and dropping the 1/N₀ term.
+`ReactiiNeutronice.jl` and `FitActivareNaITl.jl` linearised the decay law as
+ln(N₀/Nᵢ) = λ(tᵢ − t₀) with the first count as reference; the first fitted
+unweighted and never called `stderror`, the second used weights Nᵢ, which
+drops the 1/N₀ term. Every ln(N₀/Nᵢ) shares N₀, so those points carry the
+covariance 1/Nᵢ δᵢⱼ + 1/N₀; with a free intercept the common term is absorbed
+and the slope and its variance are exactly those of a weighted fit to N₂ … Nₙ
+alone — the reference count, the most precise of the series, drops out of λ.
+The script asserts this identity and prints the corresponding values
+(2.354 ± 0.076, 14.2 ± 2.6 and 21.8 ± 2.1 min) beside the all-point ones. The
+first ¹²⁸I count has no recorded time in the original, which lists 520, 780 and
+1040 s for the other three; it is placed one interval earlier, at 260 s, and
+the slope does not depend on that choice. Equal acquisition intervals matter:
+the factor (1 − e^{−λΔ}) relating counts to activity is then common to every
+point and changes only the intercept.
 
-One claim from the earlier review does **not** hold and is not repeated here:
-using acquisition start times rather than interval midpoints was said to bias λ.
-For equal-length intervals the (1 − e^{−λΔ}) factor is common to every point and
-cancels in the ratio, so the slope recovers λ exactly. Only the intercept shifts.
+The calibration is an unweighted straight line through four lines (511, 1173,
+1274 and 1332 keV at channels 77, 172, 185 and 195): a = −27.6 ± 11.2 keV,
+b = 6.996 ± 0.068 keV per channel, ρ(a, b) = −0.96, residual standard
+deviation 6.4 keV. The studied peak at channel 67 — below the lowest
+calibration point, an extrapolation — comes out at 441.1 ± 7.0 keV with the
+full covariance; dropping the covariance term gives ± 12.1 keV. ¹²⁸I β⁻ decay
+feeds the 442.9 keV 2⁺ → 0⁺ transition of ¹²⁸Xe (Elekes and Timar, Nucl. Data
+Sheets **129**, 191 (2015), doi:10.1016/j.nds.2015.09.002), 0.25σ away. The
+original printed the energy without an uncertainty.
