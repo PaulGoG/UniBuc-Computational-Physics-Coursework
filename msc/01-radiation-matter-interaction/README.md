@@ -42,12 +42,13 @@ same slope, error and χ² as the five-point fit, which the script asserts. A
 free intercept in the differenced model is a redundant parameter: it comes
 back as −100 ± 1200 keV and widens the slope error by 1.66×.
 
-**Open question.** The abscissa is the absorber setting as recorded, which the
-original labelled "x (μm)". Read as micrometres the slope would be
-375 keV µm⁻¹, about three times the electronic stopping power of Mylar between
-4 and 5 MeV (115–135 keV µm⁻¹, ASTAR), and a 1.85 MeV residual after 8 µm is
-not compatible with the 28.8 µm CSDA range of a 5 MeV α in Mylar. The setting
-is more likely a foil count. It is labelled neutrally.
+**Abscissa.** The absorber setting is recorded as the original labelled it,
+"x (μm)", and the script is the only surviving record of the measurement.
+Read as micrometres the slope would be 375 keV µm⁻¹, about three times the
+electronic stopping power of Mylar between 4 and 5 MeV (115–135 keV µm⁻¹,
+ASTAR), and a 1.85 MeV residual after 8 µm is not compatible with the 28.8 µm
+CSDA range of a 5 MeV α in Mylar, so the setting is more likely a foil count
+than a thickness. The axis is labelled as the setting, without a unit.
 
 ## `natural_cd_cross_section.jl`
 

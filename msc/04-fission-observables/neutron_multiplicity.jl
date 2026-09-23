@@ -21,7 +21,8 @@
 # charges the mass table lists, averaged over Z_H with the Gaussian isobaric
 # weights of rms 0.6 about Z_p = Z_UCD − 0.5, and the totals are weighted by the
 # mass yield. The β(Z) breakpoints, the liquid-drop constants and the p, q
-# terms are those of Fisiune_3.jl; that file records no source for them.
+# terms are those of the fission course's TXE-partition application, as
+# Fisiune_3.jl carried them; the README gives their sources.
 #
 # Fisiune_3.jl bounded its charge loop by the index column of the
 # Gilbert–Cameron table, 11 to 150; charges far from Z_p enter with a Gaussian
@@ -34,13 +35,15 @@ include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 include(joinpath(@__DIR__, "fission_core.jl"))
 
 """
-Breakpoints (Z, β) of the scission deformation of Fisiune_3.jl, linear between
-them and undefined outside 28 ≤ Z ≤ 65; its four segments are reproduced.
+Breakpoints (Z, β) of the scission deformation, the piecewise-linear
+parametrisation of the course application that Fisiune_3.jl implemented; linear
+between them and undefined outside 28 ≤ Z ≤ 65, its four segments reproduced.
 """
 const SCISSION_BETA = [(28, 0.0), (41, 0.58), (44, 0.58), (50, 0.0), (65, 0.6)]
 
 """
-Liquid-drop energy constants of Fisiune_3.jl [MeV]:
+Liquid-drop energy constants [MeV], the Myers–Swiatecki set of 1967 (Ark. Fys.
+36, 343) as Fisiune_3.jl carried them:
 E(β) = −χ [c_v A − c_s A^{2/3} (1 + 0.4α₂)] + Z² [c_c (1 − 0.2α₂)/A^{1/3} − c_x/A],
 χ = 1 − κ I², α₂ = 5β²/4π.
 """

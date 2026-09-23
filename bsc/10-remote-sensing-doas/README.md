@@ -63,13 +63,14 @@ the `legacy` branch:
   `savefig` used a Windows separator into a directory that does not exist,
   so on Linux the original wrote files literally named `Grafice\MaxDoas.png`
 
-No air-mass factors are applied, so the dSCD are not converted to vertical
-columns, and the MAX-DOAS 3°, 6° and 89° series are not compared for lack of
-an accepted SWING counterpart.
+The two data files are all that came with the laboratory. No air-mass factors
+are applied, so the dSCD are not converted to vertical columns, and the
+MAX-DOAS 3°, 6° and 89° series are not compared for lack of an accepted SWING
+counterpart.
 
 ## Data
 
 | File | Content | Source |
 |---|---|---|
-| `MAXDOAS.csv` | 377 QDOAS NO₂ fit results, 09:25–15:14 UTC, tab-separated: date and time, position, elevation and azimuth, fit RMS, slant columns and errors of NO₂, O₃, O₄, H₂O and Ring, shift and stretch | Retrieval output supplied with the fourth-year remote-sensing laboratory; the MAX-DOAS instrument, its operator and the QDOAS settings are not recorded in this repository |
+| `MAXDOAS.csv` | 377 QDOAS NO₂ fit results, 09:25–15:14 UTC, tab-separated: date and time, position, elevation and azimuth, fit RMS, slant columns and errors of NO₂, O₃, O₄, H₂O and Ring, shift and stretch | Retrieval output supplied with the fourth-year remote-sensing laboratory, the only material of the exercise; the instrument settings and the QDOAS configuration did not come with it |
 | `SWING.csv` | 510 QDOAS NO₂ fit results, 09:46–14:35 UTC, with scans, integration time, servo byte and temperatures | Same provenance; the instrument is SWING, operated on the ground beside the MAX-DOAS |

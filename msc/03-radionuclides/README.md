@@ -67,12 +67,14 @@ r = 0.659 with an rms difference of 2.70 MeV and δW at r = 0.681 with
 2.57 MeV. The doubly magic nuclei carry the largest negative corrections:
 ²⁰⁸Pb −11.56 MeV against −12.84 in the FRDM, ¹³²Sn −11.96 against −11.55.
 
-**Open question.** The coefficients a_v = 15.65, a_s = 17.63, a_sym = 27.72,
-a_ss = 25.60 MeV and r₀ = 1.233 fm are those of `Radionuclizi_5.jl`, which
-names them Pearson's parametrisation of the liquid drop without a reference. I
-have not been able to check them against a published fit; the value of r₀ and
-the volume–surface symmetry form are consistent with Pearson's liquid-drop
-fits to the 1995 masses, but the set is quoted here as the file set it.
+**Coefficients.** a_v = 15.65, a_s = 17.63, a_sym = 27.72, a_ss = 25.60 MeV
+and r₀ = 1.233 fm are the liquid-drop set that the level-density systematics
+of von Egidy and Bucurescu subtracts from the measured masses to define its
+shell correction (Phys. Rev. C **72**, 044311 (2005),
+doi:10.1103/PhysRevC.72.044311, Eq. (9)), taken there from Pearson's fit
+(Hyperfine Interact. **132**, 59 (2001), doi:10.1023/A:1011973100463).
+`Radionuclizi_5.jl` named Pearson without the reference; the use made of the
+set here, δW₀ = W_LDM − W_exp, is the same as in that systematics.
 
 ## `decay_and_activation.jl`
 

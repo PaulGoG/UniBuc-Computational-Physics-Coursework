@@ -45,9 +45,10 @@ const FIGURES = joinpath(@__DIR__, "figures")
 const DATA = joinpath(@__DIR__, "data")
 
 """
-Liquid-drop coefficients [MeV] as set in Radionuclizi_5.jl, which names them
-Pearson's parametrisation; a_c = (3/5) e²/r₀ with e² = 1.44 MeV fm and
-r₀ = 1.233 fm. The fit they come from is not recorded in the file.
+Liquid-drop coefficients [MeV]: the set of von Egidy and Bucurescu, Phys. Rev.
+C 72, 044311 (2005), Eq. (9), taken there from Pearson, Hyperfine Interact.
+132, 59 (2001); a_c = (3/5) e²/r₀ with e² = 1.44 MeV fm and r₀ = 1.233 fm.
+Radionuclizi_5.jl set the same values, naming Pearson without the reference.
 """
 const LDM = (a_v = 15.65, a_s = 17.63, a_sym = 27.72, a_ss = 25.60, a_c = 0.864 / 1.233)
 

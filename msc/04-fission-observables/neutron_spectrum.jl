@@ -37,7 +37,11 @@ using Printf, SpecialFunctions, Optim, Statistics, QuadGK
 include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 include(joinpath(@__DIR__, "fission_core.jl"))
 
-"Level-density constant of T_m = √(C·TXE/A₀) [MeV], as set in Fisiune_4.jl."
+"""
+Level-density constant of T_m = √(C·TXE/A₀) [MeV]: ⟨a⟩ = A₀/C with C = 10 MeV
+for an energy-independent compound cross-section, as the course set it and
+Fisiune_4.jl carried it.
+"""
 const C_LEVEL_DENSITY = 10.0
 "Neutron-energy grid of the mass-averaged spectrum [MeV]."
 const E_GRID = 10 .^ range(-1.3, log10(20), length = 260)

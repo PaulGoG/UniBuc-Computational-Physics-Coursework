@@ -61,10 +61,10 @@ has to assume that a spectroscope drum reads linearly in refractive index,
 whereas here the index is measured directly.
 
 The script asserts that δ_min = (α₂ − α₁)/2 to round-off, that the n column is
-reproduced from δ_min with an apex angle of 59.9° to 3 × 10⁻⁶, and that n
-falls with λ. The second check fixes the apex angle the column was computed
-with and verifies its arithmetic; it is not an independent measurement of the
-prism, since n was derived from δ_min and that angle in the first place.
+reproduced from δ_min with the prism's apex angle of 59.9° to 3 × 10⁻⁶, and
+that n falls with λ. The apex angle is the laboratory's value for its
+equilateral glass prism and is taken as such; the second check verifies the
+arithmetic of the column, not the prism.
 
 | Fit | A | B [µm²] | Residual rms | Equivalent error in δ_min |
 |---|---|---|---|---|
@@ -84,4 +84,4 @@ B = 0.00420 µm²: a crown glass of that class, not an identification.
 
 | File | Content | Source |
 |---|---|---|
-| `prism_goniometer.csv` | Six lines: colour, λ [Å], α₁, α₂, δ_min [deg], n | My own goniometer readings from a first-year optics laboratory; the wavelengths are the nominal values of the lamp lines used, and the instrument and the prism are not otherwise documented |
+| `prism_goniometer.csv` | Six lines: colour, λ [Å], α₁, α₂, δ_min [deg], n | My own goniometer readings from a first-year optics laboratory, on its bench goniometer and equilateral glass prism; the wavelengths are the nominal values of the lamp lines used |

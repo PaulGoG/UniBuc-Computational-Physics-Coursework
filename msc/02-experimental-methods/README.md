@@ -23,10 +23,11 @@ depart from it in both directions: the far-red pair 7091.99 and 7081.88 Å
 reads 5 divisions apart where the fit gives 0.25, the pair 4358.35 and
 4077.81 Å reads 60 where the fit gives 32, and 4077.81 and 4046.56 Å read 20
 where the fit gives 4. The script prints the comparison for every adjacent
-pair. Those readings are kept as recorded; `bsc/06-geometrical-optics/prism_dispersion.jl`
-fits the same relation to a directly measured index and finds it adequate to
-the setting error of that measurement, so the structure here is in the drum
-readings, not in the linearity assumption or the model.
+pair. Those readings are kept as recorded; the script is their only surviving
+record. `bsc/06-geometrical-optics/prism_dispersion.jl` fits the same relation
+to a directly measured index and finds it adequate to the setting error of
+that measurement, so the structure here is in the drum readings, not in the
+linearity assumption or the model.
 
 Ported from `Calibrare_Hg.jl` in `Julia-Workflow-FFUB/Single_Files/` on the
 `legacy` branch, which lists 5789.66 Å beside 5790.65 Å at divisions 35 and

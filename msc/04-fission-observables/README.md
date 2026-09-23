@@ -169,18 +169,24 @@ Its `Energie_separare` returned `[S, σ]` on success and a bare `NaN` on
 failure, indexed by the caller regardless. `Dump.jl` referenced names it
 neither defined nor imported and was never included; it is not ported.
 
-**Open questions.** The p and q terms, the constants of the liquid-drop
-deformation energy (15.4941, 17.9439, 1.7826, 0.7053, 1.1529 MeV), the β(Z)
-breakpoints and the level-density constant C = 10 MeV of the spectrum are
-those of the 2023 files, which record no source for them; they are used as
-found. The charge split of the yield matrix is imposed; by whom, and on what
-model, the file does not say.
+**Constants.** The energy balance and its constants are those of the
+TXE-partition application of the fission course this was written for
+(A. Tudora, University of Bucharest, 2022), which the 2023 files carried
+without attribution. The liquid-drop deformation energy with 15.4941, 17.9439,
+1.7826, 0.7053 and 1.1529 MeV is the Myers–Swiatecki parameter set of 1967
+(Ark. Fys. **36**, 343, the Lysekil symposium); the scission deformation is
+the application's piecewise-linear β(Z) through (28, 0), (41, 0.58),
+(44, 0.58), (50, 0) and (65, 0.6); p = 6.71 − 0.156 Z₀²/A₀ and
+q = 0.75 + 0.088 Z₀²/A₀ are its systematics of the prompt γ energy
+E_γ = p ν + q. The level-density constant of the spectrum, T_m = √(C·TXE/A₀)
+with C = 10 MeV, is the application's ⟨a⟩ = A₀/C for an energy-independent
+compound-nucleus cross-section (C = 11 MeV with an optical-model one).
 
 ## Data
 
 | File | Content | Source |
 |---|---|---|
-| `Yield/U5YAZTKE.STR` | Y(A_H, Z_H, TKE) [%] and its error, 20 705 rows, five charges per (A_H, TKE) cell | Header `5Z/A Y(A,TKE) Straede`: the Y(A, TKE) of Straede, Budtz-Jørgensen and Knitter, Nucl. Phys. A **462**, 85 (1987), doi:10.1016/0375-9474(87)90381-2 (EXFOR 23591), with a charge split imposed on it; the split and the digitisation are not recorded |
+| `Yield/U5YAZTKE.STR` | Y(A_H, Z_H, TKE) [%] and its error, 20 705 rows, five charges per (A_H, TKE) cell | Header `5Z/A Y(A,TKE) Straede`: the Y(A, TKE) of Straede, Budtz-Jørgensen and Knitter, Nucl. Phys. A **462**, 85 (1987), doi:10.1016/0375-9474(87)90381-2 (EXFOR 23591), with a charge split imposed on it for the course: a Gaussian isobaric distribution about Z_p(A) with the polarisation ΔZ(A) and width of Wahl's Z_p model (At. Data Nucl. Data Tables **39**, 1 (1988), doi:10.1016/0092-640X(88)90016-2), five charges per mass; the digitisation of the measurement is not recorded |
 | `Date_experimentale/Multiplicitate_n/U5NUA*.DAT` | ν(A) and its error per fragment mass | Göök, Hambsch, Oberstedt and Vidali, Phys. Rev. C **98**, 044615 (2018), doi:10.1103/PhysRevC.98.044615; Maslin, Rodgers and Core, Phys. Rev. **164**, 1520 (1967), doi:10.1103/PhysRev.164.1520; Nishio, Nakagome, Yamamoto and Kimura, Nucl. Phys. A **632**, 540 (1998), doi:10.1016/S0375-9474(98)00008-6; Vorobyev et al., EPJ Web Conf. **8**, 03004 (2010), doi:10.1051/epjconf/20100803004. The files carry the first author's name only; the digitisation is not recorded |
 | `Date_experimentale/Spectru_n/U5SP*.DAT` | Neutron spectra with errors: Göök laboratory frame, Göök centre of mass for the light and heavy fragment, Vorobyev laboratory frame | The Göök sets from the measurement of Phys. Rev. C **98**, 044615 (2018); the Vorobyev set from the same group's ²³⁵U measurements (EPJ Web Conf. **8**, 03004 (2010) describes them); the exact publication and digitisation are not recorded in the files |
 | `Defecte_masa/AUDI2021.csv`, `AUDI95.csv` | AME2020 and AME1995 mass excesses | As in `msc/03-radionuclides`, byte-identical copies |
