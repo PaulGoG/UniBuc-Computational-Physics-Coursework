@@ -4,13 +4,14 @@
 #   Lorenz    ẋ = σ(y - x),  ẏ = x(ρ - z) - y,  ż = xy - βz
 #   Rössler   ẋ = -y - z,    ẏ = x + ay,        ż = b + z(x - c)
 #
-# Ported from Integratori.cpp and Atractori.cpp (2018). The RK4 stage coupling
-# in the original was correct. What was not: β was written as 2.66 rather than
-# 8/3, which displaces the fixed points (±√(β(ρ-1)), ±√(β(ρ-1)), ρ-1); the
-# Rössler branch was unreachable because the selector variable was assigned and
-# never read; both systems wrote to hardcoded Windows paths; and the parameters
-# were #define macros, so `a`, `b` and `c` textually replaced any identifier of
-# those names anywhere in the translation unit.
+# Ported from Integratori.cpp and Atractori.cpp in
+# Code_Archive/Old_2018/C_C++/AtractorI/ on the `legacy` branch. The RK4 stage
+# coupling there is correct. β is written as 2.66 rather than 8/3, which moves
+# the fixed points (±√(β(ρ-1)), ±√(β(ρ-1)), ρ-1) from ±8.4853 to ±8.4747; the
+# Rössler branch is unreachable because the selector variable is assigned and
+# never read; both systems write to hardcoded Windows paths; and the parameters
+# are #define macros, so `a`, `b` and `c` textually replace any identifier of
+# those names in the translation unit.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 
@@ -19,6 +20,13 @@ include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 include(joinpath(@__DIR__, "attractors_core.jl"))
 
 const FIGURES = joinpath(@__DIR__, "figures")
+
+"""
+Line width of the attractor renderings. A trajectory of 2.5 × 10⁵ points drawn
+at the theme's 3 fills each lobe solid; a thin line is the analogue of the
+theme's `cloud` marker for a dense series.
+"""
+const TRACE_WIDTH = 0.8
 
 """
     trajectory(f, u₀, h, n, p; transient)
@@ -58,35 +66,30 @@ function main()
     @printf("Rossler x range [%.2f, %.2f], z range [%.2f, %.2f]\n",
         minimum(xR), maximum(xR), minimum(zR), maximum(zR))
 
-    fig = Figure(size = (1000, 430))
+    fig = Figure(size = (1400, 620))
 
-    # The system name and its parameters go inside the axes, in the colour of
-    # the trajectory, as they already do in the animation. As titles they were
-    # a second naming of panels the labels below already identify.
     ax1 = Axis(fig[1, 1], xlabel = L"x", ylabel = L"z")
-    lines!(ax1, xL, zL, color = PALETTE.blue, linewidth = 0.25)
+    lines!(ax1, xL, zL, color = PALETTE.blue, linewidth = TRACE_WIDTH)
     text!(ax1, 0.02, 0.98;
         text = rich("Lorenz: ", it("σ"), " = 10, ", it("ρ"), " = 28, ", it("β"), " = 8/3"),
-        space = :relative, align = (:left, :top), color = PALETTE.blue, fontsize = 17,)
-
-    # The fixed points sit inside the lobes, so their label cannot. It goes in
-    # the notch between the two wings, which is the only region of this
-    # projection no strand enters, and the markers are large enough to be found
-    # from it. Placed below the attractor it was crossed by the strands running
-    # down to the lower vertex.
+        space = :relative, align = (:left, :top), color = PALETTE.blue,
+        fontsize = ANNOTATION_SIZE,)
+    # the fixed points sit inside the lobes; their label goes in the notch
+    # between the wings, the one region of this projection no strand enters
     scatter!(ax1, [fp[1][1], fp[2][1]], [fp[1][3], fp[2][3]],
         color = PALETTE.red, markersize = MARKERSIZE.emphasis, marker = :xcross,)
     text!(ax1, 0.5, 0.88;
         text = rich("✕  Fixed points\n(±8.4853, 27)"),
         space = :relative, align = (:center, :top), color = PALETTE.red,
-        fontsize = 15, justification = :center,)
+        fontsize = ANNOTATION_SIZE, justification = :center,)
     ylims!(ax1, 0, 53)
 
     ax2 = Axis(fig[1, 2], xlabel = L"x", ylabel = L"y")
-    lines!(ax2, xR, yR, color = PALETTE.green, linewidth = 0.25)
+    lines!(ax2, xR, yR, color = PALETTE.green, linewidth = TRACE_WIDTH)
     text!(ax2, 0.02, 0.98;
         text = rich("Rössler: ", it("a"), " = ", it("b"), " = 0.2, ", it("c"), " = 5.7"),
-        space = :relative, align = (:left, :top), color = PALETTE.green, fontsize = 17,)
+        space = :relative, align = (:left, :top), color = PALETTE.green,
+        fontsize = ANNOTATION_SIZE,)
     ylims!(ax2, nothing, 12)
 
     path = savefigure(fig, FIGURES, "lorenz_rossler_attractors")
@@ -117,33 +120,32 @@ function animate_attractors(xL, zL, xR, yR, h)
     headR = Observable(Point2f[])
     dotL = Observable(Point2f[])
     dotR = Observable(Point2f[])
-    caption = Observable{Any}("")   # the frame captions are rich text, not String
+    caption = Observable(rich(it("t"), " = 0.0"))
 
-    fig = Figure(size = (940, 420))
+    fig = Figure(size = (1200, 560))
     ax1 = Axis(fig[2, 1], xlabel = L"x", ylabel = L"z")
-    lines!(ax1, headL, color = PALETTE.blue, linewidth = 0.4)
-    # black for the moving state: red names the fixed points in the static
-    # figure, and one colour cannot mean both across a pair of figures
-    scatter!(ax1, dotL, color = PALETTE.black, markersize = MARKERSIZE.dense)
+    lines!(ax1, headL, color = PALETTE.blue, linewidth = TRACE_WIDTH)
+    # black for the moving state: red names the fixed points in the static figure
+    scatter!(ax1, dotL, color = PALETTE.black, markersize = MARKERSIZE.data)
     xlims!(ax1, minimum(xL) - 2, maximum(xL) + 2)
     ylims!(ax1, minimum(zL) - 2, maximum(zL) + 6)
     text!(ax1, 0.02, 0.98; text = "Lorenz", space = :relative,
-        align = (:left, :top), fontsize = 16, color = PALETTE.blue,)
+        align = (:left, :top), fontsize = ANNOTATION_SIZE, color = PALETTE.blue,)
 
     ax2 = Axis(fig[2, 2], xlabel = L"x", ylabel = L"y")
-    lines!(ax2, headR, color = PALETTE.green, linewidth = 0.4)
-    scatter!(ax2, dotR, color = PALETTE.black, markersize = MARKERSIZE.dense)
+    lines!(ax2, headR, color = PALETTE.green, linewidth = TRACE_WIDTH)
+    scatter!(ax2, dotR, color = PALETTE.black, markersize = MARKERSIZE.data)
     xlims!(ax2, minimum(xR) - 2, maximum(xR) + 2)
     ylims!(ax2, minimum(yR) - 2, maximum(yR) + 4)
     text!(ax2, 0.02, 0.98; text = "Rössler", space = :relative,
-        align = (:left, :top), fontsize = 16, color = PALETTE.green,)
+        align = (:left, :top), fontsize = ANNOTATION_SIZE, color = PALETTE.green,)
 
-    Label(fig[1, 1:2], caption, fontsize = 17, tellwidth = false)
+    Label(fig[1, 1:2], caption, fontsize = 22, tellwidth = false)
     rowgap!(fig.layout, 6)
 
     path = joinpath(FIGURES, "lorenz_rossler_attractors.gif")
     mkpath(FIGURES)
-    record(fig, path, 1:frames; framerate = 14) do k
+    record(fig, path, 1:frames; framerate = 14, px_per_unit = 1) do k
         j = k * stride
         i = max(1, j - tail)
         headL[] = Point2f.(view(xL, i:j), view(zL, i:j))
