@@ -1,32 +1,28 @@
 # The focusing nonlinear Schrödinger equation by the method of lines,
 #
-#   i ∂ₜΨ = -½ ∂ₓₓΨ - |Ψ|²Ψ,     periodic in x,
+#   i ∂ₜΨ = −½ ∂ₓₓΨ − |Ψ|²Ψ,     periodic in x,
 #
 # solved as ∂ₜΨ = i(½ ∂ₓₓΨ + |Ψ|²Ψ) with a second-order centred stencil in space
-# and RK4 in time, on the two-soliton initial condition of the original.
+# and RK4 in time, on the two-soliton initial condition of SolitonicEq_MOL.jl in
+# Julia-Workflow-FFUB/Examen_PDF_MN_II_L_4/ on the `legacy` branch.
 #
-# A soliton carrying the phase factor e^{ikx} travels with velocity v = k, so the
-# original's pair — centred at x = ∓5 with k = ∓0.1 — moves **apart**, not
-# together. On the periodic domain [-10, 10] they meet at the edge rather than
-# in the middle. Travelling freely at |v| = 0.1 that would take t = 50; the
-# heatmap puts the collision at t ≈ 35, because the tails overlap across the
-# boundary well before the peaks do and two in-phase solitons attract. The
-# measured speed away from the encounter is 0.1 either side of it, and both
-# pulses leave with the shape and speed they arrived with, which is what makes
-# them solitons. The initial condition, domain and phase are kept exactly as
-# written.
+# A soliton η sech(η(x − x₀)) e^{ikx} of this equation travels with velocity
+# v = k, so the original's pair — centred at x = ∓5 with k = ∓0.1 — moves apart
+# and meets across the periodic boundary. `main` measures the speed of the
+# left-hand peak before the encounter and asserts v = −0.1, asserts the norm
+# ∫|Ψ|² dx conserved to round-off, and reports the drift of the Hamiltonian
+# ∫(½|∂ₓΨ|² − ½|Ψ|⁴) dx, which RK4 does not conserve exactly.
 #
-# Ported from SolitonicEq_MOL.jl. The sign convention and the stencil were
-# right. The time stepping was not: the original wrote
+# The periodic grid holds one copy of each point: x = −a, …, a − dx. The
+# original's time stepping perturbed all three stencil neighbours by the same
+# increment, the one belonging to the centre point,
 #
 #     k2 = Sⁿ(Ψⱼ₋₁ + dt*k1/2, Ψⱼ + dt*k1/2, Ψⱼ₊₁ + dt*k1/2, dx)
 #
-# perturbing all three stencil neighbours by the *same* increment k1, which is
-# the increment belonging to the centre point alone. In the method of lines the
-# stage must be formed on the whole solution vector, then the spatial operator
-# applied to that. Done correctly here, which also makes the conserved norm
-# actually conserved. It was a three-stage scheme labelled RungeKutta3; RK4 is
-# used below.
+# where a method-of-lines stage must be formed on the whole solution vector
+# before the spatial operator is applied; it was a three-stage scheme named
+# RungeKutta3; and its dx = 0.5 put about one grid point across a soliton of
+# width 0.5.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 
@@ -71,14 +67,11 @@ function step_rk4!(Ψ, work, dx, dt)
 end
 
 function main()
-    # domain and initial condition as in the original; the resolution is not.
-    # SolitonicEq_MOL.jl used dx = 0.5 against a soliton of width ≈0.5, so it
-    # carried about one grid point per soliton — far too coarse for a
-    # second-order stencil to represent the shape at all.
+    # domain and initial condition as in the original; the resolution is not
     a, dx = 10.0, 0.02
-    x = collect((-a):dx:a)
-    n = length(x)
-    dt = 0.2 * dx^2                      # diffusive stability limit of the stencil
+    n = round(Int, 2a / dx)
+    x = collect(range(-a, a - dx, length = n))   # one copy of each periodic point
+    dt = 0.2 * dx^2                      # within the stability limit of the centred stencil
     t_end = 50.0
     n_steps = round(Int, t_end / dt)
 
@@ -87,7 +80,10 @@ function main()
            2 * exp(+im * 0.1 * x) / cosh(2 * (x - 5))
     work = ntuple(_ -> similar(Ψ), 5)
 
-    norm0 = sum(abs2, Ψ) * dx
+    hamiltonian(Ψ) = sum(0.5 * abs2(Ψ[j == n ? 1 : j + 1] - Ψ[j]) / dx^2 -
+                         0.5 * abs2(Ψ[j])^2
+    for j in 1:n) * dx
+    norm0, H0 = sum(abs2, Ψ) * dx, hamiltonian(Ψ)
     n_save = 400
     save_every = max(n_steps ÷ n_save, 1)
     frames = Vector{Vector{Float64}}()
@@ -104,34 +100,58 @@ function main()
     end
 
     @printf("grid %d points, dt = %.2e, %d steps to t = %.1f\n", n, dt, n_steps, t_end)
-    @printf("norm ∫|Ψ|²dx: initial %.6f, final %.6f, relative drift %.2e\n",
-        norm0, last(norms), abs(last(norms) - norm0) / norm0)
+    norm_drift = maximum(abs.(norms .- norm0)) / norm0
+    @printf("norm ∫|Ψ|²dx: initial %.6f, largest relative drift %.1e; Hamiltonian drift %.1e\n",
+        norm0, norm_drift, abs(hamiltonian(Ψ) - H0) / abs(H0))
+    norm_drift < 1e-12 || error("the norm drifts by $norm_drift")
+
+    # speed of the left-hand soliton before the encounter, from the peak of |Ψ|²
+    # on x < 0 located by parabolic interpolation, fitted over 2 ≤ t ≤ 20
+    function peak_position(ρ_t)
+        left = findall(<(0), x)
+        k = left[argmax(ρ_t[left])]
+        km, kp = mod1(k - 1, n), mod1(k + 1, n)
+        denom = ρ_t[km] - 2ρ_t[k] + ρ_t[kp]
+        return x[k] - dx / 2 * (ρ_t[kp] - ρ_t[km]) / denom
+    end
+    window = findall(t -> 2 <= t <= 20, times)
+    tw, pw = times[window], peak_position.(frames[window])
+    v = sum((tw .- sum(tw) / length(tw)) .* (pw .- sum(pw) / length(pw))) /
+        sum(abs2, tw .- sum(tw) / length(tw))
+    @printf("left soliton: peak speed %.4f over 2 ≤ t ≤ 20, against v = k = −0.1\n", v)
+    isapprox(v, -0.1; rtol = 0.03) || error("the soliton speed $v is not −0.1")
+    peak_t = times[argmax(maximum.(frames))]
+    @printf("the two peaks coincide at t = %.1f with |Ψ|² = %.2f\n", peak_t,
+        maximum(maximum.(frames)))
 
     ρ = reduce(hcat, frames)
 
-    fig = Figure(size = (980, 440))
-    ax1 = Axis(fig[1, 1], xlabel = L"x", ylabel = L"Time $t$")
-    # The collision reaches |Psi|^2 = 16 for one instant while the solitons sit
-    # at 4, so a linear scale spent three quarters of its range on that instant
-    # and rendered the trajectories as a dim fringe on near-black. The square
-    # root keeps the collision the brightest thing in the panel and still shows
-    # the solitons, and the colourbar is ticked in the original units.
+    fig = Figure(size = (1500, 640))
+    ax1 = Axis(fig[2, 1], xlabel = L"x", ylabel = L"Time $t$")
+    # the collision reaches |Ψ|² = 16 for an instant while the solitons sit at
+    # 4; the square root keeps both visible, and the colour bar is ticked in
+    # the original units
     heatmap!(ax1, x, times, sqrt.(ρ), colormap = :viridis)
 
-    ax2 = Axis(fig[1, 2], xlabel = L"x", ylabel = L"|\Psi|^2")
-    for (k, idx) in enumerate((1, length(times) ÷ 2, length(times)))
-        lines!(ax2, x, frames[idx],
-            color = (PALETTE.blue, PALETTE.orange, PALETTE.green)[k], linewidth = 1.5,
-            label = rich(it("t"), @sprintf(" = %.1f", times[idx])),)
-    end
-    ylims!(ax2, -0.2, 5.1)   # headroom: the legend sat on the right-hand pulses
-    axislegend(ax2, position = :rt, framevisible = false, labelsize = 15)
+    ax2 = Axis(fig[2, 2], xlabel = L"x", ylabel = L"|\Psi|^2")
+    shown = (1, length(times) ÷ 2, length(times))
+    profiles = [lines!(ax2, x, frames[idx], color = (
+                    PALETTE.blue, PALETTE.orange, PALETTE.green,)[k])
+                for (k, idx) in enumerate(shown)]
+    ylims!(ax2, -0.2, 5.1)
+    text!(ax2, 0.03, 0.96;
+        text = rich("Left peak speed ", @sprintf("%.3f", v), " against −0.1\n",
+            "Norm drift ", rsci(norm_drift; digits = 1),),
+        space = :relative, align = (:left, :top), fontsize = ANNOTATION_SIZE,)
 
     ticks = [0, 1, 4, 9, 16]
-    Colorbar(fig[1, 3], limits = (sqrt(minimum(ρ)), sqrt(maximum(ρ))),
+    Colorbar(fig[2, 3], limits = (sqrt(minimum(ρ)), sqrt(maximum(ρ))),
         colormap = :viridis, label = L"|\Psi|^2",
         ticks = (sqrt.(ticks), [latexstring(string(t)) for t in ticks]),)
     colsize!(fig.layout, 3, Relative(0.03))
+    Legend(fig[1, 1:3], profiles,
+        [rich(it("t"), @sprintf(" = %.1f", times[idx])) for idx in shown],
+        rich("Profile |", it("Ψ"), "|²"); titleposition = :left,)
 
     path = savefigure(fig, FIGURES, "nonlinear_schrodinger_mol")
     println("wrote ", path)
@@ -157,41 +177,36 @@ function animate_solitons(x, frames, times, norms, norm0)
     profile = Observable(frames[1])
     trace_t = Observable([times[1]])
     trace_n = Observable([(norms[1] / norm0 - 1) * 1e15])
-    caption = Observable{Any}("")   # the frame captions are rich text, not String
+    caption = Observable(rich(it("t"), " = 0.0"))
 
-    fig = Figure(size = (900, 520))
+    fig = Figure(size = (1200, 680))
     ax1 = Axis(fig[2, 1], xlabel = L"x", ylabel = L"|\Psi|^2")
-    lines!(ax1, x, profile, color = PALETTE.blue, linewidth = 2)
+    lines!(ax1, x, profile, color = PALETTE.blue)
     xlims!(ax1, first(x), last(x))
     ylims!(ax1, 0, maximum(maximum, frames) * 1.08)
 
-    # The drift is of order 1e-15, so a panel scaled to a relative norm of
-    # 1 +/- 0.005 showed a flat line on the unity guide and nothing else. The
-    # trace is the departure from unity in units of 1e-15, where the scheme's
-    # actual behaviour is visible; the guide keeps its label.
-    # The full integral expression is too tall a label for a strip this short,
-    # and left to itself the axis crowded nine ticks into it.
-    ax2 = Axis(fig[3, 1], xlabel = L"Time $t$",
-        ylabel = L"Norm drift [$10^{-15}$]",
-        yticks = ([-10, -5, 0, 5, 10], [L"-10", L"-5", L"0", L"5", L"10"]),)
-    hlines!(ax2, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
-    lines!(ax2, trace_t, trace_n, color = PALETTE.green, linewidth = 2)
-    text!(ax2, 0.99, 0.95; text = L"$\int|\Psi|^2\mathrm{d}x$ exactly conserved",
-        space = :relative,
-        align = (:right, :top), fontsize = 13, color = PALETTE.black,)
+    # the drift is of order 1e-14: the trace is the departure from unity in
+    # units of 1e-15, where the scheme's behaviour is visible
+    drift = (norms ./ norm0 .- 1) .* 1e15
+    span = 1.15 * maximum(abs, drift)
+    ax2 = Axis(fig[3, 1], xlabel = L"Time $t$", ylabel = L"Norm drift [$10^{-15}$]")
+    hlines!(ax2, [0.0], color = PALETTE.black, linestyle = :dash, linewidth = GUIDE_WIDTH)
+    lines!(ax2, trace_t, trace_n, color = PALETTE.green)
+    text!(ax2, 0.99, 0.95; text = L"$\int|\Psi|^2\mathrm{d}x$ conserved to round-off",
+        space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,)
     xlims!(ax2, 0, last(times))
-    ylims!(ax2, -12, 12)
+    ylims!(ax2, -span, span)
 
-    Label(fig[1, 1], caption, fontsize = 17, tellwidth = false)
+    Label(fig[1, 1], caption, fontsize = 22, tellwidth = false)
     rowsize!(fig.layout, 2, Relative(0.62))
     rowgap!(fig.layout, 10)
 
     path = joinpath(FIGURES, "nonlinear_schrodinger_mol.gif")
     mkpath(FIGURES)
-    record(fig, path, ks; framerate = 15) do k
+    record(fig, path, ks; framerate = 15, px_per_unit = 1) do k
         profile[] = frames[k]
         trace_t[] = times[1:k]
-        trace_n[] = (norms[1:k] ./ norm0 .- 1) .* 1e15
+        trace_n[] = drift[1:k]
         caption[] = rich(it("t"), @sprintf(" = %.1f      ", times[k]), "norm drift ",
             rsci(norms[k] / norm0 - 1; digits = 2),)
     end

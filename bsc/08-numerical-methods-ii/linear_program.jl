@@ -3,7 +3,8 @@
 #   maximise  x₁ + x₂
 #   subject to  x₁ + x₂ ≤ 3,  -x₁ + 3x₂ ≤ 1,  x₂ ≤ 3,  x₁, x₂ ≥ 0
 #
-# Ported from MaximizeLinearSystemEq.jl, which called JuMP with GLPK through
+# Ported from MaximizeLinearSystemEq.jl in Julia-Workflow-FFUB/Single_Files/ on the
+# `legacy` branch, which called JuMP with GLPK through
 # `Model(with_optimizer(GLPK.Optimizer))`. `with_optimizer` was deprecated in
 # JuMP 0.21 and removed in 0.22 (2021), so the file raises UndefVarError on any
 # current JuMP.
@@ -70,6 +71,9 @@ function main()
             isapprox(v, best; atol = 1e-9) ? "   <- optimal" : "")
     end
     @printf("optimum = %.4f, attained at %d vertices\n", best, length(optimal))
+    # the optimum is the bound of the first constraint, attained on its whole face
+    length(optimal) == 2 && isapprox(best, CONSTRAINTS[1][3]; atol = 1e-12) ||
+        error("expected the optimum $(CONSTRAINTS[1][3]) on a two-vertex face, got $best at $(length(optimal)) vertices")
     length(optimal) > 1 &&
         println("the optimal face is a segment: the solution is NOT unique")
 
@@ -77,48 +81,43 @@ function main()
     active3 = count(p -> isapprox(p[2], 3.0; atol = 1e-9), V)
     @printf("constraint x₂ ≤ 3 active at %d vertices -> redundant\n", active3)
 
-    fig = Figure(size = (700, 560))
+    fig = Figure(size = (820, 820))
     ax = Axis(fig[2, 1], xlabel = L"x_1", ylabel = L"x_2", aspect = DataAspect())
 
     order = sortperm([atan(p[2] - 1, p[1] - 1) for p in V])
     l_feas = poly!(ax, Point2f[V[order]...], color = (PALETTE.sky, 0.35),
         strokewidth = 1.5, strokecolor = PALETTE.blue,)
-    l_vert = scatter!(ax, first.(V), last.(V), color = PALETTE.blue,
-        markersize = MARKERSIZE.data,)
+    l_vert = scatter!(ax, first.(V), last.(V), color = PALETTE.blue)
 
     seg = sort(optimal, by = first)
     l_opt = lines!(ax, [seg[1][1], seg[end][1]], [seg[1][2], seg[end][2]],
-        color = PALETTE.red, linewidth = 5,)
+        color = PALETTE.red, linewidth = 6,)
 
-    # The objective contours are the reason the optimum is a face and not a
-    # vertex -- they are parallel to the binding constraint -- so they need
-    # naming rather than appearing as unexplained diagonals.
+    # the objective contours are parallel to the binding constraint, which is
+    # why the optimum is a face and not a vertex; drawn up to the optimum
     local l_obj
-    for c in -1:4
-        l_obj = lines!(ax, [0, 3.6], [c - 0, c - 3.6], color = (PALETTE.black, 0.3),
-            linestyle = :dot, linewidth = 1.0,)
+    for c in 0.5:0.5:3
+        l_obj = lines!(ax, [0, 3.6], [c - 0, c - 3.6], color = (PALETTE.black, 0.35),
+            linestyle = :dot, linewidth = GUIDE_WIDTH,)
     end
 
-    # x₂ ≤ 3 is redundant, and a panel that stops at x₂ = 2 cannot show it. The
-    # axis reaches the constraint and draws it, so that "active at no feasible
-    # vertex" is something the reader can check.
+    # x₂ ≤ 3 is redundant; the axis reaches it so that can be seen
     l_red = hlines!(ax, [3.0], color = PALETTE.purple, linestyle = :dashdot,
-        linewidth = 1.6,)
+        linewidth = GUIDE_WIDTH,)
 
     limits!(ax, -0.2, 3.6, -0.2, 3.4)
     text!(ax, 3.55, 3.05; text = rich(it("x"), subscript("2"), " ≤ 3, redundant"),
-        align = (:right, :top), color = PALETTE.purple, fontsize = 15,)
+        align = (:right, :top), color = PALETTE.purple, fontsize = ANNOTATION_SIZE,)
     text!(ax, 0.97, 0.62;
         text = @sprintf("Optimum %.0f on the whole segment\n(3, 0) – (2, 1)", best),
-        space = :relative, align = (:right, :top), color = PALETTE.red, fontsize = 15,)
+        space = :relative, align = (:right, :top), color = PALETTE.red,
+        fontsize = ANNOTATION_SIZE, justification = :right,)
 
     Legend(fig[1, 1], [l_feas, l_vert, l_opt, l_obj],
         ["Feasible region", "Vertices", "Optimal face",
-            rich("Objective contours ", it("x"), subscript("1"), " + ", it("x"),
-                subscript("2"),),],
-        orientation = :horizontal, framevisible = false, labelsize = 15,
-        nbanks = 2, colgap = 18,)
-    rowsize!(fig.layout, 2, Relative(0.84))
+            rich("Objective contours ", it("x"), subscript("1"),
+                " + ", it("x"), subscript("2"),),];
+        nbanks = 2,)
     path = savefigure(fig, FIGURES, "linear_program")
     println("wrote ", path)
 end
