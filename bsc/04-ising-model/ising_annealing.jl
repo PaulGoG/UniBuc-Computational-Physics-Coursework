@@ -1,7 +1,8 @@
 # Two-dimensional Ising model on a square lattice, driven to its ground state by
 # Metropolis single-spin-flip dynamics under a geometrically cooled temperature.
 #
-# Ported from IsingFinal.cpp (2018). The original allocated n columns per row but
+# Ported from IsingFinal.cpp in Code_Archive/Old_2018/C_C++/ on the `legacy`
+# branch. The original allocated n columns per row but
 # indexed n+2 of them, bordered its ghost cells once before the Monte Carlo loop
 # and never refreshed them, double-counted every bond in the Hamiltonian so that
 # the acceptance test ran at an effective temperature of T/2, cooled once per
@@ -28,6 +29,8 @@ const T_FINAL = 0.05
 "Monte Carlo sweeps; one sweep is L² attempted flips."
 const SWEEPS = 3000
 const SEED = 20180101
+"Tolerance of the flip-energy identity and of the ground-state test."
+const ENERGY_TOLERANCE = 1e-9
 
 @enum Boundary periodic open
 
@@ -77,6 +80,26 @@ used a factor of four here, which halves the effective temperature.
 flip_energy(s::Matrix{Int8}, i::Int, j::Int, J::Real, boundary::Boundary) = 2 * J *
                                                                             Int(s[i, j]) *
                                                                             neighbour_sum(s, i, j, boundary)
+
+"""
+    check_flip_energy(rng, s, J, boundary; trials = 200)
+
+`flip_energy` against the difference of two full `energy` evaluations at
+`trials` random sites of `s`; throws if they disagree.
+"""
+function check_flip_energy(rng, s::Matrix{Int8}, J::Real, boundary::Boundary; trials = 200)
+    for _ in 1:trials
+        i, j = rand(rng, 1:size(s, 1)), rand(rng, 1:size(s, 2))
+        by_formula = flip_energy(s, i, j, J, boundary)
+        before = energy(s, J, boundary)
+        s[i, j] = -s[i, j]
+        by_difference = energy(s, J, boundary) - before
+        s[i, j] = -s[i, j]
+        abs(by_difference - by_formula) < ENERGY_TOLERANCE ||
+            error("flip energy at ($i, $j): $by_difference by difference, $by_formula by formula")
+    end
+    return nothing
+end
 
 """
     anneal(rng, L, J, T_initial, T_final, sweeps, boundary; snapshot_at)
@@ -134,8 +157,14 @@ function main()
         last(energies), -2.0 * J)
     @printf("final magnetisation    m   = %+.4f\n", last(magnetisations))
     @printf("Onsager T_c = %.4f J/k_B\n", T_CRITICAL)
+    check_flip_energy(StableRNG(SEED + 1), copy(s), J, periodic)
+    check_flip_energy(StableRNG(SEED + 2), rand(StableRNG(SEED + 3), Int8[-1, 1], 16, 16), J, open)
+    println("flip energy agrees with the energy difference at 400 random sites, periodic and open")
+    abs(last(energies) + 2J) < ENERGY_TOLERANCE &&
+    abs(abs(last(magnetisations)) - 1) < ENERGY_TOLERANCE ||
+        error("the anneal did not end in the ground state: E/N = $(last(energies)), m = $(last(magnetisations))")
 
-    fig = Figure(size = (1000, 740))
+    fig = Figure(size = (1200, 900))
 
     ax = Axis(fig[2, 1:3],
         xlabel = L"Temperature $T$ [$J/k_\mathrm{B}$]",
@@ -143,16 +172,14 @@ function main()
         xreversed = true, xscale = log10,
         xticks = ([0.05, 0.1, 0.5, 1, 5], ["0.05", "0.1", "0.5", "1", "5"]),
         yticks = -2:0.5:0,)
-    l_energy = lines!(ax, temperatures, energies, color = PALETTE.blue, linewidth = 1.6)
+    l_energy = lines!(ax, temperatures, energies, color = PALETTE.blue)
     l_ground = hlines!(
-        ax, [-2.0 * J], color = PALETTE.black, linestyle = :dash, linewidth = 1.0,)
-    l_tc = vlines!(ax, [T_CRITICAL], color = PALETTE.red, linestyle = :dot, linewidth = 1.2)
+        ax, [-2.0 * J], color = PALETTE.black, linestyle = :dash, linewidth = GUIDE_WIDTH,)
+    l_tc = vlines!(
+        ax, [T_CRITICAL], color = PALETTE.red, linestyle = :dot, linewidth = GUIDE_WIDTH,)
     ylims!(ax, -2.25, -0.15)
 
-    # The cold half of this panel is two flat lines, and flat is the result: the
-    # ground state is held for a further decade of cooling rather than merely
-    # touched. Saying where it is first reached is what makes that readable
-    # instead of looking like empty axis.
+    # where the ground state is first reached, held from there to the end
     reached = findfirst(
         i -> energies[i] <= -2.0 * J + 1e-9 &&
              abs(magnetisations[i]) >= 1 - 1e-9,
@@ -161,11 +188,13 @@ function main()
         T_reached = temperatures[reached]
         @printf("ground state first reached at T = %.3f J/k_B, held to T = %.3f\n",
             T_reached, last(temperatures))
-        vlines!(ax, [T_reached], color = PALETTE.black, linestyle = :dot, linewidth = 1.0)
-        text!(ax, T_reached * 0.92, -0.22;
+        vlines!(ax, [T_reached], color = PALETTE.black,
+            linestyle = :dot, linewidth = GUIDE_WIDTH,)
+        text!(ax, 0.97, 0.5;
             text = rich(it("E"), "/", it("N"), " = −2", it("J"), " and |", it("m"),
                 "| = 1 from ", it("T"), @sprintf(" = %.2f down", T_reached)),
-            align = (:right, :top), fontsize = 15, color = PALETTE.black,)
+            space = :relative, align = (:right, :center), fontsize = ANNOTATION_SIZE,
+            color = PALETTE.black,)
     end
 
     axm = Axis(fig[2, 1:3],
@@ -176,7 +205,7 @@ function main()
         ytickcolor = PALETTE.orange,)
     hidexdecorations!(axm)
     l_mag = lines!(axm, temperatures, abs.(magnetisations),
-        color = PALETTE.orange, linewidth = 1.6,)
+        color = PALETTE.orange,)
     linkxaxes!(ax, axm)
     ylims!(axm, -0.03, 1.08)
 
@@ -186,28 +215,22 @@ function main()
             rich("Onsager ", it("T"), subscript("c"), " = 2.269 ", it("J"), "/", it("k"),
                 subscript("B"),),
             rich("Ground state ", it("E"), "/", it("N"), " = −2", it("J")),],
-        orientation = :horizontal, framevisible = false,
-        padding = (0, 0, 0, 0), labelsize = 17, colgap = 22,)
+    )
 
-    # The temperature identifies each lattice, so it is the panel's axis label
-    # rather than a title over it, and the spin colours are stated once beneath
-    # the first: nothing else in the figure says which way up orange is.
+    # the temperature labels each lattice; the spins are black (+1) and white (−1)
     for (k, (T, config)) in enumerate(snapshots)
         axk = Axis(fig[3, k], aspect = DataAspect(),
             xlabel = rich(it("T"), @sprintf(" = %.2f ", T), it("J"), "/", it("k"),
                 subscript("B"),),
-            xlabelsize = 18,)
-        heatmap!(axk, config', colormap = [PALETTE.blue, PALETTE.orange],
+        )
+        heatmap!(axk, config', colormap = [:white, PALETTE.black],
             colorrange = (-1, 1),)
-        hidedecorations!(axk, label = false)
-        hidespines!(axk)
+        hidedecorations!(axk, label = false)   # the frame stays: a fully ordered lattice is one colour
     end
     Label(fig[4, 1:3],
-        rich(rich("■ ", color = PALETTE.orange), rich("s", font = :italic),
-            subscript(rich("i", font = :italic)), " = +1      ",
-            rich("■ ", color = PALETTE.blue), rich("s", font = :italic),
-            subscript(rich("i", font = :italic)), " = −1",),
-        fontsize = 16, tellwidth = false,)
+        rich(rich("■ ", color = PALETTE.black), it("s"), subscript(it("i")), " = +1      ",
+            "□ ", it("s"), subscript(it("i")), " = −1",),
+        fontsize = 22, tellwidth = false,)
 
     rowsize!(fig.layout, 2, Relative(0.56))
     rowgap!(fig.layout, 14)
@@ -247,21 +270,21 @@ function animate_anneal(; every::Int = 20)
     cooling = (T_FINAL / T_INITIAL)^(1 / (SWEEPS - 1))
     sweep_tc = 1 + log(T_CRITICAL / T_INITIAL) / log(cooling)
 
-    fig = Figure(size = (980, 460))
+    fig = Figure(size = (1200, 560))
     axl = Axis(fig[2, 1], aspect = DataAspect())
-    heatmap!(axl, lattice, colormap = [PALETTE.blue, PALETTE.orange], colorrange = (-1, 1))
+    heatmap!(axl, lattice, colormap = [:white, PALETTE.black], colorrange = (-1, 1))
     hidedecorations!(axl)
-    hidespines!(axl)
 
     # Against sweep number, not temperature: the cooling is monotonic, so this
     # reads left to right, and it avoids a reversed logarithmic axis whose
     # limits fight the animation.
     axe = Axis(fig[2, 2], xlabel = "Sweep", ylabel = L"Energy per spin $E/N$ [$J$]")
-    lines!(axe, trace_x, trace_E, color = PALETTE.blue, linewidth = 2)
-    hlines!(axe, [-2.0 * J], color = PALETTE.black, linestyle = :dash, linewidth = 1.0)
-    vlines!(axe, [sweep_tc], color = PALETTE.red, linestyle = :dot, linewidth = 1.4)
+    lines!(axe, trace_x, trace_E, color = PALETTE.blue)
+    hlines!(
+        axe, [-2.0 * J], color = PALETTE.black, linestyle = :dash, linewidth = GUIDE_WIDTH,)
+    vlines!(axe, [sweep_tc], color = PALETTE.red, linestyle = :dot, linewidth = GUIDE_WIDTH)
     text!(axe, sweep_tc, -0.35; text = L" $T_\mathrm{c}$", align = (:left, :center),
-        fontsize = 15, color = PALETTE.red,)
+        fontsize = ANNOTATION_SIZE, color = PALETTE.red,)
     xlims!(axe, 0, SWEEPS)
     ylims!(axe, -2.15, -0.25)
 
@@ -270,17 +293,17 @@ function animate_anneal(; every::Int = 20)
         yticklabelcolor = PALETTE.orange, ylabelcolor = PALETTE.orange,
         ytickcolor = PALETTE.orange,)
     hidexdecorations!(axm)
-    lines!(axm, trace_x, trace_m, color = PALETTE.orange, linewidth = 2)
+    lines!(axm, trace_x, trace_m, color = PALETTE.orange)
     xlims!(axm, 0, SWEEPS)
     ylims!(axm, -0.03, 1.08)
 
-    Label(fig[1, 1:2], caption, fontsize = 17, tellwidth = false)
+    Label(fig[1, 1:2], caption, fontsize = 22, tellwidth = false)
     colsize!(fig.layout, 1, Relative(0.42))
     rowgap!(fig.layout, 6)
 
     path = joinpath(FIGURES, "ising_annealing.gif")
     mkpath(FIGURES)
-    record(fig, path, eachindex(frames); framerate = 14) do k
+    record(fig, path, eachindex(frames); framerate = 14, px_per_unit = 1) do k
         T, config, E, m = frames[k]
         lattice[] = config'
         trace_x[] = Float64.(sweeps_at[1:k])
