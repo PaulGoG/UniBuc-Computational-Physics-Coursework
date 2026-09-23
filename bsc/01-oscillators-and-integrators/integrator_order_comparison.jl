@@ -1,17 +1,29 @@
-# Order of convergence of forward Euler against classical Runge-Kutta 4, on a
-# linear scalar initial-value problem whose exact solution is available in
-# closed form.
+# Observed order of convergence of forward Euler and classical Runge–Kutta 4 on
+# two scalar initial-value problems:
 #
-#   y'(x) = 3e^{-x} - 0.4 y,   y(0) = y₀
-#   y(x)  = (y₀ + 5) e^{-0.4x} - 5 e^{-x}
+#   y' = 3e^{-x} - 0.4y,   y(0) = 1,  x ∈ [0, 5]    (RKtrial.cpp)
+#   y' = y + sin(0.4y),    y(0) = 1,  x ∈ [0, 1]    (DiffEqEuler.cpp)
 #
-# Ported from RKtrial.cpp and DiffEqEuler.cpp (2018). Both tableaux in the
-# original were correct, but neither program compared against the exact
-# solution or swept the step size, so the O(h) against O(h⁴) claim the files
-# were written to demonstrate was never actually shown. RKtrial.cpp printed
-# only the endpoint value; DiffEqEuler.cpp used one variable as both the
-# initial abscissa and the length of the integration interval, and never
-# advanced the abscissa at all.
+# The first has the closed-form solution y = (y₀ + 5)e^{-0.4x} - 5e^{-x}. The
+# second has none, so its reference is RK4 in 256-bit arithmetic, checked
+# against itself at half the step count.
+#
+# The order is read from pairs of successive step sizes,
+#
+#   p(h) = ln[e(2h)/e(h)] / ln 2,
+#
+# which tends to the order of the scheme as h → 0 and is meaningful only while
+# e(h) stands clear of accumulated round-off. Each pair carries two error terms:
+# the pre-asymptotic drift |p(h) - p(2h)|, which for p = p₀ + c·h equals the
+# distance still to go, and the round-off term ε/(e ln 2), with ε the round-off
+# floor measured from the sweep itself. A pair is used while the second is below
+# the first; the order quoted is that of the finest such pair, with the sum of
+# the two terms as its uncertainty. A single straight-line fit through the whole
+# sweep mixes the pre-asymptotic points at large h with the floor at small h.
+#
+# Both schemes are coded as in the 2018 C++ sources. Those programs read N and
+# the interval from standard input and printed the endpoint value only; the
+# step-size sweep and the comparison with a reference are added here.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 
@@ -20,18 +32,23 @@ include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 
 const FIGURES = joinpath(@__DIR__, "figures")
 
-"Right-hand side of the linear test problem, from RKtrial.cpp."
-rhs(x, y) = 3 * exp(-x) - 0.4 * y
+"""
+A pairwise order further than this from its predecessor marks the end of the
+power-law regime: the errors from there on are accumulated round-off.
+"""
+const ORDER_BREAKDOWN = 1.0
 
-"""
-Right-hand side of the autonomous nonlinear problem from DiffEqEuler.cpp,
-y' = y + sin(0.4y). It has no closed-form solution, so the reference below is a
-finely resolved RK4 solution rather than an exact one.
-"""
+"Smallest uncertainty quoted for an order; the orders are printed to three decimals."
+const ORDER_RESOLUTION = 1e-3
+
+"Right-hand side of the linear problem of RKtrial.cpp."
+rhs_linear(x, y) = 3 * exp(-x) - 0.4 * y
+
+"Right-hand side of the autonomous nonlinear problem of DiffEqEuler.cpp."
 rhs_nonlinear(x, y) = y + sin(0.4 * y)
 
-"Exact solution of the test problem for the initial value `y₀` at `x = 0`."
-exact(x, y₀) = (y₀ + 5) * exp(-0.4x) - 5 * exp(-x)
+"Exact solution of the linear problem for the initial value `y₀` at `x = 0`."
+exact_linear(x, y₀) = (y₀ + 5) * exp(-0.4x) - 5 * exp(-x)
 
 """
     euler(rhs, x₀, y₀, h, n)
@@ -50,7 +67,7 @@ end
 """
     rk4(rhs, x₀, y₀, h, n)
 
-`n` steps of the classical fourth-order Runge-Kutta method.
+`n` steps of the classical fourth-order Runge–Kutta method.
 """
 function rk4(rhs, x₀, y₀, h, n)
     x, y = x₀, y₀
@@ -66,121 +83,201 @@ function rk4(rhs, x₀, y₀, h, n)
 end
 
 """
-    observed_order(h, error)
+    raw_orders(h, err)
 
-Least-squares slope of log|error| against log h, i.e. the observed order of
-convergence. Points at or below round-off are excluded, since they carry no
-information about the discretisation error.
+Observed order between every pair of successive step sizes,
+`ln(eᵢ/eᵢ₊₁) / ln(hᵢ/hᵢ₊₁)`, with no selection applied.
 """
-function observed_order(h, error)
-    keep = error .> 1e-13
-    lx, ly = log.(h[keep]), log.(error[keep])
-    n = length(lx)
-    return (n * sum(lx .* ly) - sum(lx) * sum(ly)) / (n * sum(abs2, lx) - sum(lx)^2)
+raw_orders(h, err) = [log(err[i] / err[i + 1]) / log(h[i] / h[i + 1])
+                      for i in 1:(length(h) - 1)]
+
+"""
+    roundoff_floor(h, err)
+
+Accumulated round-off of the sweep, measured as the largest error after the
+power law has broken down (`ORDER_BREAKDOWN`). Round-off grows with the step
+count, so this overstates it at the coarser steps the order is read from, which
+makes the quoted uncertainty conservative. Zero if the sweep never reaches the
+floor.
+"""
+function roundoff_floor(h, err)
+    p = raw_orders(h, err)
+    k = findfirst(i -> abs(p[i] - p[i - 1]) > ORDER_BREAKDOWN, 2:length(p))
+    return k === nothing ? 0.0 : maximum(err[(k + 2):end])
+end
+
+"""
+    pairwise_orders(h, err)
+
+Usable pairwise orders: those whose round-off term `ε / (e ln 2)` is below their
+drift `|p(h) - p(2h)|`. Returns the geometric-mean step, the order, the drift
+and the round-off term of each.
+"""
+function pairwise_orders(h, err)
+    p = raw_orders(h, err)
+    ε = roundoff_floor(h, err)
+    h_pair, order, drift, roundoff = Float64[], Float64[], Float64[], Float64[]
+    for i in 2:length(p)
+        δ = abs(p[i] - p[i - 1])
+        r = ε / (err[i + 1] * log(2))
+        (δ < ORDER_BREAKDOWN && r < δ) || (ε > 0 && break)
+        r < δ || continue
+        push!(h_pair, sqrt(h[i] * h[i + 1]))
+        push!(order, p[i])
+        push!(drift, δ)
+        push!(roundoff, r)
+    end
+    return (; h = h_pair, p = order, drift, roundoff)
+end
+
+"""
+    asymptotic_order(orders)
+
+Order at the finest usable pair, with drift plus round-off as its uncertainty.
+Both terms are bounds on a bias, not variances, so they add linearly. Never
+quoted below `ORDER_RESOLUTION`.
+"""
+function asymptotic_order(orders)
+    isempty(orders.p) &&
+        throw(ArgumentError("no pairwise order clears the round-off floor"))
+    return orders.p[end], max(orders.drift[end] + orders.roundoff[end], ORDER_RESOLUTION)
+end
+
+"""
+    high_precision_reference(rhs, x₀, y₀, x_end, n)
+
+RK4 in 256-bit arithmetic at `n` steps, accepted only if it agrees with the
+`n ÷ 2` result to better than 1e-17, which puts its own error (a further factor
+16 smaller) far below double precision.
+"""
+function high_precision_reference(rhs, x₀, y₀, x_end, n)
+    setprecision(BigFloat, 256) do
+        L = big(x_end) - big(x₀)
+        fine = rk4(rhs, big(x₀), big(y₀), L / n, n)
+        coarse = rk4(rhs, big(x₀), big(y₀), 2L / n, n ÷ 2)
+        abs(fine - coarse) < big"1e-17" ||
+            error("high-precision reference not converged: |Δ| = $(Float64(abs(fine - coarse)))")
+        Float64(fine)
+    end
+end
+
+"""
+    sweep(rhs, x₀, y₀, x_end, reference, exponents)
+
+Global error of both schemes at `x_end` for `2^k` steps, `k` in `exponents`.
+"""
+function sweep(rhs, x₀, y₀, x_end, reference, exponents)
+    steps = [2^k for k in exponents]
+    h = (x_end - x₀) ./ steps
+    err_euler = [abs(euler(rhs, x₀, y₀, hᵢ, n) - reference) for (hᵢ, n) in zip(h, steps)]
+    err_rk4 = [abs(rk4(rhs, x₀, y₀, hᵢ, n) - reference) for (hᵢ, n) in zip(h, steps)]
+    return (; h, err_euler, err_rk4)
+end
+
+function report(name, s)
+    println(name)
+    println("       h        Euler error   p      RK4 error    p")
+    p_euler, p_rk4 = raw_orders(s.h, s.err_euler), raw_orders(s.h, s.err_rk4)
+    for i in eachindex(s.h)
+        order(p) = i > 1 ? @sprintf("%6.3f", p[i - 1]) : "     –"
+        @printf("  %.3e    %.3e  %s    %.3e  %s\n",
+            s.h[i], s.err_euler[i], order(p_euler), s.err_rk4[i], order(p_rk4))
+    end
+    for (scheme, err) in (("forward Euler", s.err_euler), ("RK4", s.err_rk4))
+        o = pairwise_orders(s.h, err)
+        @printf("  %-13s round-off floor %.1e; finest usable pair h = %.2e: drift %.4f, round-off %.4f\n",
+            scheme, roundoff_floor(s.h, err), o.h[end], o.drift[end], o.roundoff[end])
+    end
+    p_e, σ_e = asymptotic_order(pairwise_orders(s.h, s.err_euler))
+    p_r, σ_r = asymptotic_order(pairwise_orders(s.h, s.err_rk4))
+    @printf("  order: forward Euler %.3f ± %.3f, RK4 %.3f ± %.3f\n\n", p_e, σ_e, p_r, σ_r)
+    return (p_e, σ_e, p_r, σ_r)
+end
+
+"Draw one problem: the error panel with its guides, and the order strip beneath."
+function draw_problem!(ax, strip, s, orders, equation)
+    p_e, σ_e, p_r, σ_r = orders
+    floor_rk4 = roundoff_floor(s.h, s.err_rk4)
+    band = hspan!(ax, 1e-17, floor_rk4, color = (:grey, 0.15))
+    text!(ax, 0.8, floor_rk4 / 3; text = "Round-off floor",
+        space = :data, align = (:right, :top), fontsize = ANNOTATION_SIZE,
+        color = :grey35,)
+
+    g_e = lines!(ax, s.h, s.err_euler[1] .* (s.h ./ s.h[1]) .^ 1,
+        color = PALETTE.blue, linestyle = :dash, linewidth = GUIDE_WIDTH,)
+    g_r = lines!(ax, s.h, s.err_rk4[1] .* (s.h ./ s.h[1]) .^ 4,
+        color = PALETTE.orange, linestyle = :dash, linewidth = GUIDE_WIDTH,)
+    l_e = scatterlines!(ax, s.h, s.err_euler, color = PALETTE.blue, marker = :circle)
+    l_r = scatterlines!(ax, s.h, s.err_rk4, color = PALETTE.orange, marker = :rect)
+
+    text!(ax, 0.03, 0.97; text = equation, space = :relative, align = (:left, :top),
+        fontsize = ANNOTATION_SIZE,)
+    text!(ax, 0.03, 0.56; text = @sprintf("Euler order %.3f ± %.3f", p_e, σ_e),
+        space = :relative, align = (:left, :bottom), fontsize = ANNOTATION_SIZE,
+        color = PALETTE.blue,)
+    text!(ax, 0.03, 0.48; text = @sprintf("RK4 order %.3f ± %.3f", p_r, σ_r),
+        space = :relative, align = (:left, :bottom), fontsize = ANNOTATION_SIZE,
+        color = PALETTE.orange,)
+
+    hlines!(strip, [1, 4], color = [PALETTE.blue, PALETTE.orange], linestyle = :dash,
+        linewidth = GUIDE_WIDTH,)
+    o_e, o_r = pairwise_orders(s.h, s.err_euler), pairwise_orders(s.h, s.err_rk4)
+    scatterlines!(strip, o_e.h, o_e.p, color = PALETTE.blue, marker = :circle)
+    scatterlines!(strip, o_r.h, o_r.p, color = PALETTE.orange, marker = :rect)
+    errorbars!(strip, o_r.h, o_r.p, o_r.drift .+ o_r.roundoff, color = PALETTE.orange,
+        whiskerwidth = 8,)
+    return (l_e, l_r, g_e, g_r, band)
 end
 
 function main()
-    x₀, y₀, x_end = 0.0, 1.0, 5.0
-    reference = exact(x_end, y₀)
+    linear = sweep(rhs_linear, 0.0, 1.0, 5.0, exact_linear(5.0, 1.0), 3:18)
+    reference = high_precision_reference(rhs_nonlinear, 0.0, 1.0, 1.0, 2^16)
+    nonlinear = sweep(rhs_nonlinear, 0.0, 1.0, 1.0, reference, 3:16)
 
-    steps = [2^k for k in 3:18]
-    h = (x_end - x₀) ./ steps
-    err_euler = [abs(euler(rhs, x₀, y₀, h[i], steps[i]) - reference)
-                 for i in eachindex(steps)]
-    err_rk4 = [abs(rk4(rhs, x₀, y₀, h[i], steps[i]) - reference) for i in eachindex(steps)]
+    @printf("linear problem:    exact y(5) = %.15f\n", exact_linear(5.0, 1.0))
+    @printf("nonlinear problem: reference y(1) = %.15f\n\n", reference)
+    orders_linear = report("y' = 3e^{-x} - 0.4y on [0, 5]", linear)
+    orders_nonlinear = report("y' = y + sin(0.4y) on [0, 1]", nonlinear)
 
-    p_euler = observed_order(h, err_euler)
-    p_rk4 = observed_order(h, err_rk4)
+    # each scheme must reach its nominal order within the quoted uncertainty
+    for (p_e, σ_e, p_r, σ_r) in (orders_linear, orders_nonlinear)
+        @assert abs(p_e - 1) <= 2σ_e "forward Euler order $p_e is not 1 within $(2σ_e)"
+        @assert abs(p_r - 4) <= 2σ_r "RK4 order $p_r is not 4 within $(2σ_r)"
+    end
 
-    # the nonlinear problem of DiffEqEuler.cpp, against a fine RK4 reference
-    x_end_nl, y₀_nl = 1.0, 1.0
-    # the reference is RK4 at 2^18 steps; the sweep stops at 2^10 so that the
-    # RK4 discretisation error stays well above both the reference's own
-    # round-off and the double-precision floor
-    ref_nl = rk4(rhs_nonlinear, 0.0, y₀_nl, x_end_nl / 2^18, 2^18)
-    steps_nl = [2^k for k in 3:10]
-    h_nl = x_end_nl ./ steps_nl
-    err_e_nl = [abs(euler(rhs_nonlinear, 0.0, y₀_nl, h_nl[i], steps_nl[i]) - ref_nl)
-                for i in eachindex(steps_nl)]
-    err_r_nl = [abs(rk4(rhs_nonlinear, 0.0, y₀_nl, h_nl[i], steps_nl[i]) - ref_nl)
-                for i in eachindex(steps_nl)]
-    p_euler_nl = observed_order(h_nl, err_e_nl)
-    p_rk4_nl = observed_order(h_nl, err_r_nl)
-    @printf("nonlinear y' = y + sin(0.4y): reference y(%.1f) = %.10f\n", x_end_nl, ref_nl)
-    @printf("  observed order, forward Euler = %.3f\n", p_euler_nl)
-    @printf("  observed order, RK4           = %.3f\n", p_rk4_nl)
-    @printf("exact y(%.1f) = %.12f\n", x_end, reference)
-    @printf("observed order, forward Euler = %.3f  (expected 1)\n", p_euler)
-    @printf("observed order, RK4           = %.3f  (expected 4)\n", p_rk4)
-
-    fig = Figure(size = (1080, 560))
-
-    # Both problems are drawn: the linear one, whose exact solution bounds the
-    # error from below only at round-off, and the nonlinear one of
-    # DiffEqEuler.cpp, measured against a fine RK4 reference.
-    ax = Axis(fig[2, 1],
-        xlabel = L"Step size $h$",
-        ylabel = L"Global error $|y_N - y(x_\mathrm{end})|$",
-        xscale = log10, yscale = log10,
+    fig = Figure(size = (1200, 880))
+    error_label = L"Global error $|y_N - y(x_\mathrm{end})|$"
+    ax_l = Axis(fig[2, 1], ylabel = error_label, xscale = log10, yscale = log10,
         xticks = logticks(-4, 0), yticks = logticks(-15, 0; step = 5),)
+    ax_n = Axis(fig[2, 2], xscale = log10, yscale = log10,
+        xticks = logticks(-4, 0), yticks = logticks(-15, 0; step = 5),)
+    strip_l = Axis(fig[3, 1], xlabel = L"Step size $h$", ylabel = L"Order $p(h)$",
+        xscale = log10, xticks = logticks(-4, 0), yticks = 1:4,)
+    strip_n = Axis(fig[3, 2], xlabel = L"Step size $h$",
+        xscale = log10, xticks = logticks(-4, 0), yticks = 1:4,)
 
-    l_e = scatterlines!(ax, h, err_euler, color = PALETTE.blue,
-        linewidth = 1.4, markersize = MARKERSIZE.dense,)
-    l_r = scatterlines!(ax, h, err_rk4, color = PALETTE.orange,
-        linewidth = 1.4, markersize = MARKERSIZE.dense, marker = :rect,)
+    handles = draw_problem!(ax_l, strip_l, linear, orders_linear,
+        L"y' = 3e^{-x} - 0.4y",)
+    draw_problem!(ax_n, strip_n, nonlinear, orders_nonlinear, L"y' = y + \sin(0.4y)")
 
-    # guide lines anchored on the coarsest step
-    guide_e = err_euler[1] .* (h ./ h[1]) .^ 1
-    guide_r = err_rk4[1] .* (h ./ h[1]) .^ 4
-    g_e = lines!(ax, h, guide_e, color = PALETTE.blue, linestyle = :dash, linewidth = 1.0)
-    g_r = lines!(ax, h, guide_r, color = PALETTE.orange, linestyle = :dash, linewidth = 1.0)
+    linkxaxes!(ax_l, strip_l, ax_n, strip_n)
+    linkyaxes!(ax_l, ax_n)
+    linkyaxes!(strip_l, strip_n)
+    xlims!(ax_l, 1.2e-5, 1.3)
+    ylims!(ax_l, 1e-17, 5.0)
+    ylims!(strip_l, 0.4, 4.8)
+    hidexdecorations!(ax_l, grid = false, ticks = false)
+    hidexdecorations!(ax_n, grid = false, ticks = false)
+    hideydecorations!(ax_n, grid = false, ticks = false)
+    hideydecorations!(strip_n, grid = false, ticks = false)
 
-    ylims!(ax, 1e-17, 5.0)
+    l_e, l_r, g_e, g_r, _ = handles
+    Legend(fig[1, 1:2], [[l_e, l_r], [g_e, g_r]],
+        [["Forward Euler", "RK4"], [L"\mathcal{O}(h)", L"\mathcal{O}(h^4)"]],
+        ["Global error", "Guides"]; titleposition = :left, nbanks = 1,
+        titlesize = 22, titlegap = 14, groupgap = 40,)
 
-    text!(ax, 0.97, 0.04;
-        text = L"RK4 reaches round-off near $h \approx 10^{-3}$",
-        space = :relative, align = (:right, :bottom),
-        color = PALETTE.orange, fontsize = 15,)
-    text!(ax, 0.04, 0.96;
-        text = rich("Linear: ", it("y"), "′ = 3", it("e"),
-            superscript(rich("−x", font = :italic)), " − 0.4", it("y"),
-            ", against the exact solution",),
-        space = :relative, align = (:left, :top),
-        color = PALETTE.black, fontsize = 15,)
-
-    ax_nl = Axis(fig[2, 2],
-        xlabel = L"Step size $h$", ylabel = "",
-        xscale = log10, yscale = log10,
-        xticks = logticks(-3, 0), yticks = logticks(-15, 0; step = 5),)
-    scatterlines!(ax_nl, h_nl, err_e_nl, color = PALETTE.blue,
-        linewidth = 1.4, markersize = MARKERSIZE.dense,)
-    scatterlines!(ax_nl, h_nl, err_r_nl, color = PALETTE.orange,
-        linewidth = 1.4, markersize = MARKERSIZE.dense, marker = :rect,)
-    lines!(ax_nl, h_nl, err_e_nl[1] .* (h_nl ./ h_nl[1]) .^ 1,
-        color = PALETTE.blue, linestyle = :dash, linewidth = 1.0,)
-    lines!(ax_nl, h_nl, err_r_nl[1] .* (h_nl ./ h_nl[1]) .^ 4,
-        color = PALETTE.orange, linestyle = :dash, linewidth = 1.0,)
-    ylims!(ax_nl, 1e-17, 5.0)
-    hideydecorations!(ax_nl, grid = false)
-    text!(ax_nl, 0.04, 0.96;
-        text = rich("Nonlinear: ", it("y"), "′ = ", it("y"), " + sin(0.4", it("y"), ")",
-            ", against a fine RK4 reference",),
-        space = :relative, align = (:left, :top),
-        color = PALETTE.black, fontsize = 15,)
-
-    Legend(fig[1, 1:2],
-        [l_e, l_r, g_e, g_r],
-        [
-            latexstring(@sprintf("\\text{Forward Euler, slope } %.2f \\text{ and } %.2f",
-                p_euler, p_euler_nl)),
-            latexstring(@sprintf("\\text{RK4, slope } %.2f \\text{ and } %.2f",
-                p_rk4, p_rk4_nl)),
-            L"$\mathcal{O}(h)$ guide", L"$\mathcal{O}(h^4)$ guide",],
-        orientation = :horizontal, framevisible = false, nbanks = 2,
-        labelsize = 17, colgap = 20,)
-
-    rowsize!(fig.layout, 2, Relative(0.84))
-    colgap!(fig.layout, 14)
+    rowsize!(fig.layout, 3, Auto(0.32))
     path = savefigure(fig, FIGURES, "integrator_order_comparison")
     println("wrote ", path)
 end
