@@ -7,7 +7,7 @@ goniometer readings.
 
 ![Cardinal elements](figures/paraxial_systems.png)
 
-Ray-transfer analysis of two classical designs, ported from `Erlfe.m` and
+Ray-transfer analysis of two classical designs, ported from `Erfle.m` and
 `Tessar.m` in `Code_Archive/Optics/` on the `legacy` branch. The ray state is
 `[n·u ; y]` and the system matrix is accumulated from the last surface
 backwards.

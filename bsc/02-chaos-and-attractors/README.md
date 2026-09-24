@@ -3,8 +3,8 @@
 The Lorenz and Rössler systems integrated with RK4, their largest Lyapunov
 exponent from the divergence of neighbouring trajectories, and the
 extremum-interval statistic of the separation that the 2018 program computed.
-Ported from `Integratori.cpp`, `Atractori.cpp` and `helpers.cpp` in
-`Code_Archive/Old_2018/C_C++/AtractorI/` on the `legacy` branch, with the Octave
+Ported from `Integrators.cpp`, `Attractors.cpp` and `helpers.cpp` in
+`Code_Archive/Old_2018/C_C++/Attractors/` on the `legacy` branch, with the Octave
 post-processing of `Code_Archive/Old_2018/Octave/`. `attractors_core.jl` holds
 the vector fields, parameters and the RK4 step both scripts share.
 
@@ -71,6 +71,6 @@ Compiled with local paths and run with the inputs above, it does produce
 whatever its 2018 runs printed, the design does not condemn them to zeros.
 `Test.m` reads `DistantaLorentz.txt`, `TimpiUCLorentz.txt` and
 `DateExtreme.txt`, which no program in the archive writes, with histogram edges
-`0:0.05:0.8` that match the intervals above; `AtractorDistributie.m` seeds a
+`0:0.05:0.8` that match the intervals above; `Attractor_distribution.m` seeds a
 six-parameter fit from `rand` and does not check its convergence flag. Neither
 is ported.

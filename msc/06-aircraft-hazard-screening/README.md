@@ -5,7 +5,7 @@
 Annual frequency of an aircraft crash onto an installation of radius R sited a
 perpendicular distance y₀ from a straight air route, against the 10⁻⁵ and
 10⁻⁷ yr⁻¹ screening levels. Not a course assignment: a Poisson risk exercise
-I wrote in late 2023, ported from `Frecventa_accident_aviatic.jl` in
+I wrote in late 2023, ported from `Aircraft_crash_frequency.jl` in
 `Julia-Workflow-FFUB/Single_Files/` on the `legacy` branch. The input values
 are the original's — P = 10⁻⁹ km⁻¹, N = 7 × 10⁴ yr⁻¹, g = 0.23 km⁻¹, R = 50 m,
 y₀ from 5 to 50 km, a route leg x₀ = 200 km — and their sources are not

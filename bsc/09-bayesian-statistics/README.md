@@ -18,7 +18,7 @@ posterior mean along the sequence for the rest.
 
 ![Posterior evolution](figures/bayesian_coin_updating.gif)
 
-Ported from `Statis.jl` in `Julia-Workflow-FFUB/Statistics_symul_L_4/` on the
+Ported from `Statistics.jl` in `Julia-Workflow-FFUB/Statistics_Simulation_L_4/` on the
 `legacy` branch, whose statistics were right. Its animation was 1001 frames at
 1280 × 900, 14.6 MB; the one here shows every tenth toss. The credible
 interval and its scaling are not in the original.

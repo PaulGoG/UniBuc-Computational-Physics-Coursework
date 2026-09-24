@@ -4,7 +4,7 @@ Three problems from the fourth-year numerical-methods examination: a scalar
 initial-value problem without a unique solution, the focusing nonlinear
 Schrödinger equation by the method of lines, and a two-variable linear
 program. The originals are `ODE_RK4.jl`, `ODE_system_RK4.jl` and
-`SolitonicEq_MOL.jl` in `Julia-Workflow-FFUB/Examen_PDF_MN_II_L_4/` and
+`SolitonicEq_MOL.jl` in `Julia-Workflow-FFUB/Numerical_Methods_II_Exam_L_4/` and
 `MaximizeLinearSystemEq.jl` in `Julia-Workflow-FFUB/Single_Files/` on the
 `legacy` branch.
 

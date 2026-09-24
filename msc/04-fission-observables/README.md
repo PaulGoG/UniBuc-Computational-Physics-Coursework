@@ -3,8 +3,8 @@
 Neutron-induced fission of ²³⁵U at thermal energy, from a Y(A_H, Z_H, TKE)
 matrix, the AME2020 masses, the FRDM ground-state deformations, the
 Gilbert–Cameron shell corrections, and four measured ν(A) and four measured
-neutron-spectrum sets. Ported from `Fisiune_1.jl` to `Fisiune_5.jl` in
-`Julia-Workflow-FFUB/Fisiune_M_2/` on the `legacy` branch. `fission_data.jl`
+neutron-spectrum sets. Ported from `Fission_1.jl` to `Fission_5.jl` in
+`Julia-Workflow-FFUB/Fission_M_2/` on the `legacy` branch. `fission_data.jl`
 reads every table once into typed containers; `fission_core.jl` holds the
 compound system, the isobaric charge distribution, Q values and separation
 energies from the mass table, the reduction of the yield matrix to its
@@ -60,7 +60,7 @@ asserted; the single-fragment energies follow from momentum conservation,
 KE_L = TKE·A_H/A₀. The mass-excess uncertainties behind Q are not carried into
 the totals; they are at most 0.09 MeV per mass.
 
-`Fisiune_2.jl` summed Y(N) over all rows with a given N inside the double
+`Fission_2.jl` summed Y(N) over all rows with a given N inside the double
 loop over (A_H, Z_H), once per pair mapping to that N: its total came to
 805 % instead of 100 % and its peak moved from N = 87 to 86, reproduced by the
 script. Three of its uncertainty accumulations added linearly where the
@@ -79,14 +79,14 @@ N(E) = 1/(3√(E_f T_m)) [u₂^{3/2} E₁(u₂) − u₁^{3/2} E₁(u₁) + γ(3
 u₁,₂ = (√E ∓ √E_f)² / T_m,
 ```
 
-averaged over the mass yield as `Fisiune_4.jl` did: per heavy-fragment mass,
+averaged over the mass yield as `Fission_4.jl` did: per heavy-fragment mass,
 TXE = Q(A, Z_p) + S_n − ⟨TKE⟩(A) at the single most probable charge,
 T_m = √(C·TXE/A₀) with C = 10 MeV as in that file, E_f per nucleon from
 momentum conservation, the light- and heavy-fragment spectra averaged and
 weighted by Y(A) over 41 masses. T_m spans 0.94–1.37 MeV and E_f 0.31–1.27 MeV.
 
 The closed form integrates to one over [0, ∞) for every E_f and T_m, which the
-script asserts for each fragment to 10⁻⁹. `Fisiune_4.jl` wrote the prefactor
+script asserts for each fragment to 10⁻⁹. `Fission_4.jl` wrote the prefactor
 as `(1/3*sqrt(E_F*T_MAX))`, which Julia parses as (1/3)√(E_f T_m): its
 spectrum integrates to E_f T_m, between 0.31 and 1.33 across the fragments,
 so the error reweights the mass average rather than cancelling under the
@@ -108,7 +108,7 @@ The window matters: a Maxwellian normalised over all energies compared with
 the Göök laboratory spectrum, which holds 84 % of it, offsets the whole ratio
 by a fifth and returns T_M = 1.322 MeV at χ²/ν = 55. The centre-of-mass sets
 sit well below the laboratory ones, as removing the fragment motion requires,
-and are counting-limited above about 6 MeV. `Fisiune_5.jl` divided χ² by N
+and are counting-limited above about 6 MeV. `Fission_5.jl` divided χ² by N
 rather than ν, a convention, and bounded its optimiser at T_M = 0, where
 T_M^{−3/2} is infinite; both files re-integrated E₁, γ(3/2, x) and the window
 integral by quadrature at every evaluation.
@@ -117,7 +117,7 @@ integral by quadrature at every evaluation.
 
 ![Neutron multiplicity](figures/neutron_multiplicity.png)
 
-ν(A) from the energy balance of `Fisiune_3.jl`,
+ν(A) from the energy balance of `Fission_3.jl`,
 
 ```
 ν_pair = (TXE − q) / (⟨ε⟩ + ⟨S_n⟩ + p),   ⟨ε⟩ = 4T_m/3,   T_m = √(TXE/(a_L + a_H)),
@@ -127,7 +127,7 @@ p = 6.71 − 0.156 Z₀²/A₀ = 1.115 MeV,     q = 0.75 + 0.088 Z₀²/A₀ = 3
 with the Gilbert–Cameron level-density parameter a = A[0.00917 (S_Z + S_N) +
 0.142] (Can. J. Phys. **43**, 1446 (1965), doi:10.1139/p65-139). The pair
 multiplicity is split by the heavy fragment's share R of the excitation
-energy. `Fisiune_3.jl` takes R from the scission-point deformation: each
+energy. `Fission_3.jl` takes R from the scission-point deformation: each
 fragment pays the liquid-drop energy of deforming from its FRDM ground-state
 β₂ to a scission β(Z), piecewise linear through (28, 0), (41, 0.58),
 (44, 0.58), (50, 0) and (65, 0.6), and the remainder is shared in the ratio of
@@ -162,7 +162,7 @@ balance does not account for it. The script asserts that β(Z) vanishes at the
 closed shells Z = 28 and 50, that 0 < R < 1 for every split, and that
 ν_H + ν_L = ν_pair at every mass.
 
-`Fisiune_3.jl` bounded its charge loop by the index column of the
+`Fission_3.jl` bounded its charge loop by the index column of the
 Gilbert–Cameron table, 11 to 150; charges far from Z_p enter with a Gaussian
 weight below 10⁻⁵ beyond |Z − Z_p| = 3, so the bound cost time, not results.
 Its `Energie_separare` returned `[S, σ]` on success and a bare `NaN` on
@@ -187,8 +187,8 @@ compound-nucleus cross-section (C = 11 MeV with an optical-model one).
 | File | Content | Source |
 |---|---|---|
 | `Yield/U5YAZTKE.STR` | Y(A_H, Z_H, TKE) [%] and its error, 20 705 rows, five charges per (A_H, TKE) cell | Header `5Z/A Y(A,TKE) Straede`: the Y(A, TKE) of Straede, Budtz-Jørgensen and Knitter, Nucl. Phys. A **462**, 85 (1987), doi:10.1016/0375-9474(87)90381-2 (EXFOR 23591), with a charge split imposed on it for the course: a Gaussian isobaric distribution about Z_p(A) with the polarisation ΔZ(A) and width of Wahl's Z_p model (At. Data Nucl. Data Tables **39**, 1 (1988), doi:10.1016/0092-640X(88)90016-2), five charges per mass; the digitisation of the measurement is not recorded |
-| `Date_experimentale/Multiplicitate_n/U5NUA*.DAT` | ν(A) and its error per fragment mass | Göök, Hambsch, Oberstedt and Vidali, Phys. Rev. C **98**, 044615 (2018), doi:10.1103/PhysRevC.98.044615; Maslin, Rodgers and Core, Phys. Rev. **164**, 1520 (1967), doi:10.1103/PhysRev.164.1520; Nishio, Nakagome, Yamamoto and Kimura, Nucl. Phys. A **632**, 540 (1998), doi:10.1016/S0375-9474(98)00008-6; Vorobyev et al., EPJ Web Conf. **8**, 03004 (2010), doi:10.1051/epjconf/20100803004. The files carry the first author's name only; the digitisation is not recorded |
-| `Date_experimentale/Spectru_n/U5SP*.DAT` | Neutron spectra with errors: Göök laboratory frame, Göök centre of mass for the light and heavy fragment, Vorobyev laboratory frame | The Göök sets from the measurement of Phys. Rev. C **98**, 044615 (2018); the Vorobyev set from the same group's ²³⁵U measurements (EPJ Web Conf. **8**, 03004 (2010) describes them); the exact publication and digitisation are not recorded in the files |
-| `Defecte_masa/AUDI2021.csv`, `AUDI95.csv` | AME2020 and AME1995 mass excesses | As in `msc/03-radionuclides`, byte-identical copies |
-| `Parametrizari_auxiliare/B2MOLLER.ANA` | Z, A, ground-state β₂ | FRDM, Möller, Nix, Myers and Swiatecki, At. Data Nucl. Data Tables **59**, 185 (1995), doi:10.1006/adnd.1995.1002, via `moller.dat` of RIPL-1 as the header says |
-| `Parametrizari_auxiliare/SZSN.GC` | Nucleon number, shell corrections S(N) and S(Z) [MeV] | Gilbert and Cameron, Can. J. Phys. **43**, 1446 (1965), doi:10.1139/p65-139; the extraction is not recorded |
+| `Experimental/Neutron_multiplicity/U5NUA*.DAT` | ν(A) and its error per fragment mass | Göök, Hambsch, Oberstedt and Vidali, Phys. Rev. C **98**, 044615 (2018), doi:10.1103/PhysRevC.98.044615; Maslin, Rodgers and Core, Phys. Rev. **164**, 1520 (1967), doi:10.1103/PhysRev.164.1520; Nishio, Nakagome, Yamamoto and Kimura, Nucl. Phys. A **632**, 540 (1998), doi:10.1016/S0375-9474(98)00008-6; Vorobyev et al., EPJ Web Conf. **8**, 03004 (2010), doi:10.1051/epjconf/20100803004. The files carry the first author's name only; the digitisation is not recorded |
+| `Experimental/Neutron_spectrum/U5SP*.DAT` | Neutron spectra with errors: Göök laboratory frame, Göök centre of mass for the light and heavy fragment, Vorobyev laboratory frame | The Göök sets from the measurement of Phys. Rev. C **98**, 044615 (2018); the Vorobyev set from the same group's ²³⁵U measurements (EPJ Web Conf. **8**, 03004 (2010) describes them); the exact publication and digitisation are not recorded in the files |
+| `Mass_defects/AUDI2021.csv`, `AUDI95.csv` | AME2020 and AME1995 mass excesses | As in `msc/03-radionuclides`, byte-identical copies |
+| `Auxiliary_parametrisations/B2MOLLER.ANA` | Z, A, ground-state β₂ | FRDM, Möller, Nix, Myers and Swiatecki, At. Data Nucl. Data Tables **59**, 185 (1995), doi:10.1006/adnd.1995.1002, via `moller.dat` of RIPL-1 as the header says |
+| `Auxiliary_parametrisations/SZSN.GC` | Nucleon number, shell corrections S(N) and S(Z) [MeV] | Gilbert and Cameron, Can. J. Phys. **43**, 1446 (1965), doi:10.1139/p65-139; the extraction is not recorded |

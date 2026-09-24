@@ -71,11 +71,11 @@ swings; at the 0.002 s step used elsewhere the two are indistinguishable, which
 is why the defect went unnoticed.
 
 Middle, the full pendulum `θ̈ = -(g/L) sin θ` against the small-angle
-approximation from θ₀ = 2.5 rad, with the g/L = 9.8 s⁻² of `Pendul_simplu.m`
+approximation from θ₀ = 2.5 rad, with the g/L = 9.8 s⁻² of `Simple_pendulum.m`
 (L = 1 m, g = 9.8 m s⁻²). The measured period, 3.2976 s, is asserted against
 the closed form 4K(k²)/ω₀ with k = sin(θ₀/2), 3.2976 s, to 10⁻⁶; the
 small-angle period is 2.0071 s, and the two solutions drift up to 4.9 rad apart
-within twelve seconds. `Pendul_simplu.m` is headed "pendulul matematic" but
+within twelve seconds. `Simple_pendulum.m` is headed "pendulul matematic" but
 integrates the linearised equation.
 
 Right, the Poincaré section of the driven damped pendulum at the chaotic
@@ -122,7 +122,7 @@ against the closed form: largest errors 1.9 × 10⁻⁴, 6.2 × 10⁻⁴ and 6.4
 where y₁ and y₂ reach −3000 and y₃ stays within ±8. A sweep from 25 to 800
 steps gives order 3.997 between the two finest, asserted within 0.05.
 
-The tableau of `Sys_ODE_RK4.m` is correct. The problems are structural: an
+The tableau of `ODE_system_RK4.m` is correct. The problems are structural: an
 orientation check `m = size(alpha); if m==1 ...` where `size` returns `[1 3]`,
 so the condition is `[1 0]` and — since `if` requires every element non-zero —
 the transpose never fires; the routine works because assigning a row into

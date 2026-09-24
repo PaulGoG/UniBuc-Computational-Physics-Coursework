@@ -26,7 +26,7 @@ width by 2.6 MeV. The resonance parameters are those of the original file,
 round numbers by the resonances' names; their measured values and
 uncertainties are not used here.
 
-Ported from `Breit_Wigner.jl` in `Julia-Workflow-FFUB/FPECA_M_2/` on the
+Ported from `Breit_Wigner.jl` in `Julia-Workflow-FFUB/Nuclear_Particle_Physics_M_2/` on the
 `legacy` branch. The physics there was right; the full width at half maximum
 was located by scanning for samples satisfying
 `minimum(y)*0.005 >= abs(maximum(y)/2 - i)`, an absolute tolerance keyed to
@@ -57,7 +57,7 @@ asymmetry of 1/s. The result is consistent with Planck 2018, 67.4 ± 0.5
 velocities, 745, 936 and 2827 km s⁻¹, compare with the NED heliocentric
 values 727, 897 and 2820 km s⁻¹ (https://ned.ipac.caltech.edu).
 
-Ported from `Hubble.jl` in `Julia-Workflow-FFUB/FPECA_M_2/` on the `legacy`
+Ported from `Hubble.jl` in `Julia-Workflow-FFUB/Nuclear_Particle_Physics_M_2/` on the `legacy`
 branch. Two corrections:
 
 - **a one-character typo.** `Suma_σ² =+ σ_z[i]^2` parses as

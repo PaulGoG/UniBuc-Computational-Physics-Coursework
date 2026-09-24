@@ -1,6 +1,6 @@
 # Radionuclides and nuclear masses — MSc year 1 (2021–2022)
 
-Seven scripts of the course, ported from `Julia-Workflow-FFUB/Radionuclizi_M_1/`
+Seven scripts of the course, ported from `Julia-Workflow-FFUB/Radionuclides_M_1/`
 on the `legacy` branch and reduced to four on a shared indexed mass table.
 Every script asserts something: a subset relation between the two mass
 evaluations, an algebraic identity between two pairing indicators, and the
@@ -13,7 +13,7 @@ into `Dict`s keyed on (Z, A), and provides the binding and separation energies
 built on them. The originals accessed the tables with expressions of the form
 `df.D[(df.A .== A) .& (df.Z .== Z)][1]`, a full boolean scan of a 3000-row
 table executed several times per nuclide inside a double loop over all
-nuclides; `Radionuclizi_3.jl` made of order 2 × 10⁹ such comparisons through a
+nuclides; `Radionuclides_3.jl` made of order 2 × 10⁹ such comparisons through a
 non-`const` global.
 
 ## `binding_and_separation.jl`
@@ -33,7 +33,7 @@ original's existence check silently rested.
 ![Pairing and shell corrections](figures/pairing_and_shell_corrections.png)
 
 **Pairing.** Two indicators from the separation energies of neighbouring
-nuclides, both offered by `Radionuclizi_3.jl`: the three-point form in S,
+nuclides, both offered by `Radionuclides_3.jl`: the three-point form in S,
 ¼|S(A+1) − 2S(A) + S(A−1)|, and the two-point form |S(A) − S(A−1)|. With
 S(A) = B(A) − B(A−1) the two-point form is the second difference of the binding
 energy, |B(A) − 2B(A−1) + B(A−2)| = 2Δ⁽³⁾, which the script asserts to 10⁻¹⁰;
@@ -58,7 +58,7 @@ against an unsorted A, as a scribble.
 `W_LDM = a_v A − a_s A^{2/3} − a_c Z² A^{−1/3} − A (a_sym − a_ss A^{−1/3}) I²`,
 and δW = δW₀ + ½P_a with `P_a = ½[Δ(Z+1, A+2) − 2Δ(Z, A) + Δ(Z−1, A−2)]` on the
 mass excesses, for every AME1995 nuclide whose two P_a neighbours exist, 2796
-of them — the analysis of `Radionuclizi_5.jl` as written. P_a is a pairing
+of them — the analysis of `Radionuclides_5.jl` as written. P_a is a pairing
 quantity: its median is +2.30 MeV for even–even nuclei, −2.17 MeV for odd–odd
 and within 0.2 MeV of zero for odd A, so ½P_a removes the pairing part of
 W_exp before the comparison with a formula that carries none. Against the FRDM
@@ -73,7 +73,7 @@ of von Egidy and Bucurescu subtracts from the measured masses to define its
 shell correction (Phys. Rev. C **72**, 044311 (2005),
 doi:10.1103/PhysRevC.72.044311, Eq. (9)), taken there from Pearson's fit
 (Hyperfine Interact. **132**, 59 (2001), doi:10.1023/A:1011973100463).
-`Radionuclizi_5.jl` named Pearson without the reference; the use made of the
+`Radionuclides_5.jl` named Pearson without the reference; the use made of the
 set here, δW₀ = W_LDM − W_exp, is the same as in that systematics.
 
 ## `decay_and_activation.jl`
@@ -90,15 +90,15 @@ schedule of the original, τ = 5 T½ = 674 s of irradiation alternating with an
 equal pause, the ²⁸Al activity ends the first irradiation at exactly 1 − 2⁻⁵ =
 96.9 % of saturation, asserted, and settles at 97.0 %.
 
-`Radionuclizi_4_1.jl` built its time axis from `max(T½₁, T½₂)`, the ²³⁸U
+`Radionuclides_4_1.jl` built its time axis from `max(T½₁, T½₂)`, the ²³⁸U
 half-life of 4.468 Gyr, giving a step of 4.5 × 10⁸ yr for a transient that
 peaks at 2.4 yr: the whole interesting region, the vertical marker and the
 printed `t_m/T_scalare = 0.0` collapsed onto x = 0. A logarithmic time axis
-shows both scales. `Radionuclizi_4_2.jl` gave ²⁸Al a half-life of `2.3*60` s
+shows both scales. `Radionuclides_4_2.jl` gave ²⁸Al a half-life of `2.3*60` s
 against the evaluated 134.7 s, 2.4 % straight into λ, and interpolated a
 `LaTeXString` into a filename.
 
-`Radionuclizi_2_2.jl`, an interactive console tool for a single separation
+`Radionuclides_2_2.jl`, an interactive console tool for a single separation
 energy, is not ported; `separation_energy` in `mass_tables.jl` covers it.
 
 ## Data
@@ -107,8 +107,8 @@ energy, is not ported; `separation_energy` in `mass_tables.jl` covers it.
 |---|---|---|
 | `AUDI95.csv` | Z, A, symbol, mass excess and uncertainty [keV], 2931 nuclides | AME1995, Audi and Wapstra, Nucl. Phys. A **595**, 409 (1995), doi:10.1016/0375-9474(95)00445-9; the extraction is not recorded |
 | `AUDI2021.csv` | the same layout, 3558 nuclides | AME2020, Wang et al., Chin. Phys. C **45**, 030003 (2021), doi:10.1088/1674-1137/abddaf; the mass excesses carry single-precision rounding (8071.31787 for the neutron's 8071.31806 keV), so the file passed through a `Float32` at extraction, which is not recorded |
-| `MOLLER.csv` | Z, A, microscopic correction [MeV], 8983 nuclides | E_mic of the FRDM, Möller, Nix, Myers and Swiatecki, At. Data Nucl. Data Tables **59**, 185 (1995), doi:10.1006/adnd.1995.1002; the same 8983-nuclide set as the RIPL-1 extract `msc/04-fission-observables/data/Parametrizari_auxiliare/B2MOLLER.ANA`, whose header names `moller.dat` of RIPL-1 as its origin. The file is the only one in the archive with CRLF line endings |
+| `MOLLER.csv` | Z, A, microscopic correction [MeV], 8983 nuclides | E_mic of the FRDM, Möller, Nix, Myers and Swiatecki, At. Data Nucl. Data Tables **59**, 185 (1995), doi:10.1006/adnd.1995.1002; the same 8983-nuclide set as the RIPL-1 extract `msc/04-fission-observables/data/Auxiliary_parametrisations/B2MOLLER.ANA`, whose header names `moller.dat` of RIPL-1 as its origin. The file is the only one in the archive with CRLF line endings |
 
 The two AME files are byte-identical copies of those in
-`msc/04-fission-observables/data/Defecte_masa/`; each module reads its own so
+`msc/04-fission-observables/data/Mass_defects/`; each module reads its own so
 that it runs on its own.

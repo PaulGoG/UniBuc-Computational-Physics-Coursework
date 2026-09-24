@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/PaulGoG/UniBuc-Computational-Physics-Coursework/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/PaulGoG/UniBuc-Computational-Physics-Coursework/actions/workflows/CI.yml?query=branch%3Amain)
 
+`computational-physics` `numerical-methods` `nuclear-physics` `cosmology` `julia` `physics` `coursework` `university-of-bucharest`
+
 Computational physics written during my studies at the Faculty of Physics,
 University of Bucharest — BSc 2017–2021, MSc 2021–2023. Originally C, C++,
 Octave and Julia; rewritten here in Julia, organised by degree and in
@@ -100,18 +102,18 @@ changed results:
 
 | Where | Defect |
 |---|---|
-| `OscilatorArmonique/Amortizat/Fortat.cpp`, `AtractorI/helpers.cpp` | an `ifstream` opened on a file that an unflushed `ofstream` was still writing; a failed extraction zeroes its target since C++11, so the tail of every separation and extremum series was zero, and all of it for a run whose output fits one stream buffer. Compiled with its paths repaired, the attractor program does print non-zero distances, so the design condemned the tails, not necessarily every run |
-| `Runge_Kutta_4_pendul_dampat_fortat.m` | the θ-stages used the ω-slopes, making the scheme **first-order, not fourth**. Measured order: 1.005 against 3.996 |
-| `IsingFinal.cpp` | rows allocated `n+2` wide, columns only `n`, while indexing `a[i][n+1]` — a heap overflow; ghost cells never refreshed; every bond double-counted, so Metropolis ran at effective temperature **T/2**; cooling per flip rather than per sweep |
-| `Fisiune_4.jl` | Madland–Nix prefactor written `(1/3*sqrt(E_F*T_MAX))`, which multiplies by √(E_f T_m) where the model divides by it; each fragment's spectrum then integrates to E_f T_m instead of one, reweighting the mass average by 4.8 % in ⟨E⟩ |
-| `Fisiune_2.jl` | Y(N) summed inside the (A,Z) loop over a quantity depending only on N: **805 % total yield instead of 100 %** |
-| `Frecventa_accident_aviatic.jl` | two crash-frequency estimators, neither of them an areal density, differing by one power of length — **neither was a frequency**, yet both were screened against per-year thresholds |
+| `Harmonic_oscillator.cpp`, `Damped_oscillator.cpp`, `Forced_oscillator.cpp`, `Attractors/helpers.cpp` | an `ifstream` opened on a file that an unflushed `ofstream` was still writing; a failed extraction zeroes its target since C++11, so the tail of every separation and extremum series was zero, and all of it for a run whose output fits one stream buffer. Compiled with its paths repaired, the attractor program does print non-zero distances, so the design condemned the tails, not necessarily every run |
+| `RK4_damped_forced_pendulum.m` | the θ-stages used the ω-slopes, making the scheme **first-order, not fourth**. Measured order: 1.005 against 3.996 |
+| `Ising_model.cpp` | rows allocated `n+2` wide, columns only `n`, while indexing `a[i][n+1]` — a heap overflow; ghost cells never refreshed; every bond double-counted, so Metropolis ran at effective temperature **T/2**; cooling per flip rather than per sweep |
+| `Fission_4.jl` | Madland–Nix prefactor written `(1/3*sqrt(E_F*T_MAX))`, which multiplies by √(E_f T_m) where the model divides by it; each fragment's spectrum then integrates to E_f T_m instead of one, reweighting the mass average by 4.8 % in ⟨E⟩ |
+| `Fission_2.jl` | Y(N) summed inside the (A,Z) loop over a quantity depending only on N: **805 % total yield instead of 100 %** |
+| `Aircraft_crash_frequency.jl` | two crash-frequency estimators, neither of them an areal density, differing by one power of length — **neither was a frequency**, yet both were screened against per-year thresholds |
 | `Hubble.jl` | `Suma_σ² =+ σ_z[i]^2` parses as an assignment, not `+=`, so every averaged uncertainty kept only its last term |
-| `EfectulCompton.cpp` | scattering angle sampled uniformly in θ — neither Klein–Nishina nor isotropic, which is uniform in cos θ |
-| `Dez_U_28.m` | the ²³⁸U half-life used as the mean lifetime |
-| `Spatiul_FazelorEcDiff.cpp` | `EulerImplicit` advances both components from old values — it is explicit Euler, and the misnomer had spread into six output filenames |
-| `Radionuclizi_4_1.jl` | Bateman time grid stepping in units of 450 Myr for a transient peaking at 2.4 years, collapsing the whole figure onto x = 0 |
-| `Calibrare_Hg.jl` | 5789.66 Å listed where no Hg I line exists; the yellow doublet member is 5769.60 Å |
+| `Compton_effect.cpp` | scattering angle sampled uniformly in θ — neither Klein–Nishina nor isotropic, which is uniform in cos θ |
+| `U238_decay.m` | the ²³⁸U half-life used as the mean lifetime |
+| `Phase_space_ODE.cpp` | `EulerImplicit` advances both components from old values — it is explicit Euler, and the misnomer had spread into six output filenames |
+| `Radionuclides_4_1.jl` | Bateman time grid stepping in units of 450 Myr for a transient peaking at 2.4 years, collapsing the whole figure onto x = 0 |
+| `Hg_calibration.jl` | 5789.66 Å listed where no Hg I line exists; the yellow doublet member is 5769.60 Å |
 | `Breit_Wigner.jl` | the full width at half maximum located by scanning for samples within an absolute tolerance keyed to the array minimum, which returns whichever near-misses came first and last |
 | `SWING_DOAS.jl` | no quality filter and no error bars: the largest SWING column of the day is a failed fit with RMS 0.035 and a 37 % retrieval error, and every SWING spectrum at 6° fails the residual cut |
 
@@ -142,11 +144,13 @@ set `y[1] = 1`, contradicting its own comment.
 
 ## Branches
 
-The [`legacy`](../../tree/legacy) branch holds the material exactly as it was
-submitted — Romanian identifiers
-and comments, the defects above intact — as the reference this branch is read
-against. It is a single import: the commit histories of the two private
-repositories this came from are not carried over.
+The [`legacy`](../../tree/legacy) branch holds the material as it was
+submitted — Romanian identifiers and comments, the defects above intact — as
+the reference this branch is read against. Its files and directories carry
+English names since 2026, with the submitted names mapped in its README, and
+each of its two archives has a README listing its files. It is a single import:
+the commit histories of the two private repositories this came from are not
+carried over.
 
 The fission work in `msc/04` is the coursework ancestor of a deterministic
 prompt-emission model that is still private and due for release; the same is

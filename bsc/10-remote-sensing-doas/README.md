@@ -46,7 +46,7 @@ read as a tenfold NO₂ excess at high elevation lasting half an hour. The 18°
 and 24° columns of 1–2 × 10¹⁶ in the same window are three to four times
 their medians and survive; that is the elevated NO₂ of the late morning.
 
-Corrections to `SWING_DOAS.jl` in `Julia-Workflow-FFUB/Teledetectie_L_4/` on
+Corrections to `SWING_DOAS.jl` in `Julia-Workflow-FFUB/Remote_Sensing_L_4/` on
 the `legacy` branch:
 
 - the plotted quantity was labelled "Concentratie NO₂" without units; it is a

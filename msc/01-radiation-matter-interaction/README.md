@@ -1,7 +1,7 @@
 # Interaction of radiation with matter — MSc year 1 (2021–2022)
 
 Four scripts from the laboratory course, ported from the Julia files in
-`Julia-Workflow-FFUB/IRM_M_1/` on the `legacy` branch. `radiation_matter_core.jl`
+`Julia-Workflow-FFUB/Radiation_Matter_Interaction_M_1/` on the `legacy` branch. `radiation_matter_core.jl`
 holds the linear least squares with a general data covariance that two of them
 share. Every result below is asserted in the script that produces it, against a
 tabulated value, a statistical identity or an evaluated datum.
@@ -19,7 +19,7 @@ and Barkas corrections at β = 0.052. Integrating 1/(dE/dx) from 0.5 to 5 MeV
 gives a CSDA range of 21.6 µm against 22.0 µm from the ASTAR ranges at the two
 energies. Both comparisons are asserted within 5 %.
 
-The formula was transcribed correctly in `Calcul_Bethe_Bloch.jl`. The target
+The formula was transcribed correctly in `Bethe_Bloch.jl`. The target
 material is named nowhere in that file, A is written as 28 rather than 28.085,
 and the logarithm's argument types the same sub-expression twice instead of
 squaring it, which hides that the second factor is W_max.
@@ -33,7 +33,7 @@ Mylar, fitted with `ε(x) = ε₀ − S x` by weighted least squares on all five
 measurements: S = 380 ± 150 keV per setting, ε₀ = 4900 ± 450 keV,
 χ² = 0.31 on 3 degrees of freedom.
 
-`Atenuare_alpha.jl` differenced the data first, Δε = ε(0) − ε(x), and fitted
+`Alpha_attenuation.jl` differenced the data first, Δε = ε(0) − ε(x), and fitted
 the four differences unweighted with a free intercept, drawing error bars that
 did not enter the fit and never printing the coefficients. Differencing
 correlates the points through the shared ε(0). With that covariance written out
@@ -57,7 +57,7 @@ than a thickness. The axis is labelled as the setting, without a unit.
 Abundance-weighted (n,γ) cross-section of natural cadmium at 0.25 eV from the
 eight stable isotopes: 2203 b, of which ¹¹³Cd supplies 99.93 % through its
 0.178 eV resonance. The abundances and cross-sections are those entered in
-`SigmaCdNatural.jl`, which cites the IAEA neutron cross-section atlas for the
+`Natural_Cd_cross_section.jl`, which cites the IAEA neutron cross-section atlas for the
 latter; the abundances are asserted to sum to 100 % within 0.1.
 
 The energy is part of the result. The conventional number for natural Cd is
@@ -88,7 +88,7 @@ series is not Poisson-compatible with a single exponential (p = 4 × 10⁻¹⁰)
 second count is 3.5σ below its neighbours; the error scaled by √(χ²/ν) is
 2.8 min, and the central value still lands on the evaluated one.
 
-`ReactiiNeutronice.jl` and `FitActivareNaITl.jl` linearised the decay law as
+`Neutron_reactions.jl` and `NaITl_activation_fit.jl` linearised the decay law as
 ln(N₀/Nᵢ) = λ(tᵢ − t₀) with the first count as reference; the first fitted
 unweighted and never called `stderror`, the second used weights Nᵢ, which
 drops the 1/N₀ term. Every ln(N₀/Nᵢ) shares N₀, so those points carry the

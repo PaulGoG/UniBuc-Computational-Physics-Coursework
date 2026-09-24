@@ -28,7 +28,7 @@ relaxed towards the symmetric Thomson form. The distribution the sampler draws
 from changes at every step, which is what a single fixed distribution — let
 alone a uniform one in θ — cannot represent.
 
-Ported from `EfectulCompton.cpp` in `Code_Archive/Old_2018/C_C++/` on the
+Ported from `Compton_effect.cpp` in `Code_Archive/Old_2018/C_C++/` on the
 `legacy` branch. Its Compton relation, recoil-angle formula and
 momentum-triangle sine rule are individually correct; its scattering angle is
 drawn uniformly on [0°, 180°], which is neither Klein–Nishina nor isotropic

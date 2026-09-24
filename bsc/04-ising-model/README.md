@@ -29,7 +29,7 @@ Onsager temperature, which is marked.
 
 ## What changed from the original
 
-Ported from `IsingFinal.cpp` in `Code_Archive/Old_2018/C_C++/` on the `legacy`
+Ported from `Ising_model.cpp` in `Code_Archive/Old_2018/C_C++/` on the `legacy`
 branch, which has five defects, every one of them affecting the result:
 
 - rows allocated `n+2` wide but columns only `n`, while the code indexed

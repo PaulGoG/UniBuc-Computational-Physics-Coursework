@@ -29,7 +29,7 @@ to a directly measured index and finds it adequate to the setting error of
 that measurement, so the structure here is in the drum readings, not in the
 linearity assumption or the model.
 
-Ported from `Calibrare_Hg.jl` in `Julia-Workflow-FFUB/Single_Files/` on the
+Ported from `Hg_calibration.jl` in `Julia-Workflow-FFUB/Single_Files/` on the
 `legacy` branch, which lists 5789.66 Å beside 5790.65 Å at divisions 35 and
 36. There is no Hg I line at 5789.66 Å: the yellow doublet is 5769.60 and
 5790.66 Å (NIST Atomic Spectra Database, doi:10.18434/T4W30F), and with the

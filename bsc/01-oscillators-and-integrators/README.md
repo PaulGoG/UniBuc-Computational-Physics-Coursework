@@ -40,7 +40,7 @@ its uncertainty is the 0.001 resolution the orders are printed to.
 
 ![Order of convergence](figures/integrator_order_comparison.png)
 
-Ported from `RKtrial.cpp` and `DiffEqEuler.cpp` on the `legacy` branch
+Ported from `Runge_Kutta_trial.cpp` and `Euler_ODE.cpp` on the `legacy` branch
 (`Code_Archive/Old_2018/C_C++/`). Both schemes are coded there correctly. The
 programs read the step count and interval from standard input, so the values
 used in 2018 are not recorded, and they printed the endpoint value only: there
@@ -63,7 +63,7 @@ t = 10 falls as 1/N, the symplectic ones from a starting point ten times lower.
 
 ![Phase portraits and energy drift](figures/symplectic_vs_explicit_euler.png)
 
-Ported from `Spatiul_FazelorEcDiff.cpp` and `PbEcDiffExamen.cpp` on the
+Ported from `Phase_space_ODE.cpp` and `ODE_exam_problem.cpp` on the
 `legacy` branch (`Code_Archive/Old_2018/C_C++/`). The first names its explicit
 scheme `EulerImplicit` — it advances both components from the old values — and
 the misnomer runs through six output filenames, so everything labelled
@@ -96,15 +96,15 @@ The fit to |Δ| is biased by where in the oscillation the window ends, by more
 than its formal error; at critical damping the difference carries a
 `(A + Bt)e^{−t}` factor and a pure exponential fit splits the difference. The
 two δ = 0 separations agree to 3 × 10⁻⁷, asserted: the driving is identical
-along both trajectories and cancels, so `OscilatorFortat.cpp` could not have
+along both trajectories and cancels, so `Forced_oscillator.cpp` could not have
 shown anything its undamped sibling did not. Return-time statistics of the kind
 the 2018 programs were built around carry information only once the dynamics
 are chaotic, which is `02-chaos-and-attractors`.
 
 ![Trajectory separation](figures/oscillator_trajectory_separation.png)
 
-Ported from `OscilatorArmonique.cpp`, `OscilatorAmortizat.cpp` and
-`OscilatorFortat.cpp` on the `legacy` branch. All three read their own output
+Ported from `Harmonic_oscillator.cpp`, `Damped_oscillator.cpp` and
+`Forced_oscillator.cpp` on the `legacy` branch. All three read their own output
 back through an `ifstream` opened on the same file as the `ofstream` still
 writing it. Whatever the write buffer had not flushed by the time of the read
 came back as zero — a failed extraction zeroes its target since C++11 — so the
