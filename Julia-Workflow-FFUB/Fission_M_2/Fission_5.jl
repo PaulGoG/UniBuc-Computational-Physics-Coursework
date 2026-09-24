@@ -12,10 +12,10 @@ gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
 # Citire fisiere de date
-dn_Gook_SL = CSV.read("Data_files/Date_experimentale/Spectru_n/U5SPGOOK.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["E", "N", "σN"], skipto = 2);
-dn_Vorobyev_SL = CSV.read("Data_files/Date_experimentale/Spectru_n/U5SPVORO.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["E", "N", "σN"], skipto = 2);
-dn_Gook_SCM_LF = CSV.read("Data_files/Date_experimentale/Spectru_n/U5SPCMLF.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["E", "N", "σN"], skipto = 2);
-dn_Gook_SCM_HF = CSV.read("Data_files/Date_experimentale/Spectru_n/U5SPCMHF.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["E", "N", "σN"], skipto = 2);
+dn_Gook_SL = CSV.read("Data_files/Experimental/Neutron_spectrum/U5SPGOOK.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["E", "N", "σN"], skipto = 2);
+dn_Vorobyev_SL = CSV.read("Data_files/Experimental/Neutron_spectrum/U5SPVORO.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["E", "N", "σN"], skipto = 2);
+dn_Gook_SCM_LF = CSV.read("Data_files/Experimental/Neutron_spectrum/U5SPCMLF.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["E", "N", "σN"], skipto = 2);
+dn_Gook_SCM_HF = CSV.read("Data_files/Experimental/Neutron_spectrum/U5SPCMHF.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["E", "N", "σN"], skipto = 2);
 #####
 # Nₘ(E, Tₘ)
 function N_Maxwell(E, T_M)

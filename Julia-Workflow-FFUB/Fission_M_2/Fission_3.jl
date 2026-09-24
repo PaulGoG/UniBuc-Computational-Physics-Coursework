@@ -9,14 +9,14 @@ gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
 # Citire fisiere de date
-dm = CSV.read("Data_files/Defecte_masa/AUDI2021.csv", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]);
+dm = CSV.read("Data_files/Mass_defects/AUDI2021.csv", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]);
 dy = CSV.read("Data_files/Yield/U5YAZTKE.STR", DataFrame; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"], skipto = 2);
-dβ₀ = CSV.read("Data_files/Parametrizari_auxiliare/B2MOLLER.ANA", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "β"], skipto = 2);
-dGC = CSV.read("Data_files/Parametrizari_auxiliare/SZSN.GC", DataFrame; delim=' ', ignorerepeated=true, header=["n", "S_N", "S_Z"], skipto = 2);
-dν_Gook = CSV.read("Data_files/Date_experimentale/Multiplicitate_n/U5NUAGOOK.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"], skipto = 2);
-dν_Maslin = CSV.read("Data_files/Date_experimentale/Multiplicitate_n/U5NUAMASLIN.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"], skipto = 2);
-dν_Nishio = CSV.read("Data_files/Date_experimentale/Multiplicitate_n/U5NUANISHIO.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"], skipto = 2);
-dν_Vorobyev = CSV.read("Data_files/Date_experimentale/Multiplicitate_n/U5NUAVORO.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"], skipto = 2);
+dβ₀ = CSV.read("Data_files/Auxiliary_parametrisations/B2MOLLER.ANA", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "β"], skipto = 2);
+dGC = CSV.read("Data_files/Auxiliary_parametrisations/SZSN.GC", DataFrame; delim=' ', ignorerepeated=true, header=["n", "S_N", "S_Z"], skipto = 2);
+dν_Gook = CSV.read("Data_files/Experimental/Neutron_multiplicity/U5NUAGOOK.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"], skipto = 2);
+dν_Maslin = CSV.read("Data_files/Experimental/Neutron_multiplicity/U5NUAMASLIN.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"], skipto = 2);
+dν_Nishio = CSV.read("Data_files/Experimental/Neutron_multiplicity/U5NUANISHIO.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"], skipto = 2);
+dν_Vorobyev = CSV.read("Data_files/Experimental/Neutron_multiplicity/U5NUAVORO.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"], skipto = 2);
 
 struct distributie_unidym
     x

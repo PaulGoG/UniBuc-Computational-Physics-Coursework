@@ -1,5 +1,5 @@
 #include "helpers.h"
-#include "Integratori.h"
+#include "Integrators.h"
 #include<iostream>
 
 using namespace std;

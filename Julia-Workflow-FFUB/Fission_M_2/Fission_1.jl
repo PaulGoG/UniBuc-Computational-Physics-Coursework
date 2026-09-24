@@ -125,7 +125,7 @@ function Grafic_afisare(plt)
 end
 #####
 # Apelarea functiilor definite pentru executia programului
-librarie = "Data_files/Defecte_masa/AUDI2021.csv"
+librarie = "Data_files/Mass_defects/AUDI2021.csv"
 A₀ = 236;
 Z₀ = 92;
 limInfA_H = 118;
