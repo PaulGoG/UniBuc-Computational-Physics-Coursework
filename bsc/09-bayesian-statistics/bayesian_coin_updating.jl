@@ -102,14 +102,15 @@ function main()
     l_w = lines!(ax2, ns, widths, color = PALETTE.red)
     l_g = lines!(ax2, ns, widths[end] .* (ns ./ ns[end]) .^ (-0.5),
         color = PALETTE.black, linestyle = :dash, linewidth = GUIDE_WIDTH,)
+    # Lower left, where the curve has not yet come down; kept short enough to
+    # end before it does.
     text!(ax2, 0.03, 0.05;
         text = rich(
             rich(
                 @sprintf("Fitted exponent −%.3f over %d ≤ ", -exponent, first(ns)), it("N"),
                 @sprintf(" ≤ %d", last(ns)), color = PALETTE.red,),
             "\n",
-            @sprintf("−%.3f with the posterior mean held at ½, −½ asymptotically",
-                -exponent_fixed)),
+            @sprintf("−%.3f with the mean held at ½; −½ asymptotically", -exponent_fixed)),
         space = :relative, align = (:left, :bottom), fontsize = ANNOTATION_SIZE,)
 
     Legend(fig[1, 1:2], [handles..., l_w, l_g],

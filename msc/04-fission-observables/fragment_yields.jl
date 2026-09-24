@@ -175,10 +175,10 @@ function main()
     errorbars_unstroked!(ax1, A, Y_A, σY_A, color = PALETTE.blue, linewidth = GUIDE_WIDTH,
         whiskerwidth = 6,)
     scatterlines!(ax1, A, Y_A, color = PALETTE.blue, markersize = MARKERSIZE.dense)
-    text!(ax1, 0.97, 0.95;
+    text!(ax1, 0.03, 0.95;
         text = rich("Peak ", it("A"), subscript("H"), @sprintf(" = %d, %.2f %%",
             A[argmax(Y_A)], maximum(Y_A))),
-        space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE, color = PALETTE.blue,)
+        space = :relative, align = (:left, :top), fontsize = ANNOTATION_SIZE, color = PALETTE.blue,)
 
     ax2 = Axis(fig[2, 2], xlabel = rich("Heavy-fragment charge ", it("Z"), subscript("H")),
         ylabel = yield_label(rich(it("Z"), subscript("H"))),)
@@ -196,8 +196,8 @@ function main()
     xlims!(ax3, minimum(T[drawn_T]) - 3, maximum(T[drawn_T]) + 3)
     vlines!(ax3, [means["⟨TKE⟩"]], color = PALETTE.black,
         linestyle = :dash, linewidth = GUIDE_WIDTH,)
-    text!(ax3, 0.97, 0.5; text = rich("⟨TKE⟩ = ", @sprintf("%.2f MeV", means["⟨TKE⟩"])),
-        space = :relative, align = (:right, :center), fontsize = ANNOTATION_SIZE,)
+    text!(ax3, 0.97, 0.95; text = rich("⟨TKE⟩ = ", @sprintf("%.2f MeV", means["⟨TKE⟩"])),
+        space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,)
 
     ax4 = Axis(fig[3, 2], xlabel = rich("Heavy-fragment mass ", it("A"), subscript("H")),
         ylabel = "Energy [MeV]",)

@@ -253,8 +253,10 @@ function animate_degradation(chains, rng)
         strokewidth = 1.0, strokecolor = PALETTE.blue, gap = 0.05,)
     vlines!(ax1, [E_THRESHOLD], color = PALETTE.black, linestyle = :dash,
         linewidth = GUIDE_WIDTH,)
-    text!(ax1, E_THRESHOLD * 1.06, 3450; text = "Absorption threshold",
-        align = (:left, :top), fontsize = ANNOTATION_SIZE,)
+    # The tallest bars stand beside the threshold line, so the label goes to
+    # the free right half of the panel.
+    text!(ax1, 0.97, 0.96; text = "Dashed: absorption threshold, 20 keV",
+        space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,)
     xlims!(ax1, E_THRESHOLD * 0.85, E₀ * 1.25)
     ylims!(ax1, 0, 3600)
 

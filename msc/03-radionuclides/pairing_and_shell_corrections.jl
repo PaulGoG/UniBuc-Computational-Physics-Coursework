@@ -229,6 +229,7 @@ function main()
         Axis(fig[2, 1], ylabel = L"Pairing indicator $\Delta$ [MeV]",
             xticks = 0:50:250,),
         Axis(fig[2, 2], xticks = 0:50:250),)
+    guide_handles = Any[]
     for (ax, f, factor) in zip(pairing_axes, (:guttormsen, :vladuca), (1, 2))
         frame = PAIRING_FRAME[f]
         above = 0
@@ -240,19 +241,21 @@ function main()
                 markersize = MARKERSIZE.cloud, strokewidth = 0,)
         end
         Af = 2:270
-        for (m, tag) in ((1, "odd \$A\$"), (2, "even--even"))
+        # The guides are named in the legend and their constants in the corner:
+        # a label at either end of a c/√A curve sits on the curve or on the data.
+        for m in (1, 2)
             g = factor * m * PAIRING_CONSTANT ./ sqrt.(Af)
-            lines!(ax, Af, g, color = PALETTE.black, linestyle = m == 1 ? :dash : :dashdot,
-                linewidth = GUIDE_WIDTH,)
-            text!(ax, 268, last(g);
-                text = latexstring("\$$(factor * m * 12)/\\sqrt{A}\$, ", tag),
-                align = (:right, :bottom), offset = (0, 4), fontsize = ANNOTATION_SIZE,)
+            h = lines!(ax, Af, g, color = PALETTE.black,
+                linestyle = m == 1 ? :dash : :dashdot, linewidth = GUIDE_WIDTH,)
+            f === :guttormsen && push!(guide_handles, h)
         end
         text!(ax, 0.97, 0.96;
-            text = rich(f === :guttormsen ? "Three-point in " : "Two-point in ", it("S"),
-                @sprintf("\n%d points above the frame", above)),
-            space = :relative, align = (:right, :top), justification = :right,
-            fontsize = ANNOTATION_SIZE,)
+            text = latexstring(f === :guttormsen ? "Three-point in \$S\$: guides " :
+                               "Two-point in \$S\$: guides ",
+                @sprintf("\$%d/\\sqrt{A}\$ and \$%d/\\sqrt{A}\$", 12factor, 24factor)),
+            space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,)
+        text!(ax, 0.97, 0.90; text = @sprintf("%d points above the frame", above),
+            space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,)
         xlims!(ax, 0, 275)
         ylims!(ax, 0, frame)
     end
@@ -299,9 +302,10 @@ function main()
     limits!(ax4, lo, hi, lo, hi)
 
     Legend(fig[1, 1:2],
-        [MarkerElement(color = c.colour, marker = c.marker, markersize = MARKERSIZE.key)
-         for c in CLASSES],
-        [c.label for c in CLASSES], "Parity class"; titleposition = :left,)
+        [[MarkerElement(color = c.colour, marker = c.marker, markersize = MARKERSIZE.key)
+          for c in CLASSES], guide_handles],
+        [[c.label for c in CLASSES], [rich("Odd ", it("A")), "Even–even"]],
+        ["Parity class", "Guide"]; titleposition = :left,)
     println("\nwrote ", savefigure(fig, FIGURES, "pairing_and_shell_corrections"))
 end
 

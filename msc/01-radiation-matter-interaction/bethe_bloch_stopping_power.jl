@@ -113,9 +113,10 @@ function main()
     text!(ax, E * 1.25, S * 1.12;
         text = rich("Bethe–Bloch ", @sprintf("%.0f MeV cm", S), superscript("−1")),
         color = PALETTE.blue, align = (:left, :bottom), fontsize = ANNOTATION_SIZE,)
-    text!(ax, E * 1.25, S_astar / 1.12;
+    # Left of the marker: the curve descends through the space to its right.
+    text!(ax, E / 1.12, S_astar / 1.12;
         text = rich("ASTAR ", @sprintf("%.0f MeV cm", S_astar), superscript("−1")),
-        color = PALETTE.black, align = (:left, :top), fontsize = ANNOTATION_SIZE,)
+        color = PALETTE.black, align = (:right, :top), fontsize = ANNOTATION_SIZE,)
     text!(ax, 0.97, 0.95;
         text = "Shell and Barkas corrections omitted",
         space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,)

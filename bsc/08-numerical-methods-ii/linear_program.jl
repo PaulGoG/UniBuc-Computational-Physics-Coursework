@@ -106,7 +106,7 @@ function main()
         linewidth = GUIDE_WIDTH,)
 
     limits!(ax, -0.2, 3.6, -0.2, 3.4)
-    text!(ax, 3.55, 3.05; text = rich(it("x"), subscript("2"), " ≤ 3, redundant"),
+    text!(ax, 3.55, 2.94; text = rich(it("x"), subscript("2"), " ≤ 3, redundant"),
         align = (:right, :top), color = PALETTE.purple, fontsize = ANNOTATION_SIZE,)
     text!(ax, 0.97, 0.62;
         text = @sprintf("Optimum %.0f on the whole segment\n(3, 0) – (2, 1)", best),
