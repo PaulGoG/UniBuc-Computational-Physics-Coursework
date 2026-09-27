@@ -1,6 +1,8 @@
 # UniBuc Computational Physics Coursework
 
 [![CI](https://github.com/PaulGoG/UniBuc-Computational-Physics-Coursework/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/PaulGoG/UniBuc-Computational-Physics-Coursework/actions/workflows/CI.yml?query=branch%3Amain)
+[![SciML Code Style](https://img.shields.io/static/v1?label=code%20style&message=SciML&color=9558b2&labelColor=389826)](https://github.com/SciML/SciMLStyle)
+[![License: MIT](https://img.shields.io/github/license/PaulGoG/UniBuc-Computational-Physics-Coursework)](LICENSE)
 
 `computational-physics` `numerical-methods` `nuclear-physics` `cosmology` `julia` `physics` `coursework` `university-of-bucharest`
 
