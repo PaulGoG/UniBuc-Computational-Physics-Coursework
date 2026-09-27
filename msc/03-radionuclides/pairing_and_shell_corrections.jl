@@ -249,9 +249,9 @@ function main()
                 linestyle = m == 1 ? :dash : :dashdot, linewidth = GUIDE_WIDTH,)
             f === :guttormsen && push!(guide_handles, h)
         end
+        stencil = f === :guttormsen ? "Three-point" : "Two-point"
         text!(ax, 0.97, 0.96;
-            text = latexstring(f === :guttormsen ? "Three-point in \$S\$: guides " :
-                               "Two-point in \$S\$: guides ",
+            text = latexstring(stencil, " in \$S\$: guides ",
                 @sprintf("\$%d/\\sqrt{A}\$ and \$%d/\\sqrt{A}\$", 12factor, 24factor)),
             space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,)
         text!(ax, 0.97, 0.90; text = @sprintf("%d points above the frame", above),
@@ -301,9 +301,9 @@ function main()
         space = :relative, align = (:left, :top), fontsize = ANNOTATION_SIZE,)
     limits!(ax4, lo, hi, lo, hi)
 
-    Legend(fig[1, 1:2],
-        [[MarkerElement(color = c.colour, marker = c.marker, markersize = MARKERSIZE.key)
-          for c in CLASSES], guide_handles],
+    class_markers = [MarkerElement(color = c.colour, marker = c.marker,
+                         markersize = MARKERSIZE.key,) for c in CLASSES]
+    Legend(fig[1, 1:2], [class_markers, guide_handles],
         [[c.label for c in CLASSES], [rich("Odd ", it("A")), "Even–even"]],
         ["Parity class", "Guide"]; titleposition = :left,)
     println("\nwrote ", savefigure(fig, FIGURES, "pairing_and_shell_corrections"))
