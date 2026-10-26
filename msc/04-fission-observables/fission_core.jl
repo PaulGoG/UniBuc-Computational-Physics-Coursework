@@ -99,7 +99,7 @@ end
     yield_cells(rows) -> Vector{YieldCell}
 
 The (A_H, TKE) cells of the yield matrix. The five charge rows of a cell are one
-measured yield split by fixed fractions — they share one relative error — so
+measured yield split by fixed fractions (they share one relative error), so
 within a cell the errors add linearly.
 """
 function yield_cells(rows)

@@ -2,7 +2,7 @@
 # optical designs: the Erfle wide-field eyepiece and the Rudolph Tessar
 # photographic objective.
 #
-# The ray state is the column vector [n·u ; y] — reduced angle and height — and
+# The ray state is the column vector [n·u ; y] (reduced angle and height), and
 # the system matrix is accumulated from the last surface backwards, so that
 # S = M_N T_{N-1} M_{N-1} … T_1 M_1 acts as v_out = S·v_in.
 #

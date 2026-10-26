@@ -16,7 +16,7 @@
 #      will assume the conventional thermal value, which is 2520 b at the
 #      2200 m s⁻¹ point (0.0253 eV, where σ(¹¹³Cd) = 20 600 b). The energy is now
 #      part of the variable name and of the printed result.
-#   3. The arrays were positional only — nothing tied σ = 18 000 b to ¹¹³Cd — and
+#   3. The arrays were positional only (nothing tied σ = 18 000 b to ¹¹³Cd), and
 #      `abundente_izotopice./100 # Transformam in procente` has its comment
 #      backwards: dividing by 100 converts *from* percent. It was also a
 #      destructive rebinding, so re-evaluating that one line in a REPL divided

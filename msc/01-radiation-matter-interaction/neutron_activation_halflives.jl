@@ -15,7 +15,7 @@
 # Why ln N and not ln(N₀/N): every ln(N₀/Nᵢ) shares N₀, so the points have the
 # covariance Dᵢⱼ + 1/N₀ with D = diag(1/Nᵢ). With a free intercept in the model
 # the common term 1/N₀ is absorbed by the intercept, and the slope and its
-# variance are exactly those of a weighted fit to N₂ … Nₙ alone — the reference
+# variance are exactly those of a weighted fit to N₂ … Nₙ alone: the reference
 # count, the most precise of the series, drops out of λ. `main` asserts this
 # identity numerically. Fitting ln N keeps all points, with independent errors.
 #

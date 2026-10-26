@@ -139,7 +139,7 @@ function main()
     all(table[h][1] == 0 for h in STEPS) ||
         error("RK4 from y(0) = 0 left the zero solution")
     drift(k) = table[STEPS[end]][k] - table[STEPS[end - 1]][k]
-    @printf("change of y(100) between the two finest steps: %.4f from 10⁻¹², %.4f from 1 — the second decimal is not converged\n",
+    @printf("change of y(100) between the two finest steps: %.4f from 10⁻¹², %.4f from 1; the second decimal is not converged\n",
         drift(2), drift(4))
 
     # (b): the conservative system at the original's resolution

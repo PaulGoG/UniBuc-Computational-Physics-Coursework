@@ -62,7 +62,7 @@ end
     prediction_sigma(fit, v)
 
 Standard error of the linear combination vᵀp, from the full quadratic form
-vᵀ cov v — variances and covariances of the coefficients together.
+vᵀ cov v, variances and covariances of the coefficients together.
 """
 prediction_sigma(fit::LinearFit, v::AbstractVector) = sqrt(dot(v, fit.cov * v))
 
