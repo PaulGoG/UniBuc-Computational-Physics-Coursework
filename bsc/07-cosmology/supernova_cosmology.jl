@@ -1,6 +1,6 @@
 # Flat ΛCDM fitted to the sixty Type Ia supernovae of Perlmutter et al. (1999),
 # "Measurements of Ω and Λ from 42 High-Redshift Supernovae", ApJ 517, 565,
-# doi:10.1086/307221 — Tables 1 and 2: 42 high-redshift supernovae of the
+# doi:10.1086/307221 (Tables 1 and 2): 42 high-redshift supernovae of the
 # Supernova Cosmology Project and 18 low-redshift ones of the Calán/Tololo
 # survey, with stretch-, K- and extinction-corrected effective B-band peak
 # magnitudes whose quoted uncertainties include 0.17 mag of intrinsic dispersion.
@@ -16,12 +16,12 @@
 # has four parameters (Ω_M, Ω_Λ, the magnitude zero point and the slope α of the
 # width–luminosity relation), propagates the redshift uncertainty, and reads
 # Ω_M off the flat line of the (Ω_M, Ω_Λ) plane. The comparison is therefore a
-# consistency check of the implementation, not a reproduction.
+# consistency check of the implementation.
 #
 # The Einstein–de Sitter universe (flat, Ω_M = 1) is fitted with the offset
-# alone. Only flat models are tested here, so what Δχ² rejects is flat
-# matter-only expansion; open decelerating models need the curvature term,
-# which this module does not carry.
+# alone. Only flat models are tested here, so Δχ² rejects flat matter-only
+# expansion; open decelerating models need the curvature term, which this module
+# does not carry.
 #
 # The 2019 analysis (`Friedmann_Magnitude.jl` on the `legacy` branch, joint work
 # with Alexandru Crăciun at JINR Dubna) fitted host-galaxy magnitudes, which are
@@ -77,8 +77,8 @@ function main()
     @printf("Δχ² against flat ΛCDM, one parameter: %.1f (Fit A), %.1f (Fit C)\n",
         Δχ²_a, Δχ²_c)
 
-    # The published values are not the target of anything above; what is checked
-    # is that the same data and model class land within the published interval.
+    # The published values enter nothing above; the check is that the same data
+    # and model class land within the published interval.
     for (f, p) in ((fit_a, PUBLISHED.fit_a), (fit_c, PUBLISHED.fit_c))
         p.Ωm - p.down <= f.Ωm <= p.Ωm + p.up ||
             error("fitted Ω_M = $(f.Ωm) outside the published interval of $(p.Ωm)")

@@ -4,21 +4,21 @@
 #          exp(-x²/2)  for x <  0        (σ = 1)
 #
 # Ported from MonteCarloDistribution.jl in Julia-Workflow-FFUB/Single_Files/ on
-# the `legacy` branch. Four corrections.
+# the `legacy` branch, with four corrections.
 #
 #   1. The original defined `function Distribution(x)` after `using
 #      Distributions`, which exports the abstract type `Distribution`. On Julia
 #      ≤ 1.11 that was a hard error; on 1.12+ it is a deprecation warning and
-#      silently *extends* `Distributions.Distribution` instead of defining a new
+#      silently extends `Distributions.Distribution` instead of defining a new
 #      function in Main. Renamed here.
 #   2. `contor` was initialised to 1 rather than 0 and incremented before the
-#      acceptance test, so `contor/Np` reported the reciprocal of the efficiency
-#      — and as a bare top-level expression it printed nothing when run as a
+#      acceptance test, so `contor/Np` reported the reciprocal of the efficiency;
+#      as a bare top-level expression it also printed nothing when run as a
 #      script.
 #   3. The proposal support [-3, 3] truncates the tails without renormalising,
 #      which discards 0.18 % of the mass, nearly all of it on the σ = 1 side, so
-#      the sampled density is the truncated one. Quantified below against the
-#      analytic normalisation.
+#      the sampled density is the truncated one. The loss is quantified below
+#      against the analytic normalisation.
 #
 # `main` asserts the acceptance rate against Z_trunc/((b − a) M) and the sample
 # mean against quadrature, each within four standard errors.

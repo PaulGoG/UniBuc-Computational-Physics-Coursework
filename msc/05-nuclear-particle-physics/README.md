@@ -45,7 +45,7 @@ Ca K, Ca H, Hα, Hβ and Hδ lines with a reading uncertainty of 1.65 Å,
 combined as an inverse-variance mean, and distances from the apparent size of
 each galaxy relative to NGC 3627 at 10.73 Mpc.
 
-**H₀ = 70.6 ± 12.2 km s⁻¹ Mpc⁻¹**, a Hubble time of 13.9 Gyr. Of the
+This gives H₀ = 70.6 ± 12.2 km s⁻¹ Mpc⁻¹, a Hubble time of 13.9 Gyr. Of the
 uncertainty, ±5.5 comes from the fit and ±10.8 from the 15 % uncertainty of
 the reference galaxy's apparent size, which scales both other distances by the
 same factor and is therefore a scale error of H₀ rather than an independent

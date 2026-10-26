@@ -4,7 +4,7 @@
 # single-fragment kinetic energies, and the yield-weighted totals with their
 # uncertainties.
 #
-# What the matrix measures is Y(A_H, TKE): the five charge rows of each
+# The matrix measures Y(A_H, TKE): the five charge rows of each
 # (A_H, TKE) cell split one measured yield by fractions that are identical
 # across TKE for a given mass, to 3 × 10⁻⁶ (asserted below), so Y(Z), Y(N) and
 # the even–odd staggering of Y(Z) describe the charge model imposed on the
@@ -18,8 +18,8 @@
 #
 # Ported from Fisiune_2.jl on the `legacy` branch (Julia-Workflow-FFUB/
 # Fisiune_M_2/). Its Y(N) summed over all rows with a given N inside the
-# double loop over (A_H, Z_H), once per pair mapping to that N — the total
-# came to 805 % instead of 100 %, reproduced below; three of its uncertainty
+# double loop over (A_H, Z_H), once per pair mapping to that N, so the total
+# came to 805 % instead of 100 % (reproduced below); three of its uncertainty
 # accumulations added linearly where the comments said quadrature; its
 # `Sortare_distributie` assumed an abscissa without gaps or duplicates; and its
 # `Energie_separare` returned a bare `NaN` on failure that the caller indexed.

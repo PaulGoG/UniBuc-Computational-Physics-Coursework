@@ -102,13 +102,12 @@ end
 
 Trace both attractors out in time, with a head marker on the current state.
 
-The static figure is the invariant set — where the trajectory eventually goes.
-The animation is the trajectory itself, and it shows the thing the static plot
-cannot: on the Lorenz attractor the state circles one lobe an unpredictable
-number of times before crossing to the other, which is the sensitivity that
-makes the system chaotic. On the Rössler attractor it spirals outward in a
-near-plane and is folded back, which is the simpler mechanism producing the same
-kind of set.
+The static figure is the invariant set, where the trajectory eventually goes; the
+animation is the trajectory itself. On the Lorenz attractor the state circles one
+lobe an unpredictable number of times before crossing to the other, the
+sensitivity that makes the system chaotic. On the Rössler attractor it spirals
+outward in a near-plane and is folded back, a simpler mechanism producing the
+same kind of set.
 """
 function animate_attractors(xL, zL, xR, yR, h)
     n = min(length(xL), length(xR))

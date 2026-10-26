@@ -17,16 +17,16 @@ quantity, in one least-squares step:
 | R² | 0.972 |
 | Residual rms | 11.2 div on a 2–200 div range, largest 22 div at 4358 Å |
 
-The fit is mediocre, and the readings say why. The fitted dispersion gives
-the drum spacing two lines should have, 2BΔλ/λ³, and the recorded spacings
-depart from it in both directions: the far-red pair 7091.99 and 7081.88 Å
-reads 5 divisions apart where the fit gives 0.25, the pair 4358.35 and
-4077.81 Å reads 60 where the fit gives 32, and 4077.81 and 4046.56 Å read 20
-where the fit gives 4. The script prints the comparison for every adjacent
-pair. Those readings are kept as recorded; the script is their only surviving
-record. `bsc/06-geometrical-optics/prism_dispersion.jl` fits the same relation
-to a directly measured index and finds it adequate to the setting error of
-that measurement, so the structure here is in the drum readings, not in the
+The fit is mediocre. The fitted dispersion gives the drum spacing two lines
+should have, 2BΔλ/λ³, and the recorded spacings depart from it in both
+directions: the far-red pair 7091.99 and 7081.88 Å reads 5 divisions apart
+where the fit gives 0.25, the pair 4358.35 and 4077.81 Å reads 60 where the
+fit gives 32, and 4077.81 and 4046.56 Å read 20 where the fit gives 4. The
+script prints the comparison for every adjacent pair. Those readings are kept
+as recorded; the script is their only surviving record.
+`bsc/06-geometrical-optics/prism_dispersion.jl` fits the same relation to a
+directly measured index and finds it adequate to the setting error of that
+measurement, so the structure here is in the drum readings, not in the
 linearity assumption or the model.
 
 Ported from `Hg_calibration.jl` in `Julia-Workflow-FFUB/Single_Files/` on the

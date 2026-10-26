@@ -246,11 +246,10 @@ end
 Animate the anneal: the spin lattice beside the energy and magnetisation traced
 out so far, sampled every `every` sweeps.
 
-This is the figure the static one cannot be. The three snapshots show the
-disordered, critical and ordered states; the animation shows the domains
-actually forming — small and short-lived well above `T_c`, growing and merging
-as the temperature passes through it, and freezing into one or two spanning
-domains below.
+The three snapshots show the disordered, critical and ordered states; the
+animation shows the domains forming: small and short-lived well above `T_c`,
+growing and merging as the temperature passes through it, and freezing into one
+or two spanning domains below.
 """
 function animate_anneal(; every::Int = 20)
     rng = StableRNG(SEED)

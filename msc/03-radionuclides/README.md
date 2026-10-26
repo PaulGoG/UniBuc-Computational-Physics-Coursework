@@ -52,13 +52,13 @@ even–even nuclides carry Δₙ + Δₚ, whose guide is twice the odd-A one.
 The ratio of the two-point to the three-point medians is 1.4–1.7 rather than
 2: the smooth A-dependence of S and of the gap itself enters a second and a
 third difference differently. The original drew the 12/√A and 24/√A guides
-against an unsorted A, as a scribble.
+against an unsorted A.
 
 **Shell correction.** δW₀ = W_LDM − W_exp with the liquid-drop binding energy
 `W_LDM = a_v A − a_s A^{2/3} − a_c Z² A^{−1/3} − A (a_sym − a_ss A^{−1/3}) I²`,
 and δW = δW₀ + ½P_a with `P_a = ½[Δ(Z+1, A+2) − 2Δ(Z, A) + Δ(Z−1, A−2)]` on the
 mass excesses, for every AME1995 nuclide whose two P_a neighbours exist, 2796
-of them — the analysis of `Radionuclides_5.jl` as written. P_a is a pairing
+of them (the analysis of `Radionuclides_5.jl` as written). P_a is a pairing
 quantity: its median is +2.30 MeV for even–even nuclei, −2.17 MeV for odd–odd
 and within 0.2 MeV of zero for odd A, so ½P_a removes the pairing part of
 W_exp before the comparison with a formula that carries none. Against the FRDM

@@ -7,18 +7,18 @@
 # standard of known distance: d = d_std · s_std / s.
 #
 # Ported from Hubble.jl in Julia-Workflow-FFUB/FPECA_M_2/ on the `legacy`
-# branch. The correction that matters is a one-character typo:
+# branch. The main correction is a one-character typo:
 #
 #     Suma_σ² =+ σ_z[i]^2
 #
 # which Julia parses as `Suma_σ² = +σ_z[i]^2`, an assignment, not `+=`. The
 # running sum of variances was therefore overwritten on every iteration and kept
-# only the last term, so every averaged redshift uncertainty was wrong — too
-# small by roughly √n. The weights in the H₀ fit derive from those, so the fit
-# was affected too.
+# only the last term, so every averaged redshift uncertainty was too small by
+# roughly √n. The weights in the H₀ fit derive from those, so the fit was
+# affected too.
 #
 # Also corrected: the mean was divided by the count of valid entries while the
-# variance sum was divided by that count *outside* the square root, and no
+# variance sum was divided by that count outside the square root, and no
 # uncertainty was reported on the individual line redshifts.
 #
 # The fit weights each galaxy by the effective variance σ_v² + H₀²σ_d² of its
@@ -63,7 +63,7 @@ redshift(λ, λ₀, σλ) = ((λ - λ₀) / λ₀, sqrt(σλ^2 * (λ^2 + λ₀^2
     mean_redshift(λs, λ₀s, σλ)
 
 Inverse-variance mean over the usable lines, with the variance summed correctly
-— the defect the original's `=+` introduced.
+(the original's `=+` overwrote this sum).
 """
 function mean_redshift(λs, λ₀s, σλ)
     zs = Float64[]

@@ -4,11 +4,11 @@
 
 Annual frequency of an aircraft crash onto an installation of radius R sited a
 perpendicular distance y₀ from a straight air route, against the 10⁻⁵ and
-10⁻⁷ yr⁻¹ screening levels. Not a course assignment: a Poisson risk exercise
-I wrote in late 2023, ported from `Aircraft_crash_frequency.jl` in
+10⁻⁷ yr⁻¹ screening levels. The script is a Poisson risk exercise I wrote in
+late 2023 outside the coursework, ported from `Aircraft_crash_frequency.jl` in
 `Julia-Workflow-FFUB/Single_Files/` on the `legacy` branch. The input values
-are the original's — P = 10⁻⁹ km⁻¹, N = 7 × 10⁴ yr⁻¹, g = 0.23 km⁻¹, R = 50 m,
-y₀ from 5 to 50 km, a route leg x₀ = 200 km — and their sources are not
+are the original's (P = 10⁻⁹ km⁻¹, N = 7 × 10⁴ yr⁻¹, g = 0.23 km⁻¹, R = 50 m,
+y₀ from 5 to 50 km, a route leg x₀ = 200 km), and their sources are not
 recorded there, so the absolute frequencies are an exercise, not a screening
 result for a site.
 
@@ -32,7 +32,7 @@ with the site small against every length in f. The original's two kernels
 both carry the forward factor cos φ = x/r and are set to zero for x ≤ 0: an
 aircraft comes down ahead of the point where control was lost, never behind
 it. The integration over one side of the route is part of that model and is
-kept. What the original got wrong is dimensional. Its integrals,
+kept. The original's error is dimensional. Its integrals,
 
 ```julia
 integrandRadial          = (x/s) e^{-gs}            # s = √(x² + y₀²)
@@ -70,7 +70,8 @@ original's estimators, all to 10⁻⁸.
 | 25 km | 3.0 × 10⁻¹¹ | 2.0 × 10⁻¹⁰ | 6.6 × 10⁻¹¹ |
 | 50 km | 5.2 × 10⁻¹⁴ | 6.4 × 10⁻¹³ | 1.5 × 10⁻¹³ |
 
-At R = 50 m. With the forward cosine kernel at 5 km, R = 200 m gives
-1.74 × 10⁻⁷ yr⁻¹; the 10⁻⁷ level is reached at R = 152 m and the 10⁻⁵ level at
-1518 m. The target area is the bare geometric disc; DOE-STD-3014 adds skid and
-shadow contributions to it, so the footprint used here is a lower bound.
+All values are for R = 50 m. With the forward cosine kernel at 5 km,
+R = 200 m gives 1.74 × 10⁻⁷ yr⁻¹; the 10⁻⁷ level is reached at R = 152 m and
+the 10⁻⁵ level at 1518 m. The target area is the bare geometric disc;
+DOE-STD-3014 adds skid and shadow contributions to it, so the footprint used
+here is a lower bound.

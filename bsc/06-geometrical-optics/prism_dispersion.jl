@@ -12,9 +12,9 @@
 #
 # Checks made in `main`: δ_min is (α₂ − α₁)/2 to round-off; the n column is
 # reproduced from δ_min with an apex angle of 59.9° to 3 × 10⁻⁶, which fixes the
-# apex angle the column was computed with and checks its arithmetic — it is not
+# apex angle the column was computed with and checks its arithmetic (it is not
 # an independent measurement of the prism, since n was derived from δ_min and
-# A_p in the first place; and n falls with λ.
+# A_p in the first place); and n falls with λ.
 #
 # The two-parameter Cauchy fit is reported with the standard errors of its
 # coefficients and its residuals are expressed, through dn/dδ, as the error of

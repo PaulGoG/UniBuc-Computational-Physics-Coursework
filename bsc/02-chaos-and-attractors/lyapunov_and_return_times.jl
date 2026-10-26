@@ -1,6 +1,6 @@
 # Largest Lyapunov exponent of the Lorenz and Rössler systems by the Benettin
 # algorithm; the un-renormalised divergence of two neighbouring trajectories,
-# which is what the 2018 program followed; and the intervals between successive
+# which the 2018 program followed; and the intervals between successive
 # extrema of that separation as that program defined them.
 #
 # Benettin: the perturbation is rescaled to d₀ after every interval τ and
@@ -141,7 +141,7 @@ function extrema_intervals(t, d; skip, ε)
 end
 
 # (field, parameters, name, colour, reference λ₁, horizon of the separation
-# history, horizon of the Benettin run) — the Rössler separation saturates only
+# history, horizon of the Benettin run). The Rössler separation saturates only
 # after 200 time units, and its exponent needs a run five times longer for a
 # standard error of 2 in the third digit
 const CASES = (

@@ -13,17 +13,17 @@
 #
 # Corrections:
 #
-#   1. **The Bateman figure was degenerate.** The time axis was built from
-#      `T_scalare = max(T½₁, T½₂)` — the ²³⁸U half-life, 4.468 × 10⁹ yr — giving
+#   1. The Bateman figure was degenerate. The time axis was built from
+#      `T_scalare = max(T½₁, T½₂)`, the ²³⁸U half-life of 4.468 × 10⁹ yr, giving
 #      a step of 4.5 × 10⁸ yr, while the ²³⁴Th transient peaks at about 2 years.
 #      The entire interesting region, the vertical marker and the printed
 #      `round(t_m/T_scalare, digits=2) = 0.0` all collapsed onto x = 0. A
 #      logarithmic time axis is used here, which shows both scales at once.
-#   2. **A wrong half-life.** ²⁸Al was given as `2.3*60` s; the evaluated value
-#      is 2.245 min = 134.7 s, a 2.4 % error carried straight into λ.
+#   2. The ²⁸Al half-life was wrong. It was given as `2.3*60` s; the evaluated
+#      value is 2.245 min = 134.7 s, a 2.4 % error carried straight into λ.
 #   3. `savefig` interpolated a `LaTeXString` into the filename, so the generated
-#      name would have contained `$^{238}\textrm{U}$` — broken as soon as it was
-#      uncommented.
+#      name would have contained `$^{238}\textrm{U}$`, and the save would have
+#      broken as soon as it was uncommented.
 #   4. The activation code recomputed its cycle sum Cₙ from scratch at every one
 #      of 100 time points per cycle, an O(n) inner sum for a quantity constant
 #      within the cycle, and located a plotting value by float equality after
@@ -77,7 +77,7 @@ function main()
     λ₁, λ₂ = decay_constant(T_U238), decay_constant(T_TH234)
     t_m = bateman_peak(λ₁, λ₂)
     @printf("²³⁸U T½ = %.3e yr, ²³⁴Th T½ = %.2f d\n", T_U238 / YEAR, T_TH234 / 86400)
-    @printf("λ₂/λ₁ = %.3e — the daughter equilibrates %.0e times faster than the parent\n",
+    @printf("λ₂/λ₁ = %.3e; the daughter equilibrates %.0e times faster than the parent\n",
         λ₂ / λ₁, λ₂ / λ₁)
     @printf("daughter maximum at t = %.3f yr = %.1f d\n", t_m / YEAR, t_m / 86400)
     @printf("secular equilibrium ratio Λ₂/Λ₁ → %.6f\n\n", λ₂ / (λ₂ - λ₁))

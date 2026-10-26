@@ -30,7 +30,7 @@ rounded values of the Wahl Z_p systematics (At. Data Nucl. Data Tables **39**,
 
 ![Fragment yields](figures/fragment_yields.png)
 
-What the matrix measures is Y(A_H, TKE) over 4141 cells, 118 ≤ A_H ≤ 158 and
+The matrix measures Y(A_H, TKE) over 4141 cells, 118 ≤ A_H ≤ 158 and
 100 ≤ TKE ≤ 200 MeV. The five charge rows of each cell split one measured yield
 by fractions that are identical across TKE for a given mass, to 3 × 10⁻⁶,
 which the script asserts: Y(Z), Y(N) and the even–odd staggering
@@ -50,8 +50,8 @@ which the script asserts: Y(Z), Y(N) and the even–odd staggering
 | ⟨TKE⟩(A), TXE(A) | 148.3–178.7, 22.0–40.7 MeV |
 
 Every total is a weighted mean over the measured cells of a quantity fixed
-per cell — the cell's A_H, A_L or TKE, the mass's Q(A), and
-Q(A) + S_n − TKE for TXE — so its variance is Σ_c [(q_c − ⟨q⟩) σY_c/ΣY]², with
+per cell (the cell's A_H, A_L or TKE, the mass's Q(A), and
+Q(A) + S_n − TKE for TXE), so its variance is Σ_c [(q_c − ⟨q⟩) σY_c/ΣY]², with
 the rows of one cell added linearly (they share one relative error) and the
 cells in quadrature. Propagated at the mass level instead, after averaging TKE
 within each mass, σ⟨TKE⟩ comes out 0.022 MeV: the within-mass spread of TKE is
@@ -104,14 +104,14 @@ to unit area over the measured window and χ² reduced by ν = N − 1:
 | Göök, centre of mass, light fragment | 0.05–6.95 | 99 % | 0.800 | 5.04 |
 | Göök, centre of mass, heavy fragment | 0.05–6.95 | 99 % | 0.841 | 1.88 |
 
-The window matters: a Maxwellian normalised over all energies compared with
-the Göök laboratory spectrum, which holds 84 % of it, offsets the whole ratio
-by a fifth and returns T_M = 1.322 MeV at χ²/ν = 55. The centre-of-mass sets
-sit well below the laboratory ones, as removing the fragment motion requires,
-and are counting-limited above about 6 MeV. `Fission_5.jl` divided χ² by N
-rather than ν, a convention, and bounded its optimiser at T_M = 0, where
-T_M^{−3/2} is infinite; both files re-integrated E₁, γ(3/2, x) and the window
-integral by quadrature at every evaluation.
+A Maxwellian normalised over all energies and compared with the Göök laboratory
+spectrum, which holds 84 % of it, offsets the whole ratio by a fifth and
+returns T_M = 1.322 MeV at χ²/ν = 55. The centre-of-mass sets, from which the
+fragment motion is removed, sit well below the laboratory ones and are
+counting-limited above about 6 MeV. `Fission_5.jl` divided χ² by N rather than
+ν, a convention, and bounded its optimiser at T_M = 0, where T_M^{−3/2} is
+infinite; both files re-integrated E₁, γ(3/2, x) and the window integral by
+quadrature at every evaluation.
 
 ## `neutron_multiplicity.jl`
 

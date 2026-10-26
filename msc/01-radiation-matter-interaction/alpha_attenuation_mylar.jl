@@ -12,8 +12,8 @@
 # Δε = ε(0) − ε(x), fitted the four differences unweighted with a free intercept,
 # drew error bars that did not enter the fit, and never printed the
 # coefficients. Differencing correlates the points through the shared ε(0);
-# with that covariance written out and no intercept — Δε(0) = 0 by
-# construction — the differenced fit is identical to the five-point fit above,
+# with that covariance written out and no intercept (Δε(0) = 0 by
+# construction), the differenced fit is identical to the five-point fit above,
 # which `main` asserts. A free intercept in the differenced model is a redundant
 # parameter and widens the slope error by 1.7×.
 #
@@ -54,7 +54,7 @@ function main()
     σε₀, σS = sqrt.(diag(fit.cov))
 
     # the differenced form of the original, with the covariance the shared ε(0)
-    # induces and no intercept: the same estimate, the same error, the same χ²
+    # induces and no intercept, reproduces the estimate, its error and χ²
     x, Δε = X[2:end], ε[1] .- ε[2:end]
     C = [i == j ? σε[1]^2 + σε[i + 1]^2 : σε[1]^2 for i in eachindex(x), j in eachindex(x)]
     differenced = generalised_least_squares(reshape(x, :, 1), Δε, C)

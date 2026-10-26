@@ -30,11 +30,10 @@ Observed order of convergence from errors `err` measured at step sizes `h`.
 
 `order` is the least-squares slope of `log err` against `log h` and `stderr` its
 standard error from the residual variance on `length(h) - 2` degrees of freedom.
-The residuals of a convergence sweep are not noise — they are the higher-order
-terms of the error expansion — so `stderr` measures how far the sweep is from a
-pure power law rather than a statistical uncertainty. `pairwise[i]` is the order
-between `h[i]` and `h[i + 1]`, which is what shows whether the asymptotic regime
-has been reached.
+The residuals of a convergence sweep are the higher-order terms of the error
+expansion, so `stderr` measures how far the sweep is from a pure power law; it is
+not a statistical uncertainty. `pairwise[i]` is the order between `h[i]` and
+`h[i + 1]` and shows whether the asymptotic regime has been reached.
 
 Throws an `ArgumentError` for fewer than three points, mismatched lengths, or a
 non-positive entry, none of which has a logarithm worth fitting.

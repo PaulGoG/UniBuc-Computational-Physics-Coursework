@@ -7,9 +7,9 @@
 # a full boolean scan of a ~3000-row table, allocating two temporary vectors,
 # executed several times per nuclide inside a double loop over all nuclides.
 # Radionuclizi_3.jl called a function containing six such scans six times per
-# (A, Z) pair, which is of order 2×10⁹ element comparisons — and because the
-# table was a non-`const` global, every one of those accesses was also
-# type-unstable. A dictionary keyed on (Z, A) replaces all of it.
+# (A, Z) pair, which is of order 2×10⁹ element comparisons. Because the table was
+# a non-`const` global, every one of those accesses was also type-unstable. A
+# dictionary keyed on (Z, A) replaces all of it.
 
 using CSV, DataFrames
 
@@ -25,8 +25,8 @@ end
 """
     load_masses(path)
 
-Read an AME-format table — `Z A symbol Δ σΔ`, whitespace separated, no header —
-and return a `Dict{Tuple{Int,Int},Nuclide}` keyed on (Z, A).
+Read an AME-format table (`Z A symbol Δ σΔ`, whitespace separated, no header) and
+return a `Dict{Tuple{Int,Int},Nuclide}` keyed on (Z, A).
 """
 function load_masses(path)
     df = CSV.read(path, DataFrame; header = ["Z", "A", "symbol", "Δ", "σΔ"],
@@ -59,9 +59,9 @@ function load_moller(path)
 end
 
 """
-Mass excess of ¹H — the hydrogen **atom**, which is the correct reference for
-atomic mass excesses. The original code named this `Dᵖ` and called it the proton;
-the value was right, the name was not.
+Mass excess of ¹H, the hydrogen atom, which is the correct reference for atomic
+mass excesses. The original code named this `Dᵖ` and called it the proton,
+although the value it held was that of the atom.
 """
 Δ_H1(t) = t[(1, 1)].Δ
 "Mass excess of the free neutron."
@@ -84,9 +84,9 @@ end
 
 Energy to remove the particle (Z_x, A_x) from the nuclide (Z, A), in keV, or
 `nothing` if either the parent, the ejectile or the residual is absent. The original
-version returned `[true, S]` on success and `[false, 0]` on failure — two
-different element types from one function, then indexed as `[1]` for a boolean
-and `[2]` for an energy.
+version returned `[true, S]` on success and `[false, 0]` on failure, mixing two
+element types in the return value of one function, which the caller then indexed
+as `[1]` for a boolean and `[2]` for an energy.
 """
 function separation_energy(t, Z, A, Z_x, A_x)
     (haskey(t, (Z, A)) && haskey(t, (Z_x, A_x)) &&

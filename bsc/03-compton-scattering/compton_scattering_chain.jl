@@ -5,12 +5,12 @@
 #   tan φ = E' sin θ / (E - E' cos θ)              recoil-electron angle
 #
 # Ported from EfectulCompton.cpp in Code_Archive/Old_2018/C_C++/ on the
-# `legacy` branch. The three physics formulae there are individually correct. The sampling was not: the scattering angle
-# was drawn uniformly on [0°, 180°], which is neither the Klein-Nishina
-# distribution nor even isotropic scattering — isotropy is uniform in cos θ, not
-# in θ. Every energy distribution the original produced was therefore
-# unphysical. The angle is sampled here from the Klein-Nishina differential
-# cross-section by rejection.
+# `legacy` branch. The three physics formulae there are individually correct; the
+# sampling was not. The scattering angle was drawn uniformly on [0°, 180°], which
+# is neither the Klein-Nishina distribution nor isotropic scattering, since
+# isotropy is uniform in cos θ and not in θ. Every energy distribution the
+# original produced was therefore unphysical. The angle is sampled here from the
+# Klein-Nishina differential cross-section by rejection.
 #
 # Two further defects, both removed: the original computed the scattered energy
 # a second time from the recoil angle by the sine rule and averaged the two,
@@ -230,10 +230,10 @@ format_count(n::Integer) = replace(string(n), r"(?<=\d)(?=(\d{3})+$)" => "\u2009
 Animate the ensemble degrading: the photon-energy distribution after each
 scattering, beside the Klein-Nishina distribution at the surviving mean energy.
 
-The second panel is the point. Klein-Nishina is strongly forward-peaked at
+In the second panel, the Klein-Nishina distribution is strongly forward-peaked at
 1 MeV and relaxes towards the symmetric Thomson form as the photons lose energy,
-so the angular distribution the sampler must draw from changes at every step —
-which is exactly what a single fixed uniform draw cannot represent.
+so the angular distribution the sampler must draw from changes at every step; a
+single fixed uniform draw cannot represent it.
 """
 function animate_degradation(chains, rng)
     steps = 0:2:40

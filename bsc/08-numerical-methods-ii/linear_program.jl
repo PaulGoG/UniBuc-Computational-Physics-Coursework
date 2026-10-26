@@ -10,16 +10,15 @@
 # current JuMP.
 #
 # It is replaced rather than repaired. For two variables and three constraints
-# the feasible region has a handful of vertices and enumerating them is exact,
-# dependency-free, and shows the structure the solver hides — which matters
-# here, because:
+# the feasible region has a handful of vertices, and enumerating them is exact and
+# dependency-free and exposes two features of the structure that the solver hides:
 #
-#   * **the problem is degenerate.** The objective x₁ + x₂ is exactly parallel
+#   * the problem is degenerate. The objective x₁ + x₂ is exactly parallel
 #     to the first constraint x₁ + x₂ ≤ 3, so the optimal face is the whole
 #     segment from (3, 0) to (2, 1), not a point. The original printed
 #     `value(x1)` and `value(x2)` as though the answer were unique; which vertex
 #     a simplex implementation returns is arbitrary.
-#   * **the third constraint is redundant.** x₂ ≤ 3 is implied by x₁ + x₂ ≤ 3
+#   * the third constraint is redundant. x₂ ≤ 3 is implied by x₁ + x₂ ≤ 3
 #     together with x₁ ≥ 0, and never binds.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
@@ -40,7 +39,7 @@ feasible(p; tol = 1e-9) = all(c -> c[1]*p[1] + c[2]*p[2] <= c[3] + tol, CONSTRAI
 """
     vertices()
 
-All feasible intersections of constraint pairs — the vertices of the polytope.
+All feasible intersections of constraint pairs: the vertices of the polytope.
 """
 function vertices()
     pts = Tuple{Float64,Float64}[]
@@ -93,8 +92,8 @@ function main()
     l_opt = lines!(ax, [seg[1][1], seg[end][1]], [seg[1][2], seg[end][2]],
         color = PALETTE.red, linewidth = 6,)
 
-    # the objective contours are parallel to the binding constraint, which is
-    # why the optimum is a face and not a vertex; drawn up to the optimum
+    # the objective contours are parallel to the binding constraint, so the
+    # optimum is a face and not a vertex; drawn up to the optimum
     local l_obj
     for c in 0.5:0.5:3
         l_obj = lines!(ax, [0, 3.6], [c - 0, c - 3.6], color = (PALETTE.black, 0.35),

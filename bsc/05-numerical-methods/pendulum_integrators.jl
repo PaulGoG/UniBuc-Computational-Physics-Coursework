@@ -6,7 +6,7 @@
 # Ported from Pendul_simplu.m, Pendul_dampat.m, Pendul_dampat_fortat.m and
 # Runge_Kutta_4_pendul_dampat_fortat.m on the `legacy` branch.
 #
-# The defect that matters is in the RK4 file. For the coupled system θ̇ = ω,
+# The principal defect is in the RK4 file. For the coupled system θ̇ = ω,
 # ω̇ = F(θ, ω, t), the θ-stages must be fed the θ-slopes. The original wrote
 #
 #     k2 = frhs(omega + dt*k1/2, theta + dt*k1/2, t + dt/2)
@@ -155,8 +155,8 @@ wrap(θ) = mod(θ + π, 2π) - π
     wrapped_trace(t, θ)
 
 `θ` wrapped to (−π, π] against `t`, with a `NaN` pair inserted at every wrap so
-that a line breaks there instead of striking across the panel. For the original
-coupling, which winds rather than oscillates.
+that a line breaks there instead of striking across the panel. It serves the
+original coupling, which winds rather than oscillates.
 """
 function wrapped_trace(t, θ)
     xs, ys = Float64[], Float64[]

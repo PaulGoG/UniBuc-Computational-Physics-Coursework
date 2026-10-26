@@ -92,9 +92,9 @@ Returns `(; Ωm, offset, σΩm, σoffset, χ², dof, rms, at_bound)`. `χ²` is 
 weighted sum of squared residuals, or the plain sum without `σ`.
 
 Ω_m is confined to [`Ωm_BOUNDS`](@ref). If it ends on an edge, `at_bound` is
-set, the offset is recomputed with Ω_m held there — the bounded
-Levenberg–Marquardt iteration stops short of that conditional optimum — and
-`σΩm` is `NaN`, a standard error having no meaning on a boundary.
+set, the offset is recomputed with Ω_m held there (the bounded Levenberg–Marquardt
+iteration stops short of that conditional optimum), and `σΩm` is `NaN`, since a
+standard error has no meaning on a boundary.
 """
 function fit_flat_lcdm(z, m, σ = nothing; Ωm = nothing)
     length(z) == length(m) || throw(DimensionMismatch("z and m differ in length"))

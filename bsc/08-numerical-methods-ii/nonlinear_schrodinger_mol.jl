@@ -7,7 +7,7 @@
 # Julia-Workflow-FFUB/Examen_PDF_MN_II_L_4/ on the `legacy` branch.
 #
 # A soliton η sech(η(x − x₀)) e^{ikx} of this equation travels with velocity
-# v = k, so the original's pair — centred at x = ∓5 with k = ∓0.1 — moves apart
+# v = k, so the original's pair, centred at x = ∓5 with k = ∓0.1, moves apart
 # and meets across the periodic boundary. `main` measures the speed of the
 # left-hand peak before the encounter and asserts v = −0.1, asserts the norm
 # ∫|Ψ|² dx conserved to round-off, and reports the drift of the Hamiltonian
@@ -51,7 +51,7 @@ end
     step_rk4!(Ψ, work, dx, dt)
 
 One RK4 step of the semi-discrete system. Stages are formed on the full vector,
-which is the point the 2021 version missed.
+which the 2021 version did not do.
 """
 function step_rk4!(Ψ, work, dx, dt)
     k1, k2, k3, k4, tmp = work
@@ -164,11 +164,10 @@ end
 Animate the two solitons colliding, with the conserved norm tracked beneath.
 
 The heatmap shows the collision as a static interference pattern; the animation
-shows what actually happens — the two pulses pass through one another and come
-out unchanged in shape and speed, which is what makes them solitons rather than
-merely localised wave packets. The norm panel is the numerical check running
-alongside: a method-of-lines scheme that distorted the pulses would not hold
-the norm flat.
+shows the two pulses passing through one another and emerging unchanged in shape
+and speed, the property that distinguishes solitons from localised wave packets.
+The norm panel runs the numerical check alongside: a method-of-lines scheme that
+distorted the pulses would not hold the norm flat.
 """
 function animate_solitons(x, frames, times, norms, norm0)
     every = max(length(frames) ÷ 120, 1)
