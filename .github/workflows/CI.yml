@@ -1,10 +1,9 @@
 name: CI
 
-# Trimmed to what a script archive warrants. There is no package to test, no
-# docs to build and nothing to register, so the two things worth checking are
-# that the formatting matches the committed configuration and that the
-# environment still resolves within its [compat] bounds and renders a figure on
-# a machine that is not this one.
+# A script archive: nothing to test or register. The two checks are that the
+# formatting matches the committed configuration and that the environment still
+# resolves within its [compat] bounds and renders a figure on a machine that is
+# not this one.
 
 on:
   push:
@@ -22,21 +21,29 @@ jobs:
     name: Formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v2
+      - uses: actions/checkout@v7
+      - uses: julia-actions/setup-julia@v3
         with:
           version: '1'
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
+      # JuliaFormatter is not a dependency of the scripts, so it goes into a
+      # throwaway environment, held to the major version whose output the
+      # sources were formatted with.
       - name: Check against .JuliaFormatter.toml
         shell: julia --color=yes {0}
         run: |
-          include(joinpath(pwd(), "activate.jl"))
+          using Pkg
+          Pkg.activate(; temp = true)
+          Pkg.add(name = "JuliaFormatter", version = "2.14 - 2")
           using JuliaFormatter
           if !format("."; overwrite = false)
+              format(".")
+              run(`git --no-pager diff`)
               @error """
-              Formatting differs from .JuliaFormatter.toml. Run
+              Formatting differs from .JuliaFormatter.toml; the diff above is the
+              correction. Run
 
-                  julia -e 'include("activate.jl"); using JuliaFormatter; format(".")'
+                  julia -e 'using JuliaFormatter; format(".")'
 
               and commit the result.
               """
@@ -47,15 +54,14 @@ jobs:
     name: Environment and rendering
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v2
+      - uses: actions/checkout@v7
+      - uses: julia-actions/setup-julia@v3
         with:
           version: '1'
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
       # One script end to end, invoked as the README says: it activates and
       # instantiates the environment itself, loads the shared theme and writes
-      # a PNG, without needing any of the data files. If this passes, a figure
-      # is reproducible off this machine.
+      # a PNG, without needing any of the data files.
       - name: Render a figure
         run: julia bsc/08-numerical-methods-ii/linear_program.jl
       - name: Confirm the figure was written

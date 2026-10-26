@@ -23,7 +23,7 @@ that run, say what they compute, and check themselves against something.
 ├── activate.jl                     activates and instantiates it
 ├── theme.jl                        shared figure style and colourblind-safe palette
 ├── .JuliaFormatter.toml            formatting rules, SciMLStyle
-├── .github/workflows/CI.yml        formatting check, and one figure rendered from scratch
+├── .github/                        CI: formatting check, one figure rendered from scratch; Dependabot
 ├── CITATION.cff                    citation metadata, rendered by GitHub
 ├── LICENSE                         MIT
 ├── bsc/
@@ -83,16 +83,18 @@ happens when a problem is ill-posed.
 julia bsc/04-ising-model/ising_annealing.jl
 ```
 
-Any script runs the same way, from any directory: each activates and
-instantiates the root environment as its first statement, so the first run is
-slow. Each writes its figures into its own `figures/` directory and prints its
-numerical results to the terminal. `julia -i activate.jl` opens a REPL in the
-same environment.
+Any script runs the same way, from any directory, on Julia 1.13 or later: each
+activates and instantiates the root environment as its first statement, so the
+first run is slow. Each writes its figures into its own `figures/` directory
+and prints its numerical results to the terminal. `julia -i activate.jl` opens
+a REPL in the same environment.
 
-Formatting is checked against the committed `.JuliaFormatter.toml`:
+Formatting is checked against the committed `.JuliaFormatter.toml`; the
+formatter is not part of the environment, so this needs JuliaFormatter in the
+default one:
 
 ```bash
-julia -e 'include("activate.jl"); using JuliaFormatter; format(".")'
+julia -e 'using JuliaFormatter; format(".")'
 ```
 
 ## What the rewrite found
