@@ -121,7 +121,7 @@ trapezoid_weights(x) = [i == 1 ? (x[2] - x[1]) / 2 :
 
 function main()
     cells = yield_cells(load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR")))
-    masses = load_masses(joinpath(DATA, "Defecte_masa", "AUDI2021.csv"))
+    masses = load_masses(joinpath(DATA, "Mass_defects", "AUDI2021.csv"))
     bins = tke_by_mass(cells)
     S_n = separation_energy(masses, Z₀, A₀)[1]
 
@@ -184,7 +184,7 @@ function main()
         ("Göök, CM light", "U5SPCMLF.DAT", PALETTE.green, :utriangle),
         ("Göök, CM heavy", "U5SPCMHF.DAT", PALETTE.purple, :diamond),]
     results = map(files) do (name, file, colour, marker)
-        d = load_measurement(joinpath(DATA, "Date_experimentale", "Spectru_n", file))
+        d = load_measurement(joinpath(DATA, "Experimental", "Neutron_spectrum", file))
         keep = d.σ .> 0
         T, χ²ν = fit_maxwellian(d.x[keep], d.y[keep], d.σ[keep])
         held = maxwellian_cdf(maximum(d.x[keep]), T) - maxwellian_cdf(minimum(d.x[keep]), T)

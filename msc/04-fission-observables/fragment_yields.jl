@@ -87,7 +87,7 @@ end
 
 function main()
     rows = load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR"))
-    masses = load_masses(joinpath(DATA, "Defecte_masa", "AUDI2021.csv"))
+    masses = load_masses(joinpath(DATA, "Mass_defects", "AUDI2021.csv"))
     cells = yield_cells(rows)
     @printf("Straede matrix: %d rows in %d (A_H, TKE) cells; A_H %d–%d, Z_H %d–%d, TKE %d–%d MeV\n",
         length(rows), length(cells), extrema(r.A_H for r in rows)...,

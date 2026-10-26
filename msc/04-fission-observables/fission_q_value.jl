@@ -24,7 +24,7 @@ include(joinpath(@__DIR__, "..", "..", "theme.jl"))
 include(joinpath(@__DIR__, "fission_core.jl"))
 
 function main()
-    masses = load_masses(joinpath(DATA, "Defecte_masa", "AUDI2021.csv"))
+    masses = load_masses(joinpath(DATA, "Mass_defects", "AUDI2021.csv"))
     bins = tke_by_mass(yield_cells(load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR"))))
     @printf("Δ(²³⁶U) = %.1f ± %.1f keV, %d nuclides tabulated\n", masses[(Z₀, A₀)]...,
         length(masses))

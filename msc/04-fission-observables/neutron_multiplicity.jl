@@ -160,9 +160,9 @@ end
 
 function main()
     rows = load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR"))
-    masses = load_masses(joinpath(DATA, "Defecte_masa", "AUDI2021.csv"))
-    gc = load_gilbert_cameron(joinpath(DATA, "Parametrizari_auxiliare", "SZSN.GC"))
-    β_gs = load_beta2(joinpath(DATA, "Parametrizari_auxiliare", "B2MOLLER.ANA"))
+    masses = load_masses(joinpath(DATA, "Mass_defects", "AUDI2021.csv"))
+    gc = load_gilbert_cameron(joinpath(DATA, "Auxiliary_parametrisations", "SZSN.GC"))
+    β_gs = load_beta2(joinpath(DATA, "Auxiliary_parametrisations", "B2MOLLER.ANA"))
     bins = tke_by_mass(yield_cells(rows))
     S_n = separation_energy(masses, Z₀, A₀)[1]
 
@@ -206,7 +206,7 @@ function main()
     Y_of = Dict(a => bins[a].Y for a in keys(bins))
     println("\nmeasured ν(A): yield-weighted mean per fragment, ×2 for the pair; model against data")
     measured = map(sets) do (name, file, colour, marker)
-        d = load_measurement(joinpath(DATA, "Date_experimentale", "Multiplicitate_n", file))
+        d = load_measurement(joinpath(DATA, "Experimental", "Neutron_multiplicity", file))
         keep = [d.y[i] > 0 && (haskey(Y_of, Int(d.x[i])) || haskey(Y_of, A₀ - Int(d.x[i])))
                 for i in eachindex(d.x)]
         wts = [get(Y_of, Int(a), get(Y_of, A₀ - Int(a), 0.0)) for a in d.x[keep]]
