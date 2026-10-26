@@ -15,7 +15,7 @@ results against closed forms or published values.
 
 Flat ΛCDM fitted to the sixty Type Ia supernovae of Perlmutter et al.,
 *Measurements of Ω and Λ from 42 High-Redshift Supernovae*, ApJ **517**, 565
-(1999), doi:10.1086/307221 — Tables 1 and 2: 42 high-redshift supernovae of the
+(1999), doi:10.1086/307221, Tables 1 and 2: 42 high-redshift supernovae of the
 Supernova Cosmology Project and 18 low-redshift ones of the Calán/Tololo
 survey, with stretch-, K- and extinction-corrected effective B-band peak
 magnitudes whose uncertainties include 0.17 mag of intrinsic dispersion. The
@@ -46,7 +46,7 @@ Planck 2018 gives Ω_m = 0.315 ± 0.007 (Planck Collaboration VI, A&A **641**, A
 The Einstein–de Sitter universe, flat and matter-only, is fitted with the offset
 alone: χ² = 136.8 on 59 dof for Fit A and 92.9 on 53 for Fit C, that is
 Δχ² = 33.6 and 35.2 against ΛCDM for one extra parameter. Only flat models are
-tested here, so what is rejected is flat matter-only expansion; open
+tested here, so the rejection applies to flat matter-only expansion; open
 decelerating models need the curvature term, which this module does not carry.
 The lower panel shows the residuals against Einstein–de Sitter: the
 high-redshift supernovae sit systematically above the line, fainter and
@@ -102,9 +102,8 @@ H₀ drifts by 8 km s⁻¹ Mpc⁻¹ in the same direction. The two are degenerat
 the low-redshift points anchor both. These are distance moduli compiled from
 mixed sources and methods, not a standardised sample: the distance scale
 survives the heterogeneity and the shape does not. The fit is bounded to
-0 ≤ Ω_m ≤ 1 deliberately; ending at a bound is the signal that the data do not
-constrain the parameter, and the code reports it as such rather than a number
-with an error bar.
+0 ≤ Ω_m ≤ 1 deliberately; ending at a bound indicates that the data do not
+constrain the parameter, and the code reports the bound without an error bar.
 
 **Host-galaxy magnitudes.** The 6571 host-galaxy apparent magnitudes that the
 2019 analysis fitted give Ω_m at the bound, an effective offset M = −19.57 mag
@@ -141,6 +140,6 @@ inside the right-hand side of its ODE writes `u[3] = …`, assigning a magnitude
 into the state vector instead of returning a derivative. It fitted host-galaxy
 magnitudes by driving a `MonteCarloProblem` with randomised initial conditions
 through `build_loss_objective`; the closed form of the luminosity distance
-replaces that route. The equation-of-state survey sketched in its docstring —
-quintessence, Chaplygin and modified Chaplygin gas — was never implemented and
+replaces that route. The equation-of-state survey sketched in its docstring
+(quintessence, Chaplygin and modified Chaplygin gas) was never implemented and
 is not implemented here.

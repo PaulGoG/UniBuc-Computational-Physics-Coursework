@@ -7,13 +7,13 @@
 `computational-physics` `numerical-methods` `nuclear-physics` `cosmology` `julia` `physics` `coursework` `university-of-bucharest`
 
 Computational physics written during my studies at the Faculty of Physics,
-University of Bucharest — BSc 2017–2021, MSc 2021–2023. Originally C, C++,
+University of Bucharest (BSc 2017–2021, MSc 2021–2023). Originally C, C++,
 Octave and Julia; rewritten here in Julia, organised by degree and in
 chronological order.
 
-Everything is a script. There is no package scaffolding, and that is deliberate:
-these were scripts when they were written and they remain scripts, just ones
-that run, say what they compute, and check themselves against something.
+Everything is a script, without package scaffolding: these were scripts when
+they were written and they remain scripts, now ones that run, print what they
+compute and check the result against a reference.
 
 ## Layout
 
@@ -49,22 +49,22 @@ that run, say what they compute, and check themselves against something.
 The BSc is Engineering Physics, four years and 240 ECTS, so BSc year 4 is the
 2020–2021 academic year and the MSc runs 2021–2023. Years come from the archive
 folder names, which carry the year of study (`Old_2018`, `…_L_4`, `…_M_1`,
-`…_M_2`); the two modules whose folders carry no marker say so rather than
-guess.
+`…_M_2`); the two modules whose folders carry no marker say so.
 
 Each directory has its own README with the figures, the results, and what was
 wrong with the original.
 
 ## By subject
 
-The layout above is by degree and then chronological, which is how the work
-happened. Several subjects span that ordering, so they are indexed here too.
+The layout above is by degree and then chronological, the order in which the
+work was done. Several subjects span that ordering, so they are indexed here
+too.
 
 | Subject | Where |
 |---|---|
 | **Numerical integration of ODEs** | `bsc/01` (integrator order, symplectic vs explicit), `bsc/02` (applied to chaotic flows), `bsc/05` (Adams, RK4, pendulum), `bsc/08` (non-unique IVPs, method of lines) |
 | **Cosmology** | `bsc/07` (Friedmann, the Hubble diagram, the acceleration discovery), `msc/05` (`hubble_parameter.jl`, H₀ from galaxy recession) |
-| **Optics** | `bsc/06` (paraxial ray transfer, prism dispersion), `msc/02` (prism spectroscope calibration) — the two halves of the same Cauchy relation, one assumed and one measured |
+| **Optics** | `bsc/06` (paraxial ray transfer, prism dispersion), `msc/02` (prism spectroscope calibration), the two halves of the same Cauchy relation, one assumed and one measured |
 | **Monte Carlo and statistics** | `bsc/03` (Compton chain, Klein–Nishina sampling), `bsc/04` (Ising, Metropolis), `bsc/09` (Bayesian updating, rejection sampling) |
 | **Nuclear structure and reactions** | `msc/01` (radiation–matter), `msc/03` (masses, separation, pairing), `msc/04` (fission observables) |
 | **Atmospheric remote sensing** | `bsc/10` (DOAS NO₂ columns from two instruments) |
@@ -72,10 +72,10 @@ happened. Several subjects span that ordering, so they are indexed here too.
 
 The numerical-methods pair, `bsc/05` and `bsc/08`, is one course taught twice:
 the first in Octave, the second in Mathematica and Octave in the fourth year.
-Only the second is dated — its archive folder is marked `L_4` — so the first is
-placed before it by the course numbering alone. They are kept apart because what
-they show is different: `05` is about the schemes themselves, `08` about what
-happens when a problem is ill-posed.
+Only the second is dated (its archive folder is marked `L_4`), so the first is
+placed before it by the course numbering alone. `05` is about the schemes
+themselves, `08` about what happens when a problem is ill-posed, so they are
+kept apart.
 
 ## Running it
 
@@ -99,34 +99,34 @@ julia -e 'using JuliaFormatter; format(".")'
 
 ## What the rewrite found
 
-Every script is now checked against something — a closed-form solution, a
-conserved quantity, an evaluated nuclear datum, or a literature value. Doing
-that turned up a substantial number of defects in the originals. The ones that
-changed results:
+Every script is now checked against a closed-form solution, a conserved
+quantity, an evaluated nuclear datum, or a literature value. Doing that turned
+up a substantial number of defects in the originals. The ones that changed
+results:
 
 | Where | Defect |
 |---|---|
 | `Harmonic_oscillator.cpp`, `Damped_oscillator.cpp`, `Forced_oscillator.cpp`, `Attractors/helpers.cpp` | an `ifstream` opened on a file that an unflushed `ofstream` was still writing; a failed extraction zeroes its target since C++11, so the tail of every separation and extremum series was zero, and all of it for a run whose output fits one stream buffer. Compiled with its paths repaired, the attractor program does print non-zero distances, so the design condemned the tails, not necessarily every run |
-| `RK4_damped_forced_pendulum.m` | the θ-stages used the ω-slopes, making the scheme **first-order, not fourth**. Measured order: 1.005 against 3.996 |
-| `Ising_model.cpp` | rows allocated `n+2` wide, columns only `n`, while indexing `a[i][n+1]` — a heap overflow; ghost cells never refreshed; every bond double-counted, so Metropolis ran at effective temperature **T/2**; cooling per flip rather than per sweep |
+| `RK4_damped_forced_pendulum.m` | the θ-stages used the ω-slopes, making the scheme first-order, not fourth. Measured order: 1.005 against 3.996 |
+| `Ising_model.cpp` | rows allocated `n+2` wide, columns only `n`, while indexing `a[i][n+1]`, a heap overflow; ghost cells never refreshed; every bond double-counted, so Metropolis ran at effective temperature T/2; cooling per flip rather than per sweep |
 | `Fission_4.jl` | Madland–Nix prefactor written `(1/3*sqrt(E_F*T_MAX))`, which multiplies by √(E_f T_m) where the model divides by it; each fragment's spectrum then integrates to E_f T_m instead of one, reweighting the mass average by 4.8 % in ⟨E⟩ |
-| `Fission_2.jl` | Y(N) summed inside the (A,Z) loop over a quantity depending only on N: **805 % total yield instead of 100 %** |
-| `Aircraft_crash_frequency.jl` | two crash-frequency estimators, neither of them an areal density, differing by one power of length — **neither was a frequency**, yet both were screened against per-year thresholds |
+| `Fission_2.jl` | Y(N) summed inside the (A,Z) loop over a quantity depending only on N: 805 % total yield instead of 100 % |
+| `Aircraft_crash_frequency.jl` | two crash-frequency estimators, neither of them an areal density, differing by one power of length. Neither was a frequency, yet both were screened against per-year thresholds |
 | `Hubble.jl` | `Suma_σ² =+ σ_z[i]^2` parses as an assignment, not `+=`, so every averaged uncertainty kept only its last term |
-| `Compton_effect.cpp` | scattering angle sampled uniformly in θ — neither Klein–Nishina nor isotropic, which is uniform in cos θ |
+| `Compton_effect.cpp` | scattering angle sampled uniformly in θ: neither Klein–Nishina nor isotropic, which is uniform in cos θ |
 | `U238_decay.m` | the ²³⁸U half-life used as the mean lifetime |
-| `Phase_space_ODE.cpp` | `EulerImplicit` advances both components from old values — it is explicit Euler, and the misnomer had spread into six output filenames |
+| `Phase_space_ODE.cpp` | `EulerImplicit` advances both components from old values: it is explicit Euler, and the misnomer had spread into six output filenames |
 | `Radionuclides_4_1.jl` | Bateman time grid stepping in units of 450 Myr for a transient peaking at 2.4 years, collapsing the whole figure onto x = 0 |
 | `Hg_calibration.jl` | 5789.66 Å listed where no Hg I line exists; the yellow doublet member is 5769.60 Å |
 | `Breit_Wigner.jl` | the full width at half maximum located by scanning for samples within an absolute tolerance keyed to the array minimum, which returns whichever near-misses came first and last |
 | `SWING_DOAS.jl` | no quality filter and no error bars: the largest SWING column of the day is a failed fit with RMS 0.035 and a 37 % retrieval error, and every SWING spectrum at 6° fails the residual cut |
 
-And one that is a property of the problem rather than the code:
+One further defect is a property of the problem rather than the code:
 `ODE_RK4.jl` states the initial-value problem `y' = √|sin y|, y(0) = 0`, which is
-**not well posed** — √|sin y| is not Lipschitz at any multiple of π, so
-uniqueness fails. A perturbation of 10⁻¹² changes y(100) from 0 to 59.7, the
-value of the solution that never waits, obtained by quadrature. The 2021 file
-set `y[1] = 1`, contradicting its own comment.
+not well posed: √|sin y| is not Lipschitz at any multiple of π, so uniqueness
+fails. A perturbation of 10⁻¹² changes y(100) from 0 to 59.7, the value of the
+solution that never waits, obtained by quadrature. The 2021 file set
+`y[1] = 1`, contradicting its own comment.
 
 ## Some results
 
@@ -134,7 +134,7 @@ set `y[1] = 1`, contradicting its own comment.
 |---|---|
 | Largest Lyapunov exponents, Benettin with blocked errors | Lorenz 0.906 ± 0.014 (literature 0.9056), Rössler 0.0719 ± 0.0016 (0.0714) |
 | Observed orders of Euler and RK4 | 1.000 ± 0.001 and 3.994 ± 0.010 |
-| Maximum binding energy per nucleon | 8.7946 MeV at **⁶²Ni**, over ⁵⁶Fe at 8.7904 |
+| Maximum binding energy per nucleon | 8.7946 MeV at ⁶²Ni, over ⁵⁶Fe at 8.7904 |
 | ⟨TKE⟩ in ²³⁵U(n_th,f) | 170.55 ± 0.05 MeV |
 | S_n(²³⁶U) | 6.546 MeV |
 | Prompt-neutron spectrum, Madland–Nix mass average | ⟨E⟩ = 2.103 MeV, Maxwellian-equivalent T = 1.402 MeV |
@@ -149,8 +149,8 @@ set `y[1] = 1`, contradicting its own comment.
 ## Branches
 
 The [`legacy`](../../tree/legacy) branch holds the material as it was
-submitted — Romanian identifiers and comments, the defects above intact — as
-the reference this branch is read against. Its files and directories carry
+submitted (Romanian identifiers and comments, the defects above intact) as the
+reference this branch is read against. Its files and directories carry
 English names since 2026, with the submitted names mapped in its README, and
 each of its two archives has a README listing its files. It is a single import:
 the commit histories of the two private repositories this came from are not

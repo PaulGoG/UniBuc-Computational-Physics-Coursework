@@ -31,8 +31,8 @@ comes out at 50.79 mm, a normal focal length for the 24 × 36 mm format.
 nine-surface prescription is the six-element Type II form. `Tessar.m` is the
 1902 Rudolph four-element design.
 
-In the originals, `f = -1/S(1,2)` is labelled "Convergenta sistemului" — that
-is the focal length; the convergence is P = 1/f = −S(1,2) — and the
+In the originals, `f = -1/S(1,2)` is labelled "Convergenta sistemului"
+(that is the focal length; the convergence is P = 1/f = −S(1,2)), and the
 principal-plane separation is written `sum(d) - abs(zH1) - abs(zH2)`, which
 is right only when both principal planes fall on one side. The files' own
 diagrams place H₁ at −zH1 and H₂ at Σd + zH2, so the separation is
@@ -73,12 +73,13 @@ arithmetic of the column, not the prism.
 
 The two-term residuals run + + − − + + across the series. A third term
 halves them but returns B < 0, which no glass has, so the structure is read
-as error in setting the minimum deviation — 8′ against a reading resolution
-of 0.01°, which is 8 × 10⁻⁵ in n — rather than as a failure of the dispersion
+as error in setting the minimum deviation (8′ against a reading resolution
+of 0.01°, which is 8 × 10⁻⁵ in n) rather than as a failure of the dispersion
 model. B carries a 16 % uncertainty. Against N-BK7 from the Schott Sellmeier
 coefficients the measured indices lie within −3.3 × 10⁻³ to +2.3 × 10⁻³, and
 BK7's own two-term Cauchy coefficients over this range are A = 1.5046,
-B = 0.00420 µm²: a crown glass of that class, not an identification.
+B = 0.00420 µm². This places the prism in that class of crown glass without
+identifying the glass.
 
 ## Data
 

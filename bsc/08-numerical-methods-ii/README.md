@@ -13,9 +13,9 @@ program. The originals are `ODE_RK4.jl`, `ODE_system_RK4.jl` and
 ![Non-unique IVP](figures/nonunique_ivp_and_rk4.png)
 
 **(a)** y′ = √|sin y| on 0 ≤ x ≤ 100 by RK4. The right-hand side vanishes with
-infinite slope at every multiple of π, so it is not Lipschitz there and the
-initial-value problem has no unique solution from y(0) = 0, which is how the
-original file states the problem: y ≡ 0 solves it, and so does every solution
+infinite slope at every multiple of π, so it is not Lipschitz there. The
+original file poses the problem from y(0) = 0, where the initial-value
+problem has no unique solution: y ≡ 0 solves it, and so does every solution
 that waits at 0 for an arbitrary time before leaving. The file itself starts
 from y(0) = 1, which moves the same ambiguity to the first crossing of π.
 Away from the zeros the equation separates, and the solution that never waits
@@ -90,12 +90,12 @@ max x₁ + x₂ subject to x₁ + x₂ ≤ 3, −x₁ + 3x₂ ≤ 1, x₂ ≤ 3,
 enumerating the vertices of the feasible region. Two things a solver call
 hides:
 
-- **the problem is degenerate.** The objective is parallel to the first
+- the problem is degenerate. The objective is parallel to the first
   constraint, so the optimum 3 is attained on the whole segment from (3, 0)
   to (2, 1); the script asserts a two-vertex optimal face at the bound of that
   constraint. The original printed `value(x1)` and `value(x2)` as though the
   answer were a point; which vertex a simplex returns is arbitrary
-- **x₂ ≤ 3 is redundant**, implied by x₁ + x₂ ≤ 3 with x₁ ≥ 0; it is active at
+- x₂ ≤ 3 is redundant, implied by x₁ + x₂ ≤ 3 with x₁ ≥ 0; it is active at
   no feasible vertex
 
 The original called JuMP through `Model(with_optimizer(GLPK.Optimizer))`,

@@ -17,8 +17,8 @@ PECE form, on `y' = -y + 2 sin x`, `y(0) = 0`, whose exact solution is
 RK4, all as in the original. Its coefficients, h/24·(55, −59, 37, −9) and
 h/24·(9, 19, −5, 1), are correct.
 
-What the original did not use is the error estimate a predictor–corrector pair
-gives for free. With the exact solution through the back values the two formulae
+The original did not use the error estimate a predictor–corrector pair gives
+for free. With the exact solution through the back values the two formulae
 have local errors +251/720 h⁵y⁽⁵⁾ and −19/720 h⁵y⁽⁵⁾, so the corrector's one-step
 error is 19/270 of the corrector-minus-predictor difference (Milne's device;
 Hairer, Nørsett and Wanner, *Solving Ordinary Differential Equations I*, 2nd
@@ -55,7 +55,7 @@ RK4 in 256-bit arithmetic, over steps from 0.32 s to 0.0025 s. Between the two
 finest steps the correct RK4 converges at order 3.996 and the original stage
 coupling at 1.005; the script asserts 4 and 1 within 0.05.
 
-**The original "RK4" is first-order.** For the coupled system `θ̇ = ω`,
+The original "RK4" is first-order. For the coupled system `θ̇ = ω`,
 `ω̇ = F(θ, ω, t)`, the θ-stages must be fed the θ-slopes. The original wrote
 
 ```octave
@@ -67,8 +67,8 @@ so `k1`, which is dω/dt, advanced both components, and the θ-stages propagated
 as though dω/dt = ω. The θ update expands to `dt·ω + dt²·ω/2` where RK4 needs
 `dt·ω + dt²·F/2`. The animation runs both couplings on the free pendulum at a
 step of 0.05 s, where the first-order scheme drifts in phase within a few
-swings; at the 0.002 s step used elsewhere the two are indistinguishable, which
-is why the defect went unnoticed.
+swings; at the 0.002 s step used elsewhere the two are indistinguishable, so
+the defect went unnoticed.
 
 Middle, the full pendulum `θ̈ = -(g/L) sin θ` against the small-angle
 approximation from θ₀ = 2.5 rad, with the g/L = 9.8 s⁻² of `Simple_pendulum.m`
@@ -107,7 +107,8 @@ Euler solution, read by interpolating log N between the bracketing grid points
 T½ [1 − Δt/(2τ) + …], which is 4.4648 Gyr, 0.078 % below T½.
 
 The file is named for a decay but models no chain: ²³⁸U reaches ²⁰⁶Pb through
-fourteen intermediate nuclides, none of which appears. One nuclide, one rate.
+fourteen intermediate nuclides, none of which appears. The model has one
+nuclide and one rate.
 
 ## `ode_system_rk4.jl`
 
@@ -124,7 +125,7 @@ steps gives order 3.997 between the two finest, asserted within 0.05.
 
 The tableau of `ODE_system_RK4.m` is correct. The problems are structural: an
 orientation check `m = size(alpha); if m==1 ...` where `size` returns `[1 3]`,
-so the condition is `[1 0]` and — since `if` requires every element non-zero —
+so the condition is `[1 0]` and, since `if` requires every element non-zero,
 the transpose never fires; the routine works because assigning a row into
 `w(:,1)` reorients it. It also calls its right-hand side by name instead of
 taking it as an argument, prints the 101 × 4 result twice through missing

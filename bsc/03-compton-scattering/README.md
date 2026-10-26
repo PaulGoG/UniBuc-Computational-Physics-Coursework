@@ -25,8 +25,8 @@ The animation shows the ensemble degrading: the photon-energy distribution
 after each scattering, beside the Klein–Nishina distribution at the mean energy
 of the survivors. At 1 MeV it is strongly forward-peaked; by 30 keV it has
 relaxed towards the symmetric Thomson form. The distribution the sampler draws
-from changes at every step, which is what a single fixed distribution — let
-alone a uniform one in θ — cannot represent.
+from changes at every step; a single fixed distribution, uniform in θ or
+otherwise, cannot represent it.
 
 Ported from `Compton_effect.cpp` in `Code_Archive/Old_2018/C_C++/` on the
 `legacy` branch. Its Compton relation, recoil-angle formula and

@@ -77,9 +77,8 @@ const MARKERSIZE = (cloud = 6, dense = 10, data = 14, emphasis = 20, key = 16)
 _decimal_label(e::Integer) = e >= 0 ? latexstring(string(10^e)) :
                              latexstring("0." * "0"^(-e - 1) * "1")
 
-# The unit decade and the first are written as the numbers they are: `10^0` and
-# `10^1` are never the readable form, on an axis of powers no more than on one
-# of decimals.
+# The unit decade and the first are written as the numbers they are: `10^0` and `10^1` are
+# not the readable form on any axis.
 _power_label(e::Integer) = e == 0 ? L"1" : e == 1 ? L"10" : latexstring("10^{$e}")
 
 """
@@ -127,11 +126,10 @@ end
 `s` set in the italic of the shared Computer Modern family, for use inside a
 `rich(...)` run: `rich("Lorenz: ", it("σ"), " = 10")`.
 
-`rich` rather than a `LaTeXString` wherever a label carries ordinary prose,
-because MathTeXEngine parses everything in an `L"…"` — including the text
-outside `\$…\$` — as mathematics, so a colon picks up relation spacing and
-renders as `Lorenz : σ = 10`. Reserve `L"…"` for labels that are entirely
-mathematical.
+Use `rich` rather than a `LaTeXString` wherever a label carries ordinary prose, because
+MathTeXEngine parses everything in an `L"…"`, including the text outside `\$…\$`, as
+mathematics, so a colon picks up relation spacing and renders as `Lorenz : σ = 10`.
+Reserve `L"…"` for labels that are entirely mathematical.
 """
 it(s) = rich(s, font = :italic)
 
@@ -140,7 +138,7 @@ _trim(v::Real) = (s = string(v); endswith(s, ".0") ? s[1:(end - 2)] : s)
 """
     sci(x; digits = 2)
 
-`x` written as a LaTeX power of ten — `sci(1.8e-7)` gives `1.8 \\times 10^{-7}`.
+`x` written as a LaTeX power of ten: `sci(1.8e-7)` gives `1.8 \\times 10^{-7}`.
 
 Exponents of −1, 0 and 1 are folded into the mantissa (`0.18`, `1.8`, `18`) and a
 mantissa of 1 is dropped, so the result never reads `1 \\times 10^{n}` or carries

@@ -33,10 +33,10 @@ order agrees with the nominal one within twice that uncertainty.
 The RK4 pairwise orders run 4.39, 4.21, 4.11, 4.06, 4.03 on the linear problem
 and 3.91, 3.95, 3.98, 3.99, 3.99 on the nonlinear one before round-off enters.
 Finer pairs exist above the floor, but there the round-off term (0.03 to 0.06)
-exceeds the drift, so they say less about the order, not more. A straight-line
-fit through the whole sweep mixes the pre-asymptotic points with the floor; it
-is not used. Euler's errors never come within eight decades of the floor, and
-its uncertainty is the 0.001 resolution the orders are printed to.
+exceeds the drift, so they say less about the order. A straight-line fit
+through the whole sweep mixes the pre-asymptotic points with the floor; it is
+not used. Euler's errors never come within eight decades of the floor, and its
+uncertainty is the 0.001 resolution the orders are printed to.
 
 ![Order of convergence](figures/integrator_order_comparison.png)
 
@@ -54,8 +54,8 @@ schemes agree to first order in Δt and differ completely over long times.
 Explicit Euler multiplies the amplitude by √(1 + Ω²Δt²) at every step, so its
 energy grows as (1 + Ω²Δt²)^N: 7.371 predicted over the 800 steps, 7.371
 measured, asserted to 10⁻¹². Each symplectic variant conserves a modified
-energy exactly — `E + ½ΔtΩ²xv` when the position is updated first,
-`E − ½ΔtΩ²xv` when the velocity is — so its orbit closes and its energy
+energy exactly (`E + ½ΔtΩ²xv` when the position is updated first,
+`E − ½ΔtΩ²xv` when the velocity is), so its orbit closes and its energy
 oscillates about E(0) by at most ½ΩΔt; both invariants hold to 2 × 10⁻¹⁵ along
 the orbit from (1, −1) and are asserted. The right-hand panel repeats the
 step-count sweep of the 2018 exam problem: the energy error of every scheme at
@@ -65,7 +65,7 @@ t = 10 falls as 1/N, the symplectic ones from a starting point ten times lower.
 
 Ported from `Phase_space_ODE.cpp` and `ODE_exam_problem.cpp` on the
 `legacy` branch (`Code_Archive/Old_2018/C_C++/`). The first names its explicit
-scheme `EulerImplicit` — it advances both components from the old values — and
+scheme `EulerImplicit` (it advances both components from the old values), and
 the misnomer runs through six output filenames, so everything labelled
 "implicit" there is about the explicit method. It also works in single
 precision on a study whose subject is accumulated integration error, and draws
@@ -79,7 +79,7 @@ space and integrated with RK4 at Δt = 0.002 to t = 40. The three parameter sets
 of the 2018 programs are run as written, next to two under-damped ones. The
 system is linear, so the difference of two solutions obeys the homogeneous
 equation whatever the driving does, and with ω₁² = ω₀² − δ² the quadratic form
-`Q = (Δv + δΔx)² + ω₁²Δx²` decays as e^{−2δt} exactly — for under-damped,
+`Q = (Δv + δΔx)² + ω₁²Δx²` decays as e^{−2δt} exactly, for under-damped,
 critically damped and undamped motion alike. The Euclidean separation |Δ(x, v)|
 that the 2018 programs wrote out oscillates inside that envelope, so the decay
 rate is asserted on √Q, to 10⁻⁵ of the input δ, and only reported for |Δ|.
@@ -107,7 +107,7 @@ Ported from `Harmonic_oscillator.cpp`, `Damped_oscillator.cpp` and
 `Forced_oscillator.cpp` on the `legacy` branch. All three read their own output
 back through an `ifstream` opened on the same file as the `ofstream` still
 writing it. Whatever the write buffer had not flushed by the time of the read
-came back as zero — a failed extraction zeroes its target since C++11 — so the
+came back as zero (a failed extraction zeroes its target since C++11), so the
 tail of every separation series was zero, and for a run whose whole output fits
 one stream buffer, all of it. The step count was read from standard input and
 is not recorded, so how much of what they printed was real cannot be settled;

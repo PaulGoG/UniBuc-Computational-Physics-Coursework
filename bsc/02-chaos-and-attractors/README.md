@@ -56,8 +56,8 @@ times smaller. The left panel runs each system to just past its saturation.
 separation series, accepts an interior extremum when it differs from the last
 accepted one by more than 10⁻⁴ in relative terms, and records the min → max
 and max → min intervals in two columns; the Octave scripts histogrammed them.
-On the run that program made — 200 000 steps of 0.001 over 200 time units from
-(1, 1, 1), Lorenz only, its Rössler branch being unreachable — the definition
+On the run that program made, 200 000 steps of 0.001 over 200 time units from
+(1, 1, 1) for Lorenz only (its Rössler branch is unreachable), the definition
 gives 269 rising intervals with mean 0.237 ± 0.007 and 270 falling ones with
 mean 0.282 ± 0.008. This statistic describes the oscillation of the separation
 on the saturated attractor, not the exponential growth; return-time statistics
