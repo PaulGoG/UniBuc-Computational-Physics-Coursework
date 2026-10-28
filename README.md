@@ -146,6 +146,13 @@ solution that never waits, obtained by quadrature. The 2021 file set
 | ¹²⁸I γ line, from a NaI(Tl) calibration | 441.1 ± 7.0 keV (accepted 442.9) |
 | Aircraft crash frequency, 5 km from the route, R = 50 m | 1.09 × 10⁻⁸ yr⁻¹ (forward cosine kernel) |
 
+## Status
+
+The archive is complete: the rewrite covers the whole of the submitted
+material, and nothing new will be added. I keep the scripts running on new
+Julia releases, which CI checks once a month, and correct errors when they come
+to light; reports are welcome as issues.
+
 ## Branches
 
 The [`legacy`](../../tree/legacy) branch holds the material as it was
