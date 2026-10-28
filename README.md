@@ -23,7 +23,7 @@ compute and check the result against a reference.
 ├── activate.jl                     activates and instantiates it
 ├── theme.jl                        shared figure style and colourblind-safe palette
 ├── .JuliaFormatter.toml            formatting rules, SciMLStyle
-├── .github/                        CI: formatting check, one figure rendered from scratch; Dependabot
+├── .github/                        CI, also monthly: formatting check, one figure rendered from scratch; Dependabot
 ├── CITATION.cff                    citation metadata, rendered by GitHub
 ├── LICENSE                         MIT
 ├── bsc/

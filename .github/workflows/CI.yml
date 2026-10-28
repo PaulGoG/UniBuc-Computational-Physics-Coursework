@@ -11,6 +11,10 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  # The archive is complete, so commits are rare; a monthly run catches an
+  # environment that has stopped resolving or rendering between them.
+  schedule:
+    - cron: '41 5 1 * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
