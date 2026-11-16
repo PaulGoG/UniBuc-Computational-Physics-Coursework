@@ -2,7 +2,8 @@
 
 [![CI](https://github.com/PaulGoG/UniBuc-Computational-Physics-Coursework/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/PaulGoG/UniBuc-Computational-Physics-Coursework/actions/workflows/CI.yml?query=branch%3Amain)
 [![SciML Code Style](https://img.shields.io/static/v1?label=code%20style&message=SciML&color=9558b2&labelColor=389826)](https://github.com/SciML/SciMLStyle)
-[![License: MIT](https://img.shields.io/github/license/PaulGoG/UniBuc-Computational-Physics-Coursework)](LICENSE)
+[![Format](https://github.com/PaulGoG/UniBuc-Computational-Physics-Coursework/actions/workflows/Format.yml/badge.svg?branch=main)](https://github.com/PaulGoG/UniBuc-Computational-Physics-Coursework/actions/workflows/Format.yml?query=branch%3Amain)
+[![Julia](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FPaulGoG%2FUniBuc-Computational-Physics-Coursework%2Fmain%2FProject.toml&query=%24.compat.julia&label=julia&color=9558b2)](https://julialang.org/downloads/)
 
 `computational-physics` `numerical-methods` `nuclear-physics` `cosmology` `julia` `physics` `coursework` `university-of-bucharest`
 
@@ -23,7 +24,7 @@ reference.
 ├── activate.jl                     activates and instantiates it
 ├── theme.jl                        shared figure style and colourblind-safe palette
 ├── .JuliaFormatter.toml            formatting rules, SciMLStyle
-├── .github/                        CI, also monthly: formatting check, one figure rendered from scratch; Dependabot
+├── .github/                        CI (one figure rendered from scratch, also monthly), Format check, Dependabot
 ├── CITATION.cff                    citation metadata, rendered by GitHub
 ├── LICENSE                         MIT
 ├── bsc/

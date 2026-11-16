@@ -1,9 +1,8 @@
 name: CI
 
-# A script archive: nothing to test or register. The two checks are that the
-# formatting matches the committed configuration and that the environment still
-# resolves within its [compat] bounds and renders a figure on a machine that is
-# not this one.
+# A script archive: nothing to test or register. This workflow checks that the
+# environment still resolves within its [compat] bounds and renders a figure on
+# a clean machine; Format.yml checks the formatting.
 
 on:
   push:
@@ -21,39 +20,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  format:
-    name: Formatting
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: julia-actions/setup-julia@v3
-        with:
-          version: '1'
-      - uses: julia-actions/cache@v3
-      # JuliaFormatter is not a dependency of the scripts, so it is added to a
-      # temporary environment, held to the major version whose output the
-      # sources were formatted with.
-      - name: Check against .JuliaFormatter.toml
-        shell: julia --color=yes {0}
-        run: |
-          using Pkg
-          Pkg.activate(; temp = true)
-          Pkg.add(name = "JuliaFormatter", version = "2.14 - 2")
-          using JuliaFormatter
-          if !format("."; overwrite = false)
-              format(".")
-              run(`git --no-pager diff`)
-              @error """
-              Formatting differs from .JuliaFormatter.toml; the diff above is the
-              correction. Run
-
-                  julia -e 'using JuliaFormatter; format(".")'
-
-              and commit the result.
-              """
-              exit(1)
-          end
-
   render:
     name: Environment and rendering
     runs-on: ubuntu-latest
