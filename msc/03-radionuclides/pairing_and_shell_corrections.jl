@@ -23,17 +23,17 @@
 #   W_LDM = a_v A − a_s A^{2/3} − a_c Z² A^{−1/3} − A (a_sym − a_ss A^{−1/3}) I²
 #   P_a = ½ [Δ(Z+1, A+2) − 2Δ(Z, A) + Δ(Z−1, A−2)],       δW = δW₀ + ½ P_a
 #
-# as in Radionuclizi_5.jl on the `legacy` branch (Julia-Workflow-FFUB/
-# Radionuclizi_M_1/), which names the coefficients Pearson's parametrisation
+# as in Radionuclides_5.jl on the `legacy` branch (Julia-Workflow-FFUB/
+# Radionuclides_M_1/), which names the coefficients Pearson's parametrisation
 # and takes every nuclide whose two P_a neighbours exist. δW is compared with
 # the microscopic correction of the FRDM (Möller, Nix, Myers and Swiatecki,
 # At. Data Nucl. Data Tables 59, 185 (1995), doi:10.1006/adnd.1995.1002) on the
 # nuclides the two have in common.
 #
-# Radionuclizi_3.jl read a non-`const` global table inside a function holding
+# Radionuclides_3.jl read a non-`const` global table inside a function holding
 # six full boolean scans, called six times per (A, Z); its `Energie_separare`
 # returned `[true, S]` or `[false, 0]`, two element types from one function;
-# and its guides were drawn against an unsorted A, as a scribble.
+# and its guides were drawn as lines through points unsorted in A.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 
@@ -48,7 +48,7 @@ const DATA = joinpath(@__DIR__, "data")
 Liquid-drop coefficients [MeV]: the set of von Egidy and Bucurescu, Phys. Rev.
 C 72, 044311 (2005), Eq. (9), taken there from Pearson, Hyperfine Interact.
 132, 59 (2001); a_c = (3/5) e²/r₀ with e² = 1.44 MeV fm and r₀ = 1.233 fm.
-Radionuclizi_5.jl set the same values, naming Pearson without the reference.
+Radionuclides_5.jl set the same values, naming Pearson without the reference.
 """
 const LDM = (a_v = 15.65, a_s = 17.63, a_sym = 27.72, a_ss = 25.60, a_c = 0.864 / 1.233)
 
@@ -78,7 +78,7 @@ end
     pairing_term(t, Z, A)
 
 ½[Δ(Z+1, A+2) − 2Δ(Z, A) + Δ(Z−1, A−2)] in MeV, the second difference of the
-mass excess along the (Z+1, N+1) direction that Radionuclizi_5.jl adds, halved,
+mass excess along the (Z+1, N+1) direction that Radionuclides_5.jl adds, halved,
 to the shell correction; `nothing` if a neighbour is absent.
 """
 function pairing_term(t, Z, A)
@@ -242,7 +242,7 @@ function main()
         end
         Af = 2:270
         # The guides are named in the legend and their constants in the corner:
-        # a label at either end of a c/√A curve sits on the curve or on the data.
+        # a label at either end of a c/√A curve would overlap the curve or the data.
         for m in (1, 2)
             g = factor * m * PAIRING_CONSTANT ./ sqrt.(Af)
             h = lines!(ax, Af, g, color = PALETTE.black,
@@ -252,7 +252,7 @@ function main()
         stencil = f === :guttormsen ? "Three-point" : "Two-point"
         text!(ax, 0.97, 0.96;
             text = latexstring(stencil, " in \$S\$: guides ",
-                @sprintf("\$%d/\\sqrt{A}\$ and \$%d/\\sqrt{A}\$", 12factor, 24factor)),
+                @sprintf("\$%d/\\sqrt{A}\$ and \$%d/\\sqrt{A}\$", 12factor, 24factor),),
             space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,)
         text!(ax, 0.97, 0.90; text = @sprintf("%d points above the frame", above),
             space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,)

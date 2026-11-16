@@ -11,19 +11,19 @@
 # pseudo-absorber, with the fit residual RMS and the retrieval error of every
 # column alongside.
 #
-# Ported from SWING_DOAS.jl in Julia-Workflow-FFUB/Teledetectie_L_4/ on the
+# Ported from SWING_DOAS.jl in Julia-Workflow-FFUB/Remote_Sensing_L_4/ on the
 # `legacy` branch, which plotted `NO2.SlCol` against time per elevation angle.
 # Changed here:
 #
 #   1. The quantity is a differential slant column density in molec cm⁻², not
-#      a concentration; the axes say so.
+#      a concentration, and the axes are labelled accordingly.
 #   2. The retrieval errors `NO2.SlErr` were never read; they are drawn.
 #   3. No quality filter was applied. `NO2.RMS` spans 1.5 × 10⁻⁴ to 3.5 × 10⁻²
 #      and fits above RMS_MAX are excluded. The cut is not neutral between the
 #      instruments: every SWING spectrum at 6° has RMS between 7 and 13 × 10⁻³,
-#      so the whole SWING 6° series goes, with the 12° spectra after 14:00 and
-#      six spectra at 48° and 60°; one MAX-DOAS spectrum goes. `main` prints
-#      the count per elevation angle.
+#      so the whole SWING 6° series is excluded, with the 12° spectra after
+#      14:00 and six spectra at 48° and 60°; one MAX-DOAS spectrum is excluded.
+#      `main` prints the count per elevation angle.
 #   4. The servo byte b is turned into an elevation angle as 88 − b, which puts
 #      the bytes 28, 34, …, 82 on the 6° grid of the MAX-DOAS sequence; the
 #      constant is the original's and is not otherwise documented.
@@ -170,8 +170,8 @@ function main()
     ylims!(ax1, -0.6, 5.3)
     hideydecorations!(ax2, grid = false)
 
-    # the quality cut: instruments told apart by marker and tone, colour being
-    # taken by the elevation angle above
+    # the quality cut: instruments distinguished by marker and tone, colour
+    # being used for the elevation angle above
     ax3 = Axis(
         fig[3, 1], xlabel = "Time [UTC]", ylabel = "Fit residual RMS", yscale = log10,
         xticks = tickspec, yticks = logticks(-4, -1),)

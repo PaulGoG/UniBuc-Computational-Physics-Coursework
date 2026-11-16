@@ -8,19 +8,19 @@
 #
 #   ²⁷Al(n,γ)²⁸Al,  ²⁶Mg(n,γ)²⁷Mg,  ¹²⁷I(n,γ)¹²⁸I in the NaI(Tl) crystal itself
 #
-# Ported from ReactiiNeutronice.jl and FitActivareNaITl.jl on the `legacy`
+# Ported from Neutron_reactions.jl and NaITl_activation_fit.jl on the `legacy`
 # branch. Both linearised the decay law as ln(N₀/Nᵢ) = λ(tᵢ − t₀) with the first
 # count as reference; the first fitted unweighted, the second with weights Nᵢ.
 #
-# Why ln N and not ln(N₀/N): every ln(N₀/Nᵢ) shares N₀, so the points have the
-# covariance Dᵢⱼ + 1/N₀ with D = diag(1/Nᵢ). With a free intercept in the model
-# the common term 1/N₀ is absorbed by the intercept, and the slope and its
-# variance are exactly those of a weighted fit to N₂ … Nₙ alone: the reference
-# count, the most precise of the series, drops out of λ. `main` asserts this
-# identity numerically. Fitting ln N keeps all points, with independent errors.
+# Every ln(N₀/Nᵢ) shares N₀, so these points have the covariance Dᵢⱼ + 1/N₀
+# with D = diag(1/Nᵢ). With a free intercept in the model the common term 1/N₀
+# is absorbed by the intercept, and the slope and its variance are exactly
+# those of a weighted fit to N₂ … Nₙ alone: the reference count, the most
+# precise of the series, drops out of λ. `main` asserts this identity
+# numerically. Fitting ln N keeps all points, with independent errors.
 #
-# Equal acquisition intervals matter: the factor (1 − e^{−λΔ}) relating counts
-# to activity is then common to every point and changes only the intercept.
+# With equal acquisition intervals the factor (1 − e^{−λΔ}) relating counts to
+# activity is common to all points and changes only the intercept.
 #
 # The calibration is an unweighted straight line through four lines. The
 # uncertainty of the peak energy is the full quadratic form [1, c]ᵀ C [1, c];
@@ -49,7 +49,7 @@ The three series: acquisition times in s, counts per interval, and the NUBASE202
 half-life with its uncertainty in min (doi:10.1088/1674-1137/abddae).
 
 The ¹²⁸I reference count is placed one interval before the first time of
-`FitActivareNaITl.jl`, which lists 520, 780, 1040 s for the second to fourth
+`NaITl_activation_fit.jl`, which lists 520, 780, 1040 s for the second to fourth
 counts.
 """
 const SERIES = [
@@ -171,7 +171,7 @@ function main()
         text!(ax2, k, below ? r.T / 1.22 : r.T * 1.22;
             text = rich(
                 pm_string(r.T, r.σT), "\n", it("χ"), superscript("2"), "/", it("ν"),
-                @sprintf(" = %.1f", r.reduced)),
+                @sprintf(" = %.1f", r.reduced),),
             align = (:center, below ? :top : :bottom), color = colors[k],
             fontsize = ANNOTATION_SIZE, justification = :center,)
     end

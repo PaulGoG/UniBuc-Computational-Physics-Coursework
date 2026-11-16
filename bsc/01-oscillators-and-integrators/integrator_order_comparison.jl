@@ -1,8 +1,8 @@
 # Observed order of convergence of forward Euler and classical Runge–Kutta 4 on
 # two scalar initial-value problems:
 #
-#   y' = 3e^{-x} - 0.4y,   y(0) = 1,  x ∈ [0, 5]    (RKtrial.cpp)
-#   y' = y + sin(0.4y),    y(0) = 1,  x ∈ [0, 1]    (DiffEqEuler.cpp)
+#   y' = 3e^{-x} - 0.4y,   y(0) = 1,  x ∈ [0, 5]    (Runge_Kutta_trial.cpp)
+#   y' = y + sin(0.4y),    y(0) = 1,  x ∈ [0, 1]    (Euler_ODE.cpp)
 #
 # The first has the closed-form solution y = (y₀ + 5)e^{-0.4x} - 5e^{-x}. The
 # second has none, so its reference is RK4 in 256-bit arithmetic, checked
@@ -13,13 +13,14 @@
 #   p(h) = ln[e(2h)/e(h)] / ln 2,
 #
 # which tends to the order of the scheme as h → 0 and is meaningful only while
-# e(h) stands clear of accumulated round-off. Each pair carries two error terms:
-# the pre-asymptotic drift |p(h) - p(2h)|, which for p = p₀ + c·h equals the
-# distance still to go, and the round-off term ε/(e ln 2), with ε the round-off
-# floor measured from the sweep itself. A pair is used while the second is below
-# the first; the order quoted is that of the finest such pair, with the sum of
-# the two terms as its uncertainty. A single straight-line fit through the whole
-# sweep mixes the pre-asymptotic points at large h with the floor at small h.
+# e(h) is well above the accumulated round-off. Each pair carries two error
+# terms: the pre-asymptotic drift |p(h) - p(2h)|, which for p = p₀ + c·h equals
+# the remaining deviation from p₀, and the round-off term ε/(e ln 2), with ε the
+# round-off floor measured from the sweep itself. A pair is used while the
+# second is below the first; the order quoted is that of the finest such pair,
+# with the sum of the two terms as its uncertainty. A single straight-line fit
+# through the whole sweep mixes the pre-asymptotic points at large h with the
+# floor at small h.
 #
 # Both schemes are coded as in the 2018 C++ sources. Those programs read N and
 # the interval from standard input and printed the endpoint value only; the
@@ -41,10 +42,10 @@ const ORDER_BREAKDOWN = 1.0
 "Smallest uncertainty quoted for an order; the orders are printed to three decimals."
 const ORDER_RESOLUTION = 1e-3
 
-"Right-hand side of the linear problem of RKtrial.cpp."
+"Right-hand side of the linear problem of Runge_Kutta_trial.cpp."
 rhs_linear(x, y) = 3 * exp(-x) - 0.4 * y
 
-"Right-hand side of the autonomous nonlinear problem of DiffEqEuler.cpp."
+"Right-hand side of the autonomous nonlinear problem of Euler_ODE.cpp."
 rhs_nonlinear(x, y) = y + sin(0.4 * y)
 
 "Exact solution of the linear problem for the initial value `y₀` at `x = 0`."

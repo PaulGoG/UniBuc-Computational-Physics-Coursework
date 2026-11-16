@@ -12,7 +12,7 @@
 # actinides of Wahl's Z_p systematics (At. Data Nucl. Data Tables 39, 1 (1988),
 # doi:10.1016/0092-640X(88)90016-2).
 #
-# Ported from Fisiune_1.jl, whose physics is unchanged, the mass-excess
+# Ported from Fission_1.jl, whose physics is unchanged, the mass-excess
 # uncertainties included. The original parsed the mass table inside the
 # calculation, filtered the whole table four times per charge, and looped over
 # a range of `Float64` charges.
@@ -49,7 +49,7 @@ function main()
         end
     end
 
-    # The mean that means something physically weights each mass by its yield. The
+    # The physically meaningful mean weights each mass by its yield. The
     # matrix holds no yield above A_H = 158, so 159 and 160 carry zero weight.
     Y = [haskey(bins, a) ? bins[a].Y : 0.0 for a in A]
     Q_mean = sum(Q .* Y) / sum(Y)

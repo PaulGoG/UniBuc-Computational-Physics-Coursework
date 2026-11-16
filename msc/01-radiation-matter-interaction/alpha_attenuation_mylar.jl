@@ -7,8 +7,8 @@
 # is fitted by weighted least squares to all five measurements, each with its
 # own uncertainty and independent of the others.
 #
-# Ported from Atenuare_alpha.jl on the `legacy` branch
-# (`Julia-Workflow-FFUB/IRM_M_1/`). The original differenced the data first,
+# Ported from Alpha_attenuation.jl on the `legacy` branch
+# (`Julia-Workflow-FFUB/Radiation_Matter_Interaction_M_1/`). The original differenced the data first,
 # Δε = ε(0) − ε(x), fitted the four differences unweighted with a free intercept,
 # drew error bars that did not enter the fit, and never printed the
 # coefficients. Differencing correlates the points through the shared ε(0);

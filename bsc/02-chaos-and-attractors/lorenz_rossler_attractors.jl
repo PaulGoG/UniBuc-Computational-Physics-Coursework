@@ -4,8 +4,8 @@
 #   Lorenz    ẋ = σ(y - x),  ẏ = x(ρ - z) - y,  ż = xy - βz
 #   Rössler   ẋ = -y - z,    ẏ = x + ay,        ż = b + z(x - c)
 #
-# Ported from Integratori.cpp and Atractori.cpp in
-# Code_Archive/Old_2018/C_C++/AtractorI/ on the `legacy` branch. The RK4 stage
+# Ported from Integrators.cpp and Attractors.cpp in
+# Code_Archive/Old_2018/C_C++/Attractors/ on the `legacy` branch. The RK4 stage
 # coupling there is correct. β is written as 2.66 rather than 8/3, which moves
 # the fixed points (±√(β(ρ-1)), ±√(β(ρ-1)), ρ-1) from ±8.4853 to ±8.4747; the
 # Rössler branch is unreachable because the selector variable is assigned and
@@ -74,7 +74,7 @@ function main()
         text = rich("Lorenz: ", it("σ"), " = 10, ", it("ρ"), " = 28, ", it("β"), " = 8/3"),
         space = :relative, align = (:left, :top), color = PALETTE.blue,
         fontsize = ANNOTATION_SIZE,)
-    # the fixed points sit inside the lobes; their label goes in the notch
+    # the fixed points lie inside the lobes; their label goes in the notch
     # between the wings, the one region of this projection no strand enters
     scatter!(ax1, [fp[1][1], fp[2][1]], [fp[1][3], fp[2][3]],
         color = PALETTE.red, markersize = MARKERSIZE.emphasis, marker = :xcross,)
@@ -102,9 +102,9 @@ end
 
 Trace both attractors out in time, with a head marker on the current state.
 
-The static figure is the invariant set, where the trajectory eventually goes; the
-animation is the trajectory itself. On the Lorenz attractor the state circles one
-lobe an unpredictable number of times before crossing to the other, the
+The static figure shows the invariant set that the trajectory approaches; the
+animation shows the trajectory itself. On the Lorenz attractor the state circles
+one lobe an unpredictable number of times before crossing to the other, the
 sensitivity that makes the system chaotic. On the Rössler attractor it spirals
 outward in a near-plane and is folded back, a simpler mechanism producing the
 same kind of set.
@@ -124,7 +124,7 @@ function animate_attractors(xL, zL, xR, yR, h)
     fig = Figure(size = (1200, 560))
     ax1 = Axis(fig[2, 1], xlabel = L"x", ylabel = L"z")
     lines!(ax1, headL, color = PALETTE.blue, linewidth = TRACE_WIDTH)
-    # black for the moving state: red names the fixed points in the static figure
+    # black for the moving state: red marks the fixed points in the static figure
     scatter!(ax1, dotL, color = PALETTE.black, markersize = MARKERSIZE.data)
     xlims!(ax1, minimum(xL) - 2, maximum(xL) + 2)
     ylims!(ax1, minimum(zL) - 2, maximum(zL) + 6)

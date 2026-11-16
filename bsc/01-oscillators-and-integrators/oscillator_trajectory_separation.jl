@@ -4,7 +4,7 @@
 #
 # integrated with RK4 from initial conditions a distance d₀ apart in phase space.
 # The system is linear, so the difference of two solutions obeys the homogeneous
-# equation whatever the driving does. Writing ω₁² = ω₀² - δ², the quadratic form
+# equation for any driving term. Writing ω₁² = ω₀² - δ², the quadratic form
 #
 #   Q = (Δv + δΔx)² + ω₁²Δx²
 #
@@ -15,8 +15,8 @@
 # ln|Δ| is biased by a few parts in 10⁴ according to where in the oscillation
 # the window ends, which its formal standard error does not cover.
 #
-# Ported from OscilatorArmonique.cpp, OscilatorAmortizat.cpp and
-# OscilatorFortat.cpp. Their three parameter sets are integrated as written,
+# Ported from Harmonic_oscillator.cpp, Damped_oscillator.cpp and
+# Forced_oscillator.cpp. Their three parameter sets are integrated as written,
 # next to two under-damped ones. The originals read both initial conditions, the
 # step count and the horizon from standard input; the values below are mine.
 

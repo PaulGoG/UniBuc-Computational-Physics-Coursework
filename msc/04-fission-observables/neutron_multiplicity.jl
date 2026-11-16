@@ -1,5 +1,5 @@
 # Prompt-neutron multiplicity per fragment, ν(A), from the energy balance of
-# Fisiune_3.jl on the `legacy` branch (Julia-Workflow-FFUB/Fisiune_M_2/),
+# Fission_3.jl on the `legacy` branch (Julia-Workflow-FFUB/Fission_M_2/),
 # against four measured ν(A) sets.
 #
 #   ν_pair = (TXE − q) / (⟨ε⟩ + ⟨Sₙ⟩ + p),   ⟨ε⟩ = 4T_m/3,   T_m = √(TXE/(a_L + a_H))
@@ -9,8 +9,8 @@
 # parameter (Can. J. Phys. 43, 1446 (1965), doi:10.1139/p65-139) and ⟨Sₙ⟩ the
 # mean neutron separation energy of the two fragments. The pair multiplicity is
 # split between the fragments by the share R of the excitation energy taken by
-# the heavy one. Fisiune_3.jl obtains R from the scission-point deformation:
-# each fragment first pays the liquid-drop energy of deforming from its
+# the heavy one. Fission_3.jl obtains R from the scission-point deformation:
+# each fragment is first assigned the liquid-drop energy of deforming from its
 # ground-state β₂ to a scission β(Z), and the remainder is shared in the ratio
 # of the level-density parameters,
 #
@@ -22,11 +22,12 @@
 # weights of rms 0.6 about Z_p = Z_UCD − 0.5, and the totals are weighted by the
 # mass yield. The β(Z) breakpoints, the liquid-drop constants and the p, q
 # terms are those of the fission course's TXE-partition application, as
-# Fisiune_3.jl carried them; the README gives their sources.
+# Fission_3.jl implemented them; the README gives their sources.
 #
-# Fisiune_3.jl bounded its charge loop by the index column of the
+# Fission_3.jl bounded its charge loop by the index column of the
 # Gilbert–Cameron table, 11 to 150; charges far from Z_p enter with a Gaussian
-# weight below 10⁻⁵ beyond |Z − Z_p| = 3, so the bound cost time, not results.
+# weight below 10⁻⁵ beyond |Z − Z_p| = 3, so the wide bound affected only the
+# run time.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 
@@ -36,14 +37,14 @@ include(joinpath(@__DIR__, "fission_core.jl"))
 
 """
 Breakpoints (Z, β) of the scission deformation, the piecewise-linear
-parametrisation of the course application that Fisiune_3.jl implemented; linear
+parametrisation of the course application that Fission_3.jl implemented; linear
 between them and undefined outside 28 ≤ Z ≤ 65, its four segments reproduced.
 """
 const SCISSION_BETA = [(28, 0.0), (41, 0.58), (44, 0.58), (50, 0.0), (65, 0.6)]
 
 """
 Liquid-drop energy constants [MeV], the Myers–Swiatecki set of 1967 (Ark. Fys.
-36, 343) as Fisiune_3.jl carried them:
+36, 343) as set in Fission_3.jl:
 E(β) = −χ [c_v A − c_s A^{2/3} (1 + 0.4α₂)] + Z² [c_c (1 − 0.2α₂)/A^{1/3} − c_x/A],
 χ = 1 − κ I², α₂ = 5β²/4π.
 """
@@ -81,7 +82,7 @@ function ldm_energy(β, Z, A)
            Z^2 * (LDM.c_c * (1 - 0.2α₂) / A^(1 / 3) - LDM.c_x / A)
 end
 
-"|E(β_scission) − E(β_ground)| of the fragment (Z, A), as Fisiune_3.jl takes it; `nothing` if either β is absent."
+"|E(β_scission) − E(β_ground)| of the fragment (Z, A), as Fission_3.jl takes it; `nothing` if either β is absent."
 function deformation_cost(β_gs, Z, A)
     β_sc = scission_deformation(Z)
     β₀ = get(β_gs, (Z, A), nothing)
@@ -243,7 +244,7 @@ function main()
                 color = PALETTE.red,),
             "\n",
             @sprintf("rms against Göök: %.2f (deformation), %.2f (level densities)",
-                measured[1].rms_def, measured[1].rms_ld)),
+                measured[1].rms_def, measured[1].rms_ld),),
         space = :relative, align = (:left, :top), fontsize = ANNOTATION_SIZE,)
 
     # β₂ of the fragment nuclides in the ground state against the scission line

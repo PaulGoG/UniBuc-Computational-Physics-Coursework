@@ -11,7 +11,8 @@
 #
 # It is replaced rather than repaired. For two variables and three constraints
 # the feasible region has a handful of vertices, and enumerating them is exact and
-# dependency-free and exposes two features of the structure that the solver hides:
+# dependency-free and shows two features of the structure that do not appear in
+# the solver's output:
 #
 #   * the problem is degenerate. The objective x₁ + x₂ is exactly parallel
 #     to the first constraint x₁ + x₂ ≤ 3, so the optimal face is the whole

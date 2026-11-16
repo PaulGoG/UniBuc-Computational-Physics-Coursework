@@ -19,7 +19,7 @@
 #      the reduction kept no uncertainties, refitted above a rising redshift
 #      floor to show how far Ω_m depends on the sample.
 #   4. The host-galaxy magnitudes that `Friedmann_Magnitude.jl` fitted, which
-#      fix an offset and nothing else.
+#      determine only an offset.
 #
 # `Friedmann_Eq.jl` fitted a straight line to H(z) and, run top to bottom,
 # stops at its first plot, which uses `fit.param` before `fit` exists; its
@@ -213,7 +213,7 @@ function main()
         0.04,
         0.78,
         rich(it("χ"), superscript("2"),
-            @sprintf("/dof = %.1f/%d", all_rows.χ², all_rows.dof)),)
+            @sprintf("/dof = %.1f/%d", all_rows.χ², all_rows.dof),),)
 
     ax2 = Axis(fig[2, 2], xlabel = L"Time from today $t$ [Gyr]",
         ylabel = L"Scale factor $a$",)

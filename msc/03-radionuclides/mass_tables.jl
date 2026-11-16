@@ -6,10 +6,10 @@
 #
 # a full boolean scan of a ~3000-row table, allocating two temporary vectors,
 # executed several times per nuclide inside a double loop over all nuclides.
-# Radionuclizi_3.jl called a function containing six such scans six times per
+# Radionuclides_3.jl called a function containing six such scans six times per
 # (A, Z) pair, which is of order 2×10⁹ element comparisons. Because the table was
-# a non-`const` global, every one of those accesses was also type-unstable. A
-# dictionary keyed on (Z, A) replaces all of it.
+# a non-`const` global, each of those accesses was also type-unstable. Here a
+# dictionary keyed on (Z, A) replaces the scans.
 
 using CSV, DataFrames
 

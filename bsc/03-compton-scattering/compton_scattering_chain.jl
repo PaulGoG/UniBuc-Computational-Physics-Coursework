@@ -4,9 +4,9 @@
 #   E' = E / (1 + (E/mₑc²)(1 - cos θ))            Compton relation
 #   tan φ = E' sin θ / (E - E' cos θ)              recoil-electron angle
 #
-# Ported from EfectulCompton.cpp in Code_Archive/Old_2018/C_C++/ on the
-# `legacy` branch. The three physics formulae there are individually correct; the
-# sampling was not. The scattering angle was drawn uniformly on [0°, 180°], which
+# Ported from Compton_effect.cpp in Code_Archive/Old_2018/C_C++/ on the
+# `legacy` branch. The three physics formulae there are individually correct,
+# but the scattering angle was drawn uniformly on [0°, 180°], which
 # is neither the Klein-Nishina distribution nor isotropic scattering, since
 # isotropy is uniform in cos θ and not in θ. Every energy distribution the
 # original produced was therefore unphysical. The angle is sampled here from the

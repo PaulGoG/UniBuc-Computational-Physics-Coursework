@@ -14,7 +14,7 @@
 #
 # The site is small against every length in f, so f is taken constant over it.
 #
-# Ported from Frecventa_accident_aviatic.jl, which sets P = 10⁻⁹ km⁻¹,
+# Ported from Aircraft_crash_frequency.jl, which sets P = 10⁻⁹ km⁻¹,
 # N = 7·10⁴ yr⁻¹, g = 0.23 km⁻¹, R = 50 m, y₀ from 5 to 50 km and a route length
 # x₀ = 200 km, and integrates two kernels along the route from 0 to x₀:
 #
@@ -27,7 +27,7 @@
 # ahead of the point where control was lost, never behind it. The integration
 # over one side of the route is therefore part of the model, and it is kept.
 #
-# What the original got wrong is dimensional. The first integral is a length
+# The error of the original is dimensional: the first integral is a length
 # and the second a pure number, so after the common prefactor P·N·πR² neither
 # was a frequency and the two differed by a length, yet both were drawn on one
 # axis against thresholds in yr⁻¹. Each kernel is made a probability density
@@ -125,7 +125,7 @@ target_area(R_m) = π * (R_m * 1e-3)^2
 "Annual impact frequency [yr⁻¹] from a route integral [km⁻¹]."
 frequency(route, R_m) = N_FLIGHTS * P_LOSS * target_area(R_m) * route
 
-"The two estimators exactly as `Frecventa_accident_aviatic.jl` computes them."
+"The two estimators exactly as `Aircraft_crash_frequency.jl` computes them."
 function original_estimators(y₀, R_m)
     radial(x) = x > 0 ? x / hypot(x, y₀) * exp(-G * hypot(x, y₀)) : 0.0
     angular(x) = x > 0 ? x * y₀ / (x^2 + y₀^2) * exp(-G * hypot(x, y₀)) : 0.0

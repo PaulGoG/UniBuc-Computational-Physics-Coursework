@@ -5,15 +5,15 @@
 #
 # dominated by the ¹¹³Cd resonance at 0.178 eV.
 #
-# Ported from SigmaCdNatural.jl on the `legacy` branch (Julia-Workflow-FFUB/IRM_M_1/).
-# The method was right. Three things were not.
+# Ported from Natural_Cd_cross_section.jl on the `legacy` branch (Julia-Workflow-FFUB/Radiation_Matter_Interaction_M_1/).
+# The method was right; the implementation had three defects.
 #
 #   1. **The result was never printed.** `σCd = sum(...)` as a bare top-level
-#      expression means `julia SigmaCdNatural.jl` produces no output whatsoever;
-#      the value existed only if the file was pasted into a REPL.
+#      expression means `julia Natural_Cd_cross_section.jl` produces no output; the value
+#      existed only if the file was pasted into a REPL.
 #   2. **The energy was not carried into the result.** The cross-sections are an
-#      IAEA set evaluated at 0.25 eV, and the answer is ≈2.20×10³ b. Any reader
-#      will assume the conventional thermal value, which is 2520 b at the
+#      IAEA set evaluated at 0.25 eV, and the answer is ≈2.20×10³ b, which a
+#      reader would take for the conventional thermal value, 2520 b at the
 #      2200 m s⁻¹ point (0.0253 eV, where σ(¹¹³Cd) = 20 600 b). The energy is now
 #      part of the variable name and of the printed result.
 #   3. The arrays were positional only (nothing tied σ = 18 000 b to ¹¹³Cd), and

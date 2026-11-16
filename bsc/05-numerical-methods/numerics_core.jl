@@ -36,7 +36,7 @@ not a statistical uncertainty. `pairwise[i]` is the order between `h[i]` and
 `h[i + 1]` and shows whether the asymptotic regime has been reached.
 
 Throws an `ArgumentError` for fewer than three points, mismatched lengths, or a
-non-positive entry, none of which has a logarithm worth fitting.
+non-positive entry.
 """
 function convergence_order(h::AbstractVector{<:Real}, err::AbstractVector{<:Real})
     length(h) == length(err) ||

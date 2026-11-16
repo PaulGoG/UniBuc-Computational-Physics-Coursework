@@ -3,7 +3,7 @@
 #   (a)  y' = √|sin y|            (b)  y' = z,  z' = −y sin y,  y(0) = 1, z(0) = 0
 #
 # ported from ODE_RK4.jl and ODE_system_RK4.jl in
-# Julia-Workflow-FFUB/Examen_PDF_MN_II_L_4/ on the `legacy` branch.
+# Julia-Workflow-FFUB/Numerical_Methods_II_Exam_L_4/ on the `legacy` branch.
 #
 # (a) is not well posed as an initial-value problem on any of the lines y = kπ:
 # √|sin y| vanishes there with infinite slope, so it is not Lipschitz and
@@ -20,7 +20,7 @@
 # RK4 cannot resolve the non-Lipschitz points. Started exactly at 0 it stays at
 # 0; started at any ε > 0, or at 1, it climbs, but at every crossing of kπ the
 # scheme loses accuracy, so its value at x = 100 converges only slowly as the
-# step is halved. The table printed below shows the digits that survive.
+# step is halved. The table printed below shows how many digits are converged.
 #
 # (b) is conservative: E = z²/2 + sin y − y cos y is asserted invariant. The
 # original integrated it correctly but called its stepper twice per step, once

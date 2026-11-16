@@ -6,7 +6,7 @@
 # under the working assumption that the drum reading is linear in the refractive
 # index, which holds near minimum deviation.
 #
-# Ported from Calibrare_Hg.jl in Julia-Workflow-FFUB/Single_Files/ on the
+# Ported from Hg_calibration.jl in Julia-Workflow-FFUB/Single_Files/ on the
 # `legacy` branch, which lists 5789.66 Å beside 5790.65 Å at adjacent drum
 # divisions 35 and 36. There is no Hg I line at 5789.66 Å: the yellow doublet
 # is 5769.60 and 5790.66 Å (NIST Atomic Spectra Database, doi:10.18434/T4W30F),
@@ -15,13 +15,13 @@
 # than its own scatter. The model is linear in its coefficients, so it is
 # solved in one least-squares step rather than with the Levenberg–Marquardt
 # iteration from p₀ = [1, 1] of the original, which also never printed A and B
-# nor displayed its figure. Regressing the drum reading on the wavelength is
-# the right direction: λ is the reference and the reading carries the error.
+# nor displayed its figure. The drum reading is regressed on the wavelength
+# because λ is the reference and the error lies in the reading.
 #
-# The fitted dispersion also says how far apart two lines should read. The
-# far-red pair 7091.99 and 7081.88 Å sits at divisions 2 and 7, five divisions
-# for 10 Å where the fit gives a quarter of one; those readings are kept as
-# recorded and the discrepancy is printed.
+# The fitted dispersion also predicts the drum spacing of adjacent lines. The
+# far-red pair 7091.99 and 7081.88 Å was read at divisions 2 and 7, five
+# divisions for 10 Å where the fit gives a quarter of one; those readings are
+# kept as recorded and the discrepancy is printed.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 
@@ -90,7 +90,7 @@ function main()
         text = rich(
             it("A"), replace(@sprintf(" = %.1f ± %.1f div\n", p[1], σ[1]), "-" => "−"),
             it("B"), " = ", rsci(p[2]; digits = 3), " ± ", rsci(σ[2]; digits = 2), " div Å²\n",
-            it("R"), superscript("2"), @sprintf(" = %.3f", R²)),
+            it("R"), superscript("2"), @sprintf(" = %.3f", R²),),
         space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,
         color = PALETTE.blue, justification = :right,)
 

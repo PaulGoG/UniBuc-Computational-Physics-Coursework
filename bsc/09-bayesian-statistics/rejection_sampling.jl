@@ -9,8 +9,8 @@
 #   1. The original defined `function Distribution(x)` after `using
 #      Distributions`, which exports the abstract type `Distribution`. On Julia
 #      ≤ 1.11 that was a hard error; on 1.12+ it is a deprecation warning and
-#      silently extends `Distributions.Distribution` instead of defining a new
-#      function in Main. Renamed here.
+#      extends `Distributions.Distribution` instead of defining a new function
+#      in Main. Renamed here.
 #   2. `contor` was initialised to 1 rather than 0 and incremented before the
 #      acceptance test, so `contor/Np` reported the reciprocal of the efficiency;
 #      as a bare top-level expression it also printed nothing when run as a
@@ -23,7 +23,7 @@
 # `main` asserts the acceptance rate against Z_trunc/((b − a) M) and the sample
 # mean against quadrature, each within four standard errors.
 #   4. No seed, so no run was reproducible; and `rand(Uniform(-3,3))` rebuilt the
-#      distribution object on each of ~1.8 million iterations.
+#      distribution object on each of about three million trials.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 

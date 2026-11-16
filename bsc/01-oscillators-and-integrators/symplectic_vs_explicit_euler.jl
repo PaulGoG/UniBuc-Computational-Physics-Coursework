@@ -3,14 +3,14 @@
 #
 #   ẋ = v,   v̇ = -Ω²x
 #
-# The three schemes agree to first order in Δt and differ completely over long
-# times: explicit Euler multiplies the amplitude by √(1 + Ω²Δt²) at every step,
-# so its energy grows as (1 + Ω²Δt²)^N without bound, while each symplectic
-# variant conserves the modified energy E ∓ ½ΔtΩ²xv exactly and so keeps its
-# orbit closed and its energy oscillating about E(0). Both statements are
-# asserted below.
+# The three schemes agree to first order in Δt and differ qualitatively over
+# long times: explicit Euler multiplies the amplitude by √(1 + Ω²Δt²) at every
+# step, so its energy grows as (1 + Ω²Δt²)^N without bound, while each
+# symplectic variant conserves the modified energy E ∓ ½ΔtΩ²xv exactly and so
+# keeps its orbit closed and its energy oscillating about E(0). Both statements
+# are asserted below.
 #
-# Ported from Spatiul_FazelorEcDiff.cpp and PbEcDiffExamen.cpp on the legacy
+# Ported from Phase_space_ODE.cpp and ODE_exam_problem.cpp on the legacy
 # branch. The first names its explicit scheme EulerImplicit, works in single
 # precision, and draws its initial conditions as integers on a 101 × 101 lattice
 # with modulo bias from a clock-seeded rand(); the second sweeps the step count
@@ -108,7 +108,7 @@ function main()
 
     # distinct radii: a ring of equal-energy points would all trace one orbit
     starts = [(r, 0.0) for r in (0.8, 1.6, 2.4, 3.2)]
-    push!(starts, (1.0, -1.0))   # the initial condition of PbEcDiffExamen.cpp
+    push!(starts, (1.0, -1.0))   # the initial condition of ODE_exam_problem.cpp
 
     fig = Figure(size = (1200, 1000))
 
@@ -119,7 +119,7 @@ function main()
     bottom = GridLayout(fig[3, 1])
 
     for (k, (step, _, colour, style, _)) in enumerate(SCHEMES)
-        # ±6 sit on the frame corners and would collide at the panel joints
+        # ±6 lie at the frame corners and would collide at the panel joints
         ax = Axis(top[1, k], aspect = DataAspect(), xticks = -4:2:4, yticks = -4:2:4,
             xlabel = L"Position $x$", ylabel = k == 1 ? L"Velocity $v$" : "",)
         for (x₀, v₀) in starts
@@ -163,7 +163,7 @@ function main()
         space = :relative, align = (:left, :top), fontsize = ANNOTATION_SIZE,
         color = PALETTE.blue,)
 
-    # energy error against step count, the sweep PbEcDiffExamen.cpp made
+    # energy error against step count, the sweep ODE_exam_problem.cpp made
     ax_n = Axis(bottom[1, 2],
         xlabel = L"Steps $N$ over $t \in [0,\, 10]$",
         ylabel = L"$|E(10)/E(0) - 1|$",

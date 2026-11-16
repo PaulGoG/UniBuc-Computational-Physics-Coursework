@@ -9,7 +9,7 @@
 # it, y₃′ = −C₁cos t − C₂sin t.
 #
 # The system, the interval, the initial values and the 100 steps are those of
-# Sys_ODE_RK4.m on the `legacy` branch, whose tableau is correct. Its orientation
+# ODE_system_RK4.m on the `legacy` branch, whose tableau is correct. Its orientation
 # check reads
 #
 #     m = size(alpha);  if m==1  alpha = alpha';  endif

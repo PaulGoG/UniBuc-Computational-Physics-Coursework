@@ -6,7 +6,7 @@
 # the system matrix is accumulated from the last surface backwards, so that
 # S = M_N T_{N-1} M_{N-1} … T_1 M_1 acts as v_out = S·v_in.
 #
-# Ported from Erlfe.m and Tessar.m in Code_Archive/Optics/ on the `legacy`
+# Ported from Erfle.m and Tessar.m in Code_Archive/Optics/ on the `legacy`
 # branch. The matrix convention, the accumulation order and the index
 # bookkeeping there are correct. The principal-plane separation is written
 # `sum(d) - abs(zH1) - abs(zH2)`, right only when both principal planes fall on
@@ -27,9 +27,9 @@
 #
 # Both designs are strictly paraxial here, as they were originally: no real ray
 # trace, no aberrations, and a single refractive index per glass. The last point
-# matters, because the cemented doublet in the Tessar and the cemented doublet
-# and triplet in the Erfle exist precisely to achromatise, and without dispersion
-# data that cannot be evaluated at all.
+# matters because the cemented doublet in the Tessar and the cemented doublet
+# and triplet in the Erfle exist to achromatise, which cannot be evaluated
+# without dispersion data.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 
@@ -170,7 +170,7 @@ function main()
         Σd = sum(r.sys.d)
         span = maximum(abs, [r.c.zf1, r.c.zf2, r.c.zH1, r.c.zH2, Σd]) * 1.25
 
-        # no ordinate: only the axial coordinate means anything
+        # no ordinate: only the axial coordinate is meaningful
         ax = Axis(fig[row, 1], xlabel = row == 2 ? "Axial position [mm]" : "",
             ylabel = r.sys.name, yticksvisible = false, yticklabelsvisible = false,
             ygridvisible = false,)
@@ -184,7 +184,7 @@ function main()
                 "Glass, ", it("V"), subscript("1"), " to ", it("V"), subscript("2"),),
             color = PALETTE.sky, align = (:center, :top), fontsize = ANNOTATION_SIZE,)
 
-        # H₁ and H₂ can sit within a millimetre of each other: their labels are
+        # H₁ and H₂ can lie within a millimetre of each other: their labels are
         # staggered vertically
         cardinal(sym, k) = rich(it(sym), subscript(k))
         for (x, sym, k, col, dy) in ((0.0, "V", "1", PALETTE.black, 0.62),
@@ -202,7 +202,7 @@ function main()
         text!(ax, 0.99, 0.05;
             text = rich(it("f"), @sprintf(" = %.2f mm,   ", r.c.f), it("H"),
                 subscript("1"), it("H"), subscript("2"),
-                @sprintf(" = %.2f mm", r.c.interstice)),
+                @sprintf(" = %.2f mm", r.c.interstice),),
             space = :relative, align = (:right, :bottom), fontsize = ANNOTATION_SIZE,)
     end
 

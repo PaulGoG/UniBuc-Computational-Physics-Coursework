@@ -9,14 +9,14 @@
 # amplitudes add before squaring, so the observed line is neither resonance nor
 # their sum, and its apparent position and width depend on φ.
 #
-# Ported from Breit_Wigner.jl in Julia-Workflow-FFUB/FPECA_M_2/ on the `legacy`
-# branch, whose resonance parameters, 2300/150 and 2340/320 MeV, are kept. The
-# physics there was right. The width was measured by scanning for samples with
+# Ported from Breit_Wigner.jl in Julia-Workflow-FFUB/Nuclear_Particle_Physics_M_2/ on the `legacy`
+# branch. Its physics was correct, and its resonance parameters, 2300/150 and
+# 2340/320 MeV, are kept. It measured the width by scanning for samples with
 #
 #     minimum(y)*0.005 >= abs(maximum(y)/2 - i)
 #
 # an absolute tolerance keyed to the minimum of the array, which finds nothing
-# if no sample lands within it and otherwise returns the first and last
+# if no sample lies within it and otherwise returns the first and last
 # near-misses; linear interpolation between the bracketing samples replaces it.
 # `main` asserts each normalisation against the closed form of ∫|B_k|² over the
 # window, (Γ/2)[arctan(2(b − E_k)/Γ) − arctan(2(a − E_k)/Γ)], and the measured
@@ -134,7 +134,7 @@ function main()
     label(k, r) = rich(
         "|", it("C"), subscript(k), it("B"), subscript(k), "|", superscript("2"),
         ": ", it("E"), subscript(k), @sprintf(" = %.0f MeV, Γ", r.E), subscript(k),
-        @sprintf(" = %.0f MeV", r.Γ))
+        @sprintf(" = %.0f MeV", r.Γ),)
     Legend(fig[1, 1], [l1, l2, li...],
         [label("1", RES1), label("2", RES2), rich("Interference, ", it("φ"), " = 30°"),
             rich("Interference, ", it("φ"), " = 45°"),]; nbanks = 2,)

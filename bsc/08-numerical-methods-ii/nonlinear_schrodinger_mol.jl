@@ -4,7 +4,7 @@
 #
 # solved as ∂ₜΨ = i(½ ∂ₓₓΨ + |Ψ|²Ψ) with a second-order centred stencil in space
 # and RK4 in time, on the two-soliton initial condition of SolitonicEq_MOL.jl in
-# Julia-Workflow-FFUB/Examen_PDF_MN_II_L_4/ on the `legacy` branch.
+# Julia-Workflow-FFUB/Numerical_Methods_II_Exam_L_4/ on the `legacy` branch.
 #
 # A soliton η sech(η(x − x₀)) e^{ikx} of this equation travels with velocity
 # v = k, so the original's pair, centred at x = ∓5 with k = ∓0.1, moves apart
@@ -128,7 +128,7 @@ function main()
 
     fig = Figure(size = (1500, 640))
     ax1 = Axis(fig[2, 1], xlabel = L"x", ylabel = L"Time $t$")
-    # the collision reaches |Ψ|² = 16 for an instant while the solitons sit at
+    # the collision reaches |Ψ|² = 16 for an instant while each soliton peaks at
     # 4; the square root keeps both visible, and the colour bar is ticked in
     # the original units
     heatmap!(ax1, x, times, sqrt.(ρ), colormap = :viridis)

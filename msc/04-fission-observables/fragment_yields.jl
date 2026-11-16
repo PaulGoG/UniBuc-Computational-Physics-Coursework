@@ -4,7 +4,7 @@
 # single-fragment kinetic energies, and the yield-weighted totals with their
 # uncertainties.
 #
-# The matrix measures Y(A_H, TKE): the five charge rows of each
+# Only Y(A_H, TKE) is measured: the five charge rows of each
 # (A_H, TKE) cell split one measured yield by fractions that are identical
 # across TKE for a given mass, to 3 × 10⁻⁶ (asserted below), so Y(Z), Y(N) and
 # the even–odd staggering of Y(Z) describe the charge model imposed on the
@@ -13,11 +13,10 @@
 # linearly, distinct cells add in quadrature, and every total is a weighted
 # mean over cells of a quantity fixed per cell, so its variance is
 # Σ_c [(q_c − ⟨q⟩) σY_c / ΣY]². Averaging first over TKE and propagating at
-# the mass level, as an earlier version of this script did, drops the
-# within-mass spread of TKE and halves σ⟨TKE⟩.
+# the mass level drops the within-mass spread of TKE and halves σ⟨TKE⟩.
 #
-# Ported from Fisiune_2.jl on the `legacy` branch (Julia-Workflow-FFUB/
-# Fisiune_M_2/). Its Y(N) summed over all rows with a given N inside the
+# Ported from Fission_2.jl on the `legacy` branch (Julia-Workflow-FFUB/
+# Fission_M_2/). Its Y(N) summed over all rows with a given N inside the
 # double loop over (A_H, Z_H), once per pair mapping to that N, so the total
 # came to 805 % instead of 100 % (reproduced below); three of its uncertainty
 # accumulations added linearly where the comments said quadrature; its
@@ -70,7 +69,7 @@ function even_odd_staggering(Z, Y)
     return (even - odd) / (even + odd)
 end
 
-"The Y(N) of Fisiune_2.jl, summed once per (A_H, Z_H) pair mapping to each N."
+"The Y(N) of Fission_2.jl, summed once per (A_H, Z_H) pair mapping to each N."
 function overcounted_neutron_yield(rows)
     by_N = Dict{Int,Float64}()
     for r in rows
@@ -111,7 +110,7 @@ function main()
     @printf("Y(Z) peaks at Z_H = %d, Y(N) at N = %d; even–odd staggering of the charge model δ = %.4f\n",
         Z[argmax(Y_Z)], N[argmax(Y_N)], δ)
     N_over, Y_over = overcounted_neutron_yield(rows)
-    @printf("Y(N) of Fisiune_2.jl: total %.1f %% instead of %.1f %%, peak at N = %d instead of %d\n",
+    @printf("Y(N) of Fission_2.jl: total %.1f %% instead of %.1f %%, peak at N = %d instead of %d\n",
         sum(Y_over), sum(Y_N), N_over[argmax(Y_over)], N[argmax(Y_N)])
 
     # per-mass quantities: ⟨TKE⟩(A) from the cells, Q(A) charge-averaged as in

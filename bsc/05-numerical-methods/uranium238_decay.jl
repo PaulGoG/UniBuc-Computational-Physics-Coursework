@@ -1,5 +1,5 @@
 # Radioactive decay of a single nuclide, dN/dt = −N/τ, by forward Euler against
-# the analytic N₀e^{−t/τ}, on the grid of Dez_U_28.m on the `legacy` branch:
+# the analytic N₀e^{−t/τ}, on the grid of U238_decay.m on the `legacy` branch:
 # Δt = 10⁷ yr, 1000 points.
 #
 # The original sets
@@ -14,7 +14,7 @@
 # below differ only in that number.
 #
 # The file is named for a decay but models no chain: ²³⁸U reaches ²⁰⁶Pb through
-# fourteen intermediate nuclides, none of which appears; one nuclide, one rate.
+# fourteen intermediate nuclides, none of which appears.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 
@@ -27,7 +27,7 @@ const FIGURES = joinpath(@__DIR__, "figures")
 const T_HALF = 4.4683e9
 "Mean lifetime in years, τ = T½/ln 2."
 const τ = T_HALF / log(2)
-"The value assigned to `tau` in Dez_U_28.m, in years."
+"The value assigned to `tau` in U238_decay.m, in years."
 const τ_LEGACY = 4.4e9
 "Time step of the original, in years."
 const Δt_LEGACY = 1e7

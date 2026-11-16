@@ -6,17 +6,17 @@
 # from the Sternheimer-Barkas parametrisation I = Z(9.76 + 58.8 Z^{-1.19}) eV,
 # valid for Z ≥ 13.
 #
-# Ported from Calcul_Bethe_Bloch.jl on the `legacy` branch (Julia-Workflow-FFUB/IRM_M_1/).
-# The formula was transcribed correctly. What
-# it lacked was any statement of what it was computing: the target material is
-# named nowhere in the file, A was written as 28 rather than the natural silicon
-# molar mass 28.085, the electron rest energy appeared three times as a bare
-# 0.511, and the log argument typed the same sub-expression twice instead of
-# squaring it, obscuring that the second factor is W_max.
+# Ported from Bethe_Bloch.jl on the `legacy` branch (Julia-Workflow-FFUB/Radiation_Matter_Interaction_M_1/).
+# The formula was transcribed correctly, but the original did not state what it
+# computed: the target material is named nowhere in the file, A was written as
+# 28 rather than the natural silicon molar mass 28.085, the electron rest energy
+# appeared three times as a bare 0.511, and the log argument typed the same
+# sub-expression twice instead of squaring it, obscuring that the second factor
+# is W_max.
 #
-# The physics caveat the original did not make: at β = 0.052, which is where a
-# 5 MeV α sits, this is near the low-energy validity limit of Bethe-Bloch. The
-# shell correction C/Z and the Barkas effective-charge term are not negligible
+# The original did not note that a 5 MeV α, at β = 0.052, lies near the
+# low-energy validity limit of Bethe-Bloch. The shell correction C/Z and the
+# Barkas effective-charge term are not negligible
 # there, and neither is included. ASTAR (Berger, Coursey, Zucker and Chang,
 # NIST Standard Reference Database 124, doi:10.18434/T4NC7P) gives
 # 617.4 MeV cm² g⁻¹ at 5 MeV and a CSDA range of 5.651 × 10⁻³ g cm⁻²; both are

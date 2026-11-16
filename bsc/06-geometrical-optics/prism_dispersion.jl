@@ -120,7 +120,7 @@ function main()
     l_dat = scatter!(ax1, d.lambda_A, d.n, color = PALETTE.orange)
     text!(ax1, 0.96, 0.94;
         text = rich(it("A"), @sprintf(" = %.4f ± %.4f\n", p2[1], σ2[1]), it("B"),
-            @sprintf(" = %.5f ± %.5f µm²", p2[2], σ2[2])),
+            @sprintf(" = %.5f ± %.5f µm²", p2[2], σ2[2]),),
         space = :relative, align = (:right, :top), fontsize = ANNOTATION_SIZE,
         color = PALETTE.blue, justification = :right,)
     xlims!(ax1, 3850, 6950)

@@ -3,8 +3,8 @@
 #
 #   p(θ | data) = Beta(α + h, β + N − h),
 #
-# so the whole sequence is available in closed form. Ported from Statis.jl in
-# Julia-Workflow-FFUB/Statistics_symul_L_4/ on the `legacy` branch, whose
+# so the whole sequence is available in closed form. Ported from Statistics.jl in
+# Julia-Workflow-FFUB/Statistics_Simulation_L_4/ on the `legacy` branch, whose
 # statistics were right and whose animation was 1001 frames at 1280 × 900,
 # 14.6 MB.
 #
@@ -17,7 +17,7 @@
 # for the flat prior. `main` asserts the approximation at N = 10 and N = 1000.
 # The interval therefore narrows as N^{−1/2} only asymptotically: over any
 # finite range of N the fitted exponent departs from −1/2 through the +3 of the
-# prior and through the wandering of θ̂ along the sequence, and `main`
+# prior and through the fluctuation of θ̂ along the sequence, and `main`
 # separates the two by refitting with θ̂ held at the true bias.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
@@ -102,15 +102,15 @@ function main()
     l_w = lines!(ax2, ns, widths, color = PALETTE.red)
     l_g = lines!(ax2, ns, widths[end] .* (ns ./ ns[end]) .^ (-0.5),
         color = PALETTE.black, linestyle = :dash, linewidth = GUIDE_WIDTH,)
-    # Lower left, where the curve has not yet come down; kept short enough to
-    # end before it does.
+    # Lower left, below the curve at small N; kept short enough to end before
+    # the curve descends to it.
     text!(ax2, 0.03, 0.05;
         text = rich(
             rich(
                 @sprintf("Fitted exponent −%.3f over %d ≤ ", -exponent, first(ns)), it("N"),
                 @sprintf(" ≤ %d", last(ns)), color = PALETTE.red,),
             "\n",
-            @sprintf("−%.3f with the mean held at ½; −½ asymptotically", -exponent_fixed)),
+            @sprintf("−%.3f with the mean held at ½; −½ asymptotically", -exponent_fixed),),
         space = :relative, align = (:left, :bottom), fontsize = ANNOTATION_SIZE,)
 
     Legend(fig[1, 1:2], [handles..., l_w, l_g],

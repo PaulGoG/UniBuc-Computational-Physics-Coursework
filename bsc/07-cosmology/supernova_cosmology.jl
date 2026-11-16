@@ -12,10 +12,10 @@
 # Two samples are fitted: all sixty supernovae (the paper's Fit A) and the 54 of
 # its primary Fit C, which drops two stretch outliers, two residual outliers and
 # two probably reddened supernovae. The paper's flat-universe results are
-# Ω_M = 0.29 (+0.09 −0.08) and 0.28 (+0.09 −0.08). Its fit is not this one: it
-# has four parameters (Ω_M, Ω_Λ, the magnitude zero point and the slope α of the
+# Ω_M = 0.29 (+0.09 −0.08) and 0.28 (+0.09 −0.08). The paper's fit has four
+# parameters (Ω_M, Ω_Λ, the magnitude zero point and the slope α of the
 # width–luminosity relation), propagates the redshift uncertainty, and reads
-# Ω_M off the flat line of the (Ω_M, Ω_Λ) plane. The comparison is therefore a
+# Ω_M off the flat line of the (Ω_M, Ω_Λ) plane, so the comparison is a
 # consistency check of the implementation.
 #
 # The Einstein–de Sitter universe (flat, Ω_M = 1) is fitted with the offset
@@ -78,7 +78,7 @@ function main()
         Δχ²_a, Δχ²_c)
 
     # The published values enter nothing above; the check is that the same data
-    # and model class land within the published interval.
+    # and model class give an Ω_M within the published interval.
     for (f, p) in ((fit_a, PUBLISHED.fit_a), (fit_c, PUBLISHED.fit_c))
         p.Ωm - p.down <= f.Ωm <= p.Ωm + p.up ||
             error("fitted Ω_M = $(f.Ωm) outside the published interval of $(p.Ωm)")
@@ -110,7 +110,7 @@ function main()
     text!(ax1, 0.03, 0.95;
         text = rich(
             "Ω", subscript("M"), @sprintf(" = %.2f ± %.2f,   ", fit_c.Ωm, fit_c.σΩm),
-            it("χ"), superscript("2"), @sprintf("/dof = %.1f/%d", fit_c.χ², fit_c.dof)),
+            it("χ"), superscript("2"), @sprintf("/dof = %.1f/%d", fit_c.χ², fit_c.dof),),
         space = :relative, align = (:left, :top), fontsize = ANNOTATION_SIZE,
         color = PALETTE.blue,)
 

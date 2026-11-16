@@ -1,8 +1,8 @@
 # Mean binding energy per nucleon across the chart of nuclides, and the neutron,
 # proton, deuteron and α separation energies, from the AME mass evaluations.
 #
-# Ported from Radionuclizi_1.jl and Radionuclizi_2_1.jl on the `legacy` branch
-# (Julia-Workflow-FFUB/Radionuclizi_M_1/). Radionuclizi_1.jl tested the presence
+# Ported from Radionuclides_1.jl and Radionuclides_2_1.jl on the `legacy` branch
+# (Julia-Workflow-FFUB/Radionuclides_M_1/). Radionuclides_1.jl tested the presence
 # of a nuclide in the second table with
 # `isassigned(df2.Z[df2.A .== i], j - Z_min + 1)`, Z_min taken from the first
 # table, which checks only that the second table has that many isobars at mass
