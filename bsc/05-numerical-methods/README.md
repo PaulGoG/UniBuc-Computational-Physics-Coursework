@@ -17,8 +17,9 @@ PECE form, on `y' = -y + 2 sin x`, `y(0) = 0`, whose exact solution is
 RK4, all as in the original. Its coefficients, h/24·(55, −59, 37, −9) and
 h/24·(9, 19, −5, 1), are correct.
 
-The original did not use the error estimate a predictor–corrector pair gives
-for free. With the exact solution through the back values the two formulae
+The original did not use the error estimate that a predictor–corrector pair
+provides without extra function evaluations. With the exact solution through
+the back values the two formulae
 have local errors +251/720 h⁵y⁽⁵⁾ and −19/720 h⁵y⁽⁵⁾, so the corrector's one-step
 error is 19/270 of the corrector-minus-predictor difference (Milne's device;
 Hairer, Nørsett and Wanner, *Solving Ordinary Differential Equations I*, 2nd
@@ -106,9 +107,9 @@ Euler solution, read by interpolating log N between the bracketing grid points
 (exact for a geometric sequence), against Δt ln 2 / −ln(1 − Δt/τ) =
 T½ [1 − Δt/(2τ) + …], which is 4.4648 Gyr, 0.078 % below T½.
 
-The file is named for a decay but models no chain: ²³⁸U reaches ²⁰⁶Pb through
-fourteen intermediate nuclides, none of which appears. The model has one
-nuclide and one rate.
+The file is named for a decay but models no chain, only one nuclide with one
+rate; ²³⁸U reaches ²⁰⁶Pb through fourteen intermediate nuclides, none of which
+appears.
 
 ## `ode_system_rk4.jl`
 

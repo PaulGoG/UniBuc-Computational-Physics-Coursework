@@ -11,9 +11,9 @@ University of Bucharest (BSc 2017–2021, MSc 2021–2023). Originally C, C++,
 Octave and Julia; rewritten here in Julia, organised by degree and in
 chronological order.
 
-Everything is a script, without package scaffolding: these were scripts when
-they were written and they remain scripts, now ones that run, print what they
-compute and check the result against a reference.
+Everything is a script, without package scaffolding, as when it was written;
+each script now runs, prints what it computes and checks the result against a
+reference.
 
 ## Layout
 
@@ -49,7 +49,8 @@ compute and check the result against a reference.
 The BSc is Engineering Physics, four years and 240 ECTS, so BSc year 4 is the
 2020–2021 academic year and the MSc runs 2021–2023. Years come from the archive
 folder names, which carry the year of study (`Old_2018`, `…_L_4`, `…_M_1`,
-`…_M_2`); the two modules whose folders carry no marker say so.
+`…_M_2`); the two modules whose folders carry no marker are listed above as
+"year not recorded".
 
 Each directory has its own README with the figures, the results, and what was
 wrong with the original.
@@ -100,13 +101,13 @@ julia -e 'using JuliaFormatter; format(".")'
 ## What the rewrite found
 
 Every script is now checked against a closed-form solution, a conserved
-quantity, an evaluated nuclear datum, or a literature value. Doing that turned
-up a substantial number of defects in the originals. The ones that changed
-results:
+quantity, an evaluated nuclear datum, or a literature value. These checks found
+a substantial number of defects in the originals; those that changed results
+are:
 
 | Where | Defect |
 |---|---|
-| `Harmonic_oscillator.cpp`, `Damped_oscillator.cpp`, `Forced_oscillator.cpp`, `Attractors/helpers.cpp` | an `ifstream` opened on a file that an unflushed `ofstream` was still writing; a failed extraction zeroes its target since C++11, so the tail of every separation and extremum series was zero, and all of it for a run whose output fits one stream buffer. Compiled with its paths repaired, the attractor program does print non-zero distances, so the design condemned the tails, not necessarily every run |
+| `Harmonic_oscillator.cpp`, `Damped_oscillator.cpp`, `Forced_oscillator.cpp`, `Attractors/helpers.cpp` | an `ifstream` opened on a file that an unflushed `ofstream` was still writing; a failed extraction zeroes its target since C++11, so the tail of every separation and extremum series was zero, and all of it for a run whose output fits one stream buffer. Compiled with its paths repaired, the attractor program does print non-zero distances, so the design exposed the tails to zeroing, though not necessarily in every run |
 | `RK4_damped_forced_pendulum.m` | the θ-stages used the ω-slopes, making the scheme first-order, not fourth. Measured order: 1.005 against 3.996 |
 | `Ising_model.cpp` | rows allocated `n+2` wide, columns only `n`, while indexing `a[i][n+1]`, a heap overflow; ghost cells never refreshed; every bond double-counted, so Metropolis ran at effective temperature T/2; cooling per flip rather than per sweep |
 | `Fission_4.jl` | Madland–Nix prefactor written `(1/3*sqrt(E_F*T_MAX))`, which multiplies by √(E_f T_m) where the model divides by it; each fragment's spectrum then integrates to E_f T_m instead of one, reweighting the mass average by 4.8 % in ⟨E⟩ |
@@ -124,9 +125,9 @@ results:
 One further defect is a property of the problem rather than the code:
 `ODE_RK4.jl` states the initial-value problem `y' = √|sin y|, y(0) = 0`, which is
 not well posed: √|sin y| is not Lipschitz at any multiple of π, so uniqueness
-fails. A perturbation of 10⁻¹² changes y(100) from 0 to 59.7, the value of the
-solution that never waits, obtained by quadrature. The 2021 file set
-`y[1] = 1`, contradicting its own comment.
+fails. A perturbation of 10⁻¹² changes y(100) from 0 to 59.7, the value,
+obtained by quadrature, of the solution that leaves every equilibrium y = kπ
+immediately. The 2021 file set `y[1] = 1`, contradicting its own comment.
 
 ## Some results
 
@@ -165,7 +166,7 @@ carried over.
 
 The fission work in `msc/04` is the coursework ancestor of a deterministic
 prompt-emission model that is still private and due for release; the same is
-true of the EXFOR retrieval and fragment-temperature work it leans on.
+true of the EXFOR retrieval and fragment-temperature work it depends on.
 
 ## Attribution
 

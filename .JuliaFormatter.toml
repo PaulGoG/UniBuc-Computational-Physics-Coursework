@@ -1,8 +1,8 @@
 # Formatting rules for the whole archive. SciMLStyle rather than the default:
 # the default splits any call wider than the margin to one argument per line,
 # which turns `text!(ax, 0.5, 0.9; text = ..., align = ...)` into six lines and
-# `set_theme!(Theme(...))` into twenty, and reads far worse than what these
-# scripts were written as. SciMLStyle is built for hand-written scientific
+# `set_theme!(Theme(...))` into twenty, and is harder to read than the layout
+# the scripts were written in. SciMLStyle is built for hand-written scientific
 # Julia and keeps such calls together.
 #
 #   julia -e 'using JuliaFormatter; format(".")'

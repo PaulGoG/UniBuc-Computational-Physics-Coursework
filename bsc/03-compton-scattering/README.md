@@ -33,8 +33,8 @@ Ported from `Compton_effect.cpp` in `Code_Archive/Old_2018/C_C++/` on the
 momentum-triangle sine rule are individually correct; its scattering angle is
 drawn uniformly on [0°, 180°], which is neither Klein–Nishina nor isotropic
 (isotropy is uniform in cos θ), so every energy distribution it produced was
-unphysical. It also computed the scattered energy a second time from the recoil
-angle by the sine rule and averaged the two, though the second value is an
-algebraic identity of the first, and printed as a "standard deviation" the
+unphysical. The port omits its second computation of the scattered energy, from
+the recoil angle by the sine rule, which it averaged with the first although the
+two are algebraically identical, and its printed "standard deviation", the
 relative deviation of a single sample from a running mean, cast to `int` and
-taken mod 100. Neither is carried over.
+taken mod 100.

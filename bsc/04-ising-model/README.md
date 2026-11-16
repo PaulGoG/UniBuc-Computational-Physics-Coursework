@@ -23,8 +23,9 @@ The anneal itself, a 64 × 64 lattice sampled every 20 sweeps, with the energy
 and magnetisation traced out beside it. Where the snapshots show three states,
 the animation shows the domains forming: small and short-lived well above
 `T_c`, growing and merging as the temperature passes through it, then freezing
-into a single spanning domain. The magnetisation lifts off the axis exactly
-where the cooling schedule crosses the Onsager temperature, which is marked.
+into a single spanning domain. At this cooling rate the magnetisation stays
+below 0.3 until T ≈ 1.8 J/k_B, well below the Onsager temperature, which is
+marked.
 
 ## What changed from the original
 
@@ -44,5 +45,5 @@ branch, which has five defects, every one of them affecting the result:
   infinite loop for any bound ≥ 2³², and the prompt asked the user for "un
   numar foarte mare"
 
-Periodic boundaries are handled here by modular indexing, which removes the
-ghost cells entirely. The input and output files were also named `Icing`.
+Periodic boundaries are handled here by modular indexing, without ghost cells.
+The original also misspelled its input and output file names as `Icing`.

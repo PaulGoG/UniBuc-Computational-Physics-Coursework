@@ -33,10 +33,10 @@ order agrees with the nominal one within twice that uncertainty.
 The RK4 pairwise orders run 4.39, 4.21, 4.11, 4.06, 4.03 on the linear problem
 and 3.91, 3.95, 3.98, 3.99, 3.99 on the nonlinear one before round-off enters.
 Finer pairs exist above the floor, but there the round-off term (0.03 to 0.06)
-exceeds the drift, so they say less about the order. A straight-line fit
-through the whole sweep mixes the pre-asymptotic points with the floor; it is
-not used. Euler's errors never come within eight decades of the floor, and its
-uncertainty is the 0.001 resolution the orders are printed to.
+exceeds the drift, so they constrain the order less. No straight-line fit
+through the whole sweep is used, since it would mix the pre-asymptotic points
+with the floor. Euler's errors never come within eight decades of the floor, and
+its uncertainty is the 0.001 resolution the orders are printed to.
 
 ![Order of convergence](figures/integrator_order_comparison.png)
 
@@ -66,7 +66,7 @@ t = 10 falls as 1/N, the symplectic ones from a starting point ten times lower.
 Ported from `Phase_space_ODE.cpp` and `ODE_exam_problem.cpp` on the
 `legacy` branch (`Code_Archive/Old_2018/C_C++/`). The first names its explicit
 scheme `EulerImplicit` (it advances both components from the old values), and
-the misnomer runs through six output filenames, so everything labelled
+the misnomer appears in six output filenames, so everything labelled
 "implicit" there is about the explicit method. It also works in single
 precision on a study whose subject is accumulated integration error, and draws
 its initial conditions as integers on a 101 × 101 lattice with modulo bias from
@@ -78,7 +78,7 @@ Two trajectories of `ẍ + 2δẋ + ω₀²x = F cos ωt`, started 10⁻⁷ apar
 space and integrated with RK4 at Δt = 0.002 to t = 40. The three parameter sets
 of the 2018 programs are run as written, next to two under-damped ones. The
 system is linear, so the difference of two solutions obeys the homogeneous
-equation whatever the driving does, and with ω₁² = ω₀² − δ² the quadratic form
+equation for any driving, and with ω₁² = ω₀² − δ² the quadratic form
 `Q = (Δv + δΔx)² + ω₁²Δx²` decays as e^{−2δt} exactly, for under-damped,
 critically damped and undamped motion alike. The Euclidean separation |Δ(x, v)|
 that the 2018 programs wrote out oscillates inside that envelope, so the decay
@@ -94,8 +94,8 @@ rate is asserted on √Q, to 10⁻⁵ of the input δ, and only reported for |Δ
 
 The fit to |Δ| is biased by where in the oscillation the window ends, by more
 than its formal error; at critical damping the difference carries a
-`(A + Bt)e^{−t}` factor and a pure exponential fit splits the difference. The
-two δ = 0 separations agree to 3 × 10⁻⁷, asserted: the driving is identical
+`(A + Bt)e^{−t}` factor, which a pure exponential fit absorbs into a lower rate.
+The two δ = 0 separations agree to 3 × 10⁻⁷, asserted: the driving is identical
 along both trajectories and cancels, so `Forced_oscillator.cpp` could not have
 shown anything its undamped sibling did not. Return-time statistics of the kind
 the 2018 programs were built around carry information only once the dynamics
@@ -106,8 +106,8 @@ are chaotic, which is `02-chaos-and-attractors`.
 Ported from `Harmonic_oscillator.cpp`, `Damped_oscillator.cpp` and
 `Forced_oscillator.cpp` on the `legacy` branch. All three read their own output
 back through an `ifstream` opened on the same file as the `ofstream` still
-writing it. Whatever the write buffer had not flushed by the time of the read
-came back as zero (a failed extraction zeroes its target since C++11), so the
+writing it. Values the write buffer had not flushed by the time of the read
+were read as zero (a failed extraction zeroes its target since C++11), so the
 tail of every separation series was zero, and for a run whose whole output fits
 one stream buffer, all of it. The step count was read from standard input and
 is not recorded, so how much of what they printed was real cannot be settled;

@@ -16,9 +16,9 @@ residual RMS and the retrieval error of every column alongside.
 Fits with residual RMS above 5 × 10⁻³ are excluded. The cut keeps 376 of 377
 MAX-DOAS and 445 of 510 SWING spectra, and it is not neutral between the
 instruments: every SWING spectrum at 6° has RMS between 7 and 13 × 10⁻³, so
-the whole SWING 6° series goes, together with the 12° spectra after 14:00 and
-six spectra at 48° and 60°. The comparison therefore covers the five
-elevations both instruments hold with at least five accepted spectra:
+the whole SWING 6° series is excluded, together with the 12° spectra after
+14:00 and six spectra at 48° and 60°. The comparison therefore covers the five
+elevations at which both instruments have at least five accepted spectra:
 
 | Elevation | MAX-DOAS ⟨dSCD⟩ | Spread | SWING ⟨dSCD⟩ | Spread |
 |---|---|---|---|---|
@@ -32,8 +32,8 @@ in 10¹⁶ molec cm⁻²; the spread is one standard deviation over the day. The
 MAX-DOAS means fall monotonically with elevation, as the shortening slant path
 requires, and the script asserts it. The SWING means do so from 18° upwards;
 its 12° mean is a third of the 18° one, with a retrieval error three times
-that of the other elevations, and its 6° series did not survive the cut at
-all, so SWING's two lowest elevations do not reproduce the MAX-DOAS series.
+that of the other elevations, and none of its 6° spectra passes the cut, so
+SWING's two lowest elevations do not reproduce the MAX-DOAS series.
 The median retrieval errors are 3 × 10¹⁴ (MAX-DOAS) and 7 × 10¹⁴ molec cm⁻²
 (SWING), an order of magnitude below the spread over the day: the bars in the
 lower-right panel are the day's variability, not the fit.
@@ -44,7 +44,7 @@ the largest SWING column of the day, 6.2 × 10¹⁶ molec cm⁻² at 60° at 11:
 is one of them and carries a retrieval error of 37 %. Without the cut they
 read as a tenfold NO₂ excess at high elevation lasting half an hour. The 18°
 and 24° columns of 1–2 × 10¹⁶ in the same window are three to four times
-their medians and survive; that is the elevated NO₂ of the late morning.
+their medians and pass the cut; that is the elevated NO₂ of the late morning.
 
 Corrections to `SWING_DOAS.jl` in `Julia-Workflow-FFUB/Remote_Sensing_L_4/` on
 the `legacy` branch:

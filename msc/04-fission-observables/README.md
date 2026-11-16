@@ -54,7 +54,7 @@ per cell (the cell's A_H, A_L or TKE, the mass's Q(A), and
 Q(A) + S_n − TKE for TXE), so its variance is Σ_c [(q_c − ⟨q⟩) σY_c/ΣY]², with
 the rows of one cell added linearly (they share one relative error) and the
 cells in quadrature. Propagated at the mass level instead, after averaging TKE
-within each mass, σ⟨TKE⟩ comes out 0.022 MeV: the within-mass spread of TKE is
+within each mass, σ⟨TKE⟩ is 0.022 MeV, because the within-mass spread of TKE is
 lost. The identities ⟨A_H⟩ + ⟨A_L⟩ = 236 and ⟨TXE⟩ = ⟨Q⟩ + S_n − ⟨TKE⟩ are
 asserted; the single-fragment energies follow from momentum conservation,
 KE_L = TKE·A_H/A₀. The mass-excess uncertainties behind Q are not carried into
@@ -107,7 +107,7 @@ to unit area over the measured window and χ² reduced by ν = N − 1:
 A Maxwellian normalised over all energies and compared with the Göök laboratory
 spectrum, which holds 84 % of it, offsets the whole ratio by a fifth and
 returns T_M = 1.322 MeV at χ²/ν = 55. The centre-of-mass sets, from which the
-fragment motion is removed, sit well below the laboratory ones and are
+fragment motion is removed, lie well below the laboratory ones and are
 counting-limited above about 6 MeV. `Fission_5.jl` divided χ² by N rather than
 ν, a convention, and bounded its optimiser at T_M = 0, where T_M^{−3/2} is
 infinite; both files re-integrated E₁, γ(3/2, x) and the window integral by
@@ -156,7 +156,7 @@ Against the measured sets, whose own yield-weighted per-fragment means give
 
 The deformation partition of the original reproduces the sawtooth better on
 three of the four sets, and it is what the figure draws; the level-density
-partition is drawn dashed. The model sits 3–6 % above the measured pair
+partition is drawn dashed. The model lies 3–6 % above the measured pair
 values: prompt γ emission competes for the same excitation energy and this
 balance does not account for it. The script asserts that β(Z) vanishes at the
 closed shells Z = 28 and 50, that 0 < R < 1 for every split, and that
@@ -164,10 +164,10 @@ closed shells Z = 28 and 50, that 0 < R < 1 for every split, and that
 
 `Fission_3.jl` bounded its charge loop by the index column of the
 Gilbert–Cameron table, 11 to 150; charges far from Z_p enter with a Gaussian
-weight below 10⁻⁵ beyond |Z − Z_p| = 3, so the bound cost time, not results.
+weight below 10⁻⁵ beyond |Z − Z_p| = 3, so the bound affected only the run time.
 Its `Energie_separare` returned `[S, σ]` on success and a bare `NaN` on
-failure, indexed by the caller regardless. `Dump.jl` referenced names it
-neither defined nor imported and was never included; it is not ported.
+failure, indexed by the caller regardless. `Dump.jl`, which referenced names
+it neither defined nor imported and was never included, is not ported.
 
 **Constants.** The energy balance and its constants are those of the
 TXE-partition application of the fission course this was written for

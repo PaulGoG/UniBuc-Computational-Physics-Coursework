@@ -38,7 +38,7 @@ set_theme!(Theme(
     Colorbar = (ticklabelsize = 22, spinewidth = 1.5),
 ))
 
-"Size of in-axis annotations, 0.8 of the base size. Nothing in a figure is set smaller."
+"Size of in-axis annotations, 0.8 of the base size; no text in a figure is set smaller."
 const ANNOTATION_SIZE = 21
 
 "Width of reference and guide lines, which are also dashed; data lines take the theme's 3."
@@ -77,8 +77,8 @@ const MARKERSIZE = (cloud = 6, dense = 10, data = 14, emphasis = 20, key = 16)
 _decimal_label(e::Integer) = e >= 0 ? latexstring(string(10^e)) :
                              latexstring("0." * "0"^(-e - 1) * "1")
 
-# The unit decade and the first are written as the numbers they are: `10^0` and `10^1` are
-# not the readable form on any axis.
+# The unit decade and the first are written `1` and `10`: `10^0` and `10^1` are not the
+# readable form on any axis.
 _power_label(e::Integer) = e == 0 ? L"1" : e == 1 ? L"10" : latexstring("10^{$e}")
 
 """
@@ -94,7 +94,7 @@ spans use powers of ten throughout. Pass `style = :decimal` or `style = :power`
 to override the choice.
 
 Every logarithmic axis in this repository sets its ticks through this function.
-Left to itself Makie labels the unit decade as `10^0` on some axes and as `1` on
+By default Makie labels the unit decade as `10^0` on some axes and as `1` on
 others, and on ranges narrower than a decade it falls back to fractional
 exponents such as `10^{-0.4}`, which is not a form any of these quantities are
 read in.
@@ -150,8 +150,8 @@ function sci end
 """
     _split_sci(x, digits) -> (mantissa::String, exponent::Int) or (folded::String, nothing)
 
-The mantissa and exponent `sci` and `rsci` share. Exponents of −1, 0 and 1 come
-back already folded into a plain decimal, with `nothing` for the exponent.
+The mantissa and exponent `sci` and `rsci` share. Exponents of −1, 0 and 1 are
+returned already folded into a plain decimal, with `nothing` for the exponent.
 """
 function _split_sci(x::Real, digits::Integer)
     isfinite(x) || throw(ArgumentError("expected a finite number, got $x"))

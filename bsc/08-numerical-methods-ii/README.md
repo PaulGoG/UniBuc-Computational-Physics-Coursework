@@ -87,8 +87,8 @@ width 0.5.
 ![Linear program](figures/linear_program.png)
 
 max x₁ + x₂ subject to x₁ + x₂ ≤ 3, −x₁ + 3x₂ ≤ 1, x₂ ≤ 3, x ≥ 0, solved by
-enumerating the vertices of the feasible region. Two things a solver call
-hides:
+enumerating the vertices of the feasible region, which shows two properties
+that a solver call does not report:
 
 - the problem is degenerate. The objective is parallel to the first
   constraint, so the optimum 3 is attained on the whole segment from (3, 0)

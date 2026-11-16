@@ -36,7 +36,7 @@ flagged in the tables' notes column.
 The paper's fit is not this one: it has four parameters (Ω_M, Ω_Λ, the
 magnitude zero point and the slope α of the width–luminosity relation),
 propagates the redshift uncertainty, and reads its flat-universe Ω_M off the
-Ω_M + Ω_Λ = 1 line of the two-dimensional confidence region. Landing inside the
+Ω_M + Ω_Λ = 1 line of the two-dimensional confidence region. Agreement with the
 published intervals, which the script asserts, is a consistency check of the
 implementation rather than a reproduction. Scaled by √(χ²/dof) the errors
 become ± 0.115 and ± 0.091; the excess of Fit A is the two residual outliers.
@@ -49,7 +49,7 @@ alone: χ² = 136.8 on 59 dof for Fit A and 92.9 on 53 for Fit C, that is
 tested here, so the rejection applies to flat matter-only expansion; open
 decelerating models need the curvature term, which this module does not carry.
 The lower panel shows the residuals against Einstein–de Sitter: the
-high-redshift supernovae sit systematically above the line, fainter and
+high-redshift supernovae lie systematically above the line, fainter and
 therefore more distant than a matter-only universe allows.
 
 ## `friedmann_expansion.jl`
@@ -95,13 +95,13 @@ rising redshift floor:
 | 0.08 | 1725 | 64.26 ± 0.37 | 1, at the bound | 0.515 |
 | 0.12 | 1650 | 64.18 ± 0.38 | 1, at the bound | 0.515 |
 
-H₀ is well determined and Ω_m is not, and the formal errors do not say so:
-Ω_m comes back with a 9 % error four standard deviations from Planck, moves by
-0.48 across the cuts and rails at the physical bound in three of eight, while
-H₀ drifts by 8 km s⁻¹ Mpc⁻¹ in the same direction. The two are degenerate and
+Neither parameter is as well determined as its formal error suggests. Ω_m,
+with a 9 % error, lies four standard deviations from Planck, moves by 0.48
+across the cuts and reaches the physical bound in three of eight, while H₀
+drifts by 8 km s⁻¹ Mpc⁻¹, twelve times its formal error. The two are degenerate and
 the low-redshift points anchor both. These are distance moduli compiled from
-mixed sources and methods, not a standardised sample: the distance scale
-survives the heterogeneity and the shape does not. The fit is bounded to
+mixed sources and methods, not a standardised sample, each published with its
+own adopted distance scale. The fit is bounded to
 0 ≤ Ω_m ≤ 1 deliberately; ending at a bound indicates that the data do not
 constrain the parameter, and the code reports the bound without an error bar.
 

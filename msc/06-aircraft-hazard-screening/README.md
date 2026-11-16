@@ -30,9 +30,9 @@ F = N · P · A · ∫ f(r(x), φ(x)) dx                          [yr⁻¹]
 
 with the site small against every length in f. The original's two kernels
 both carry the forward factor cos φ = x/r and are set to zero for x ≤ 0: an
-aircraft comes down ahead of the point where control was lost, never behind
-it. The integration over one side of the route is part of that model and is
-kept. The original's error is dimensional. Its integrals,
+aircraft comes down only ahead of the point where control was lost. The
+integration over one side of the route is part of that model and is
+kept. Dimensionally, the original's integrals,
 
 ```julia
 integrandRadial          = (x/s) e^{-gs}            # s = √(x² + y₀²)

@@ -16,7 +16,7 @@ the vector fields, parameters and the RK4 step both scripts share.
 
 Projections of the two attractors after a transient, 2.5 × 10⁵ points each at
 h = 0.002. The non-trivial Lorenz fixed points (±√(β(ρ−1)), ±√(β(ρ−1)), ρ−1)
-sit at ±8.4853 for β = 8/3; the 2018 code wrote β = 2.66, which puts them at
+lie at ±8.4853 for β = 8/3; the 2018 code wrote β = 2.66, which puts them at
 ±8.4747. The animation traces the trajectory itself: on the Lorenz attractor the
 state circles one lobe an unpredictable number of times before crossing to the
 other; on the Rössler attractor it spirals outward in a near-plane and is folded
@@ -44,9 +44,6 @@ University Press (2003).
 | Lorenz | 2 × 10⁴ | 0.906 ± 0.014 | 0.9056 |
 | Rössler | 10⁵ | 0.0719 ± 0.0016 | 0.0714 |
 
-A run of 400 time units, which the Lorenz value 0.9018 quoted before came
-from, carries a blocked standard error of 0.10; the fourth digit was noise.
-
 **The un-renormalised separation**, which is what the 2018 program followed,
 grows from 10⁻⁷ until it saturates at the diameter of the attractor: after
 16 time units for Lorenz, after 219 for Rössler, whose exponent is thirteen
@@ -61,16 +58,16 @@ On the run that program made, 200 000 steps of 0.001 over 200 time units from
 gives 269 rising intervals with mean 0.237 ± 0.007 and 270 falling ones with
 mean 0.282 ± 0.008. This statistic describes the oscillation of the separation
 on the saturated attractor, not the exponential growth; return-time statistics
-of a linear oscillator, by contrast, carry no information at all
+of a linear oscillator, by contrast, carry no information
 (`01-oscillators-and-integrators`).
 
 The program reads its own output back through an `ifstream` opened on the file
 its `ofstream` is still writing, which the C++ standard does not guarantee.
 Compiled with local paths and run with the inputs above, it does produce
 140 001 distances, none of them zero, and 301 interval rows with mean 0.28, so
-whatever its 2018 runs printed, the design does not condemn them to zeros.
-`Test.m` reads `DistantaLorentz.txt`, `TimpiUCLorentz.txt` and
-`DateExtreme.txt`, which no program in the archive writes, with histogram edges
-`0:0.05:0.8` that match the intervals above; `Attractor_distribution.m` seeds a
-six-parameter fit from `rand` and does not check its convergence flag. Neither
-is ported.
+the design alone does not produce zeros; the output of the 2018 runs is unknown.
+`Test.m` and `Attractor_distribution.m` are not ported. The first reads
+`DistantaLorentz.txt`, `TimpiUCLorentz.txt` and `DateExtreme.txt`, which no
+program in the archive writes, with histogram edges `0:0.05:0.8` that match the
+intervals above; the second seeds a six-parameter fit from `rand` and does not
+check its convergence flag.

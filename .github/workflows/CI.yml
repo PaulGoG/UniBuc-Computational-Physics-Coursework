@@ -30,8 +30,8 @@ jobs:
         with:
           version: '1'
       - uses: julia-actions/cache@v3
-      # JuliaFormatter is not a dependency of the scripts, so it goes into a
-      # throwaway environment, held to the major version whose output the
+      # JuliaFormatter is not a dependency of the scripts, so it is added to a
+      # temporary environment, held to the major version whose output the
       # sources were formatted with.
       - name: Check against .JuliaFormatter.toml
         shell: julia --color=yes {0}
@@ -63,7 +63,7 @@ jobs:
         with:
           version: '1'
       - uses: julia-actions/cache@v3
-      # One script end to end, invoked as the README says: it activates and
+      # One script end to end, invoked as in the README: it activates and
       # instantiates the environment itself, loads the shared theme and writes
       # a PNG, without needing any of the data files.
       - name: Render a figure

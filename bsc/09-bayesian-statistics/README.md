@@ -39,7 +39,7 @@ on the `legacy` branch:
 
 - it defined `function Distribution(x)` after `using Distributions`, which
   exports the abstract type `Distribution`. On Julia ≤ 1.11 that was a hard
-  error; on 1.12+ it is a deprecation warning and silently extends
+  error; on 1.12+ it is a deprecation warning and extends
   `Distributions.Distribution` rather than defining a new function
 - `contor` started at 1 and was incremented before the acceptance test, so
   `contor/Np` reported the reciprocal of the efficiency, and as a bare

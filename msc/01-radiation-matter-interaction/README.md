@@ -15,7 +15,7 @@ with the Sternheimer–Barkas mean excitation potential, I = 172.3 eV:
 1473 MeV cm⁻¹, or 632 MeV cm² g⁻¹. ASTAR (Berger, Coursey, Zucker and Chang,
 NIST Standard Reference Database 124, doi:10.18434/T4NC7P) gives
 617.4 MeV cm² g⁻¹, so the formula, without the shell and Barkas corrections,
-sits 2.4 % high at β = 0.052. Integrating 1/(dE/dx) from 0.5 to 5 MeV
+overestimates it by 2.4 % at β = 0.052. Integrating 1/(dE/dx) from 0.5 to 5 MeV
 gives a CSDA range of 21.6 µm against 22.0 µm from the ASTAR ranges at the two
 energies. Both comparisons are asserted within 5 %.
 
@@ -39,8 +39,8 @@ did not enter the fit and never printing the coefficients. Differencing
 correlates the points through the shared ε(0). With that covariance written out
 and no intercept (Δε(0) = 0 by construction), the differenced fit returns the
 same slope, error and χ² as the five-point fit, which the script asserts. A
-free intercept in the differenced model is a redundant parameter: it comes
-back as −100 ± 1200 keV and widens the slope error by 1.66×.
+free intercept in the differenced model is a redundant parameter: its fitted
+value is −100 ± 1200 keV and it widens the slope error by 1.66×.
 
 **Abscissa.** The absorber setting is recorded as the original labelled it,
 "x (μm)", and the script is the only surviving record of the measurement.
@@ -86,7 +86,7 @@ doi:10.1088/1674-1137/abddae).
 ²⁸Al and ¹²⁸I agree with the evaluated values within 1.0σ and 1.7σ. The ²⁷Mg
 series is not Poisson-compatible with a single exponential (p = 4 × 10⁻¹⁰): its
 second count is 3.5σ below its neighbours; the error scaled by √(χ²/ν) is
-2.8 min, and the central value still lands on the evaluated one.
+2.8 min, and the central value nevertheless agrees with the evaluated one.
 
 `Neutron_reactions.jl` and `NaITl_activation_fit.jl` linearised the decay law as
 ln(N₀/Nᵢ) = λ(tᵢ − t₀) with the first count as reference; the first fitted
@@ -94,7 +94,7 @@ unweighted and never called `stderror`, the second used weights Nᵢ, which
 drops the 1/N₀ term. Every ln(N₀/Nᵢ) shares N₀, so those points carry the
 covariance 1/Nᵢ δᵢⱼ + 1/N₀; with a free intercept the common term is absorbed
 and the slope and its variance are exactly those of a weighted fit to N₂ … Nₙ
-alone. The reference count, the most precise of the series, drops out of λ.
+alone, so the reference count, the most precise of the series, does not enter λ.
 The script asserts this identity and prints the corresponding values
 (2.354 ± 0.076, 14.2 ± 2.6 and 21.8 ± 2.1 min) beside the all-point ones. The
 first ¹²⁸I count has no recorded time in the original, which lists 520, 780 and
@@ -107,7 +107,7 @@ The calibration is an unweighted straight line through four lines (511, 1173,
 1274 and 1332 keV at channels 77, 172, 185 and 195): a = −27.6 ± 11.2 keV,
 b = 6.996 ± 0.068 keV per channel, ρ(a, b) = −0.96, residual standard
 deviation 6.4 keV. The studied peak at channel 67 (below the lowest
-calibration point, an extrapolation) comes out at 441.1 ± 7.0 keV with the
+calibration point, an extrapolation) corresponds to 441.1 ± 7.0 keV with the
 full covariance; dropping the covariance term gives ± 12.1 keV. ¹²⁸I β⁻ decay
 feeds the 442.9 keV 2⁺ → 0⁺ transition of ¹²⁸Xe (Elekes and Timar, Nucl. Data
 Sheets **129**, 191 (2015), doi:10.1016/j.nds.2015.09.002), 0.25σ away. The

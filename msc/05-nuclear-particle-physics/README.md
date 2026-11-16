@@ -20,18 +20,18 @@ equal weight.
 The script asserts each normalisation against the closed form of ∫|B|² over
 the window, (Γ/2)[arctan(2(b − E₀)/Γ) − arctan(2(a − E₀)/Γ)], and the
 measured position and width of each isolated resonance against its inputs.
-The interference line sits at neither 2300 nor 2340 MeV and is narrower than
+The interference line peaks at neither 2300 nor 2340 MeV and is narrower than
 the broad resonance; between the two phases its peak moves by 3.5 MeV and its
 width by 2.6 MeV. The resonance parameters are those of the original file,
-round numbers by the resonances' names; their measured values and
-uncertainties are not used here.
+round numbers by the resonances' names, in place of their measured values and
+uncertainties.
 
 Ported from `Breit_Wigner.jl` in `Julia-Workflow-FFUB/Nuclear_Particle_Physics_M_2/` on the
 `legacy` branch. The physics there was right; the full width at half maximum
 was located by scanning for samples satisfying
 `minimum(y)*0.005 >= abs(maximum(y)/2 - i)`, an absolute tolerance keyed to
-the minimum of the array, which finds nothing if no sample lands within it
-and otherwise returns whichever near-misses came first and last. Linear
+the minimum of the array, which finds nothing if no sample lies within it
+and otherwise returns the first and last samples that do. Linear
 interpolation between the bracketing samples replaces it. The struct holding
 the distributions had untyped fields, and the annotation coordinates were
 hardcoded in data units.
@@ -53,23 +53,23 @@ error of each galaxy; the script propagates it by refitting with the
 reference size moved by ±σ and asserts that it equals H₀ σ_s/s to within the
 asymmetry of 1/s. The result is consistent with Planck 2018, 67.4 ± 0.5
 (doi:10.1051/0004-6361/201833910), and with SH0ES 2022, 73.04 ± 1.04
-(doi:10.3847/2041-8213/ac5c5b), and cannot tell them apart. The recession
-velocities, 745, 936 and 2827 km s⁻¹, compare with the NED heliocentric
-values 727, 897 and 2820 km s⁻¹ (https://ned.ipac.caltech.edu).
+(doi:10.3847/2041-8213/ac5c5b). The recession velocities, 745, 936 and
+2827 km s⁻¹, compare with the NED heliocentric values 727, 897 and
+2820 km s⁻¹ (https://ned.ipac.caltech.edu).
 
 Ported from `Hubble.jl` in `Julia-Workflow-FFUB/Nuclear_Particle_Physics_M_2/` on the `legacy`
 branch. Two corrections:
 
-- **a one-character typo.** `Suma_σ² =+ σ_z[i]^2` parses as
-  `Suma_σ² = +σ_z[i]^2`, an assignment, not `+=`. The running sum of
-  variances kept only its last term, so every averaged redshift uncertainty
+- **`Suma_σ² =+ σ_z[i]^2` parses as `Suma_σ² = +σ_z[i]^2`**, an assignment,
+  not `+=`. The running sum of variances kept only its last term, so every
+  averaged redshift uncertainty
   was too small by roughly √n, and the fit weights derived from them were
   wrong
 - **the distance errors entered the fit as `1/(σ_v σ_d)²`**, a product of two
-  variances that is the variance of nothing. Weighting by velocity errors
-  alone gives H₀ = 89.1 ± 2.0, because the distant, poorly measured galaxy is
-  over-weighted; the effective variance σ_v² + H₀²σ_d², iterated in H₀, gives
-  the value above
+  variances that is not the variance of any quantity in the fit. Weighting by
+  velocity errors alone gives H₀ = 89.1 ± 2.0, because the distant, poorly
+  measured galaxy is over-weighted; the effective variance σ_v² + H₀²σ_d²,
+  iterated in H₀, gives the value above
 
 ## Data
 

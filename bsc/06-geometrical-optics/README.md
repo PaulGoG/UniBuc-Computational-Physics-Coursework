@@ -25,8 +25,8 @@ The script asserts the engine on a thin lens against the lensmaker formula
 (f = 100.000000 mm, both principal planes at the vertex), the unit determinant
 of each system matrix, and Newton's conjugate relation
 (z₁ − z_F1)(z₂ − z_F2) = f² for an object at 2f of each design, object
-distances counted to the left of V₁ and image distances to the right of V_N. The Tessar
-comes out at 50.79 mm, a normal focal length for the 24 × 36 mm format.
+distances counted to the left of V₁ and image distances to the right of V_N.
+The Tessar's focal length of 50.79 mm is normal for the 24 × 36 mm format.
 "Erlfe" is a misspelling of Erfle, the 1921 wide-field eyepiece; the
 nine-surface prescription is the six-element Type II form. `Tessar.m` is the
 1902 Rudolph four-element design.
@@ -37,7 +37,7 @@ principal-plane separation is written `sum(d) - abs(zH1) - abs(zH2)`, which
 is right only when both principal planes fall on one side. The files' own
 diagrams place H₁ at −zH1 and H₂ at Σd + zH2, so the separation is
 Σd + zH1 + zH2; for these two prescriptions both zH1 and zH2 are negative and
-the two formulae agree to the digit. `Tessar.m` notes in a comment that its
+the two formulae agree exactly. `Tessar.m` notes in a comment that its
 plot fails for an object at the front focal plane and does not guard it;
 `conjugate` returns `Inf` there.
 
