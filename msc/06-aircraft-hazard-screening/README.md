@@ -72,6 +72,8 @@ original's estimators, all to 10⁻⁸.
 
 All values are for R = 50 m. With the forward cosine kernel at 5 km,
 R = 200 m gives 1.74 × 10⁻⁷ yr⁻¹; the 10⁻⁷ level is reached at R = 152 m and
-the 10⁻⁵ level at 1518 m. The target area is the bare geometric disc;
+the 10⁻⁵ level at 1518 m, a radius no longer small against the 4.3 km decay
+length 1/g, so that figure is an extrapolation of the small-site form. The
+target area is the bare geometric disc;
 DOE-STD-3014 adds skid and shadow contributions to it, so the footprint used
 here is a lower bound.

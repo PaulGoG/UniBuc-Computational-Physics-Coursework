@@ -10,15 +10,15 @@
 #   u₁ = (√E − √E_f)²/T_m,   u₂ = (√E + √E_f)²/T_m
 #
 # which integrates to one over E ∈ [0, ∞) for every E_f and T_m; `main` asserts
-# this for every fragment. Fisiune_4.jl on the `legacy` branch
-# (Julia-Workflow-FFUB/Fisiune_M_2/) wrote the prefactor as
+# this for every fragment. Fission_4.jl on the `legacy` branch
+# (Julia-Workflow-FFUB/Fission_M_2/) wrote the prefactor as
 # `(1/3*sqrt(E_F*T_MAX))`, which Julia parses as (1/3)√(E_f T_m): it multiplied
 # where the formula divides, and its spectrum integrates to E_f T_m instead of
 # one. E_f and T_m both vary with fragment mass, so the error reweights the
 # mass average and does not cancel under the renormalisation applied
 # afterwards. Both forms are evaluated below.
 #
-# Per fragment mass, as in Fisiune_4.jl: ⟨TKE⟩(A) from the yield cells, TXE =
+# Per fragment mass, as in Fission_4.jl: ⟨TKE⟩(A) from the yield cells, TXE =
 # Q(A, Z_p) + Sₙ(²³⁶U) − TKE(A) at the single most probable charge
 # Z_p = round(Z_UCD − 0.5), T_m = √(C·TXE/A₀) with C = 10 MeV, E_f per nucleon
 # from momentum conservation, and the light- and heavy-fragment spectra
@@ -26,7 +26,7 @@
 #
 # The Maxwellian fits compare data and model both normalised to unit area over
 # the measured window, the data by the trapezoid rule; χ² is reduced by
-# ν = N − 1 for the one fitted parameter, where Fisiune_5.jl divided by N. That
+# ν = N − 1 for the one fitted parameter, where Fission_5.jl divided by N. That
 # file also bounded its optimiser at T_M = 0, where T_M^{-3/2} is infinite, and
 # both files re-integrated E₁, γ(3/2, x) and the window integral by quadrature
 # at every evaluation, where SpecialFunctions has them in closed form.
@@ -40,13 +40,15 @@ include(joinpath(@__DIR__, "fission_core.jl"))
 """
 Level-density constant of T_m = √(C·TXE/A₀) [MeV]: ⟨a⟩ = A₀/C with C = 10 MeV
 for an energy-independent compound cross-section, as the course set it and
-Fisiune_4.jl carried it.
+Fission_4.jl used it.
 """
 const C_LEVEL_DENSITY = 10.0
 "Neutron-energy grid of the mass-averaged spectrum [MeV]."
 const E_GRID = 10 .^ range(-1.3, log10(20), length = 260)
 "Bounds of the Maxwellian temperature search [MeV]."
 const T_BOUNDS = (0.3, 3.0)
+"Relative tolerance on the mass-averaged mean energy against its closed form."
+const MEAN_TOLERANCE = 1e-6
 "Relative tolerance on the unit normalisation of the Madland–Nix spectrum."
 const NORMALISATION_TOLERANCE = 1e-6
 
@@ -60,7 +62,7 @@ E₁(z) = expint(z)
 
 Madland–Nix spectrum at neutron energy `E` for the fragment kinetic energy per
 nucleon `E_f` and maximum residual temperature `T_m`, unit-normalised over
-[0, ∞). `correct = false` uses the prefactor of Fisiune_4.jl, (1/3)√(E_f T_m).
+[0, ∞). `correct = false` uses the prefactor of Fission_4.jl, (1/3)√(E_f T_m).
 """
 function madland_nix(E, E_f, T_m; correct = true)
     u₁ = (sqrt(E) - sqrt(E_f))^2 / T_m
@@ -114,11 +116,6 @@ function mass_averaged_spectrum(E_grid, fragments; correct = true)
     end
 end
 
-"Trapezoid weights of a non-uniform grid."
-trapezoid_weights(x) = [i == 1 ? (x[2] - x[1]) / 2 :
-                        i == length(x) ? (x[end] - x[end - 1]) / 2 :
-                        (x[i + 1] - x[i - 1]) / 2 for i in eachindex(x)]
-
 function main()
     cells = yield_cells(load_yields(joinpath(DATA, "Yield", "U5YAZTKE.STR")))
     masses = load_masses(joinpath(DATA, "Mass_defects", "AUDI2021.csv"))
@@ -163,9 +160,20 @@ function main()
 
     good = mass_averaged_spectrum(E_GRID, fragments)
     bad = mass_averaged_spectrum(E_GRID, fragments; correct = false)
-    w = trapezoid_weights(E_GRID)
-    E_mean = sum(w .* E_GRID .* good) / sum(w .* good)
-    E_mean_bad = sum(w .* E_GRID .* bad) / sum(w .* bad)
+    # Moments over [0, ∞) by quadrature: the grid of the figure starts at
+    # 0.05 MeV and misses 0.4 % of the spectrum. For a constant compound
+    # cross-section the mean of each fragment is E_f + 4T_m/3, which gives the
+    # mass-averaged mean in closed form.
+    moment(k; correct = true) = quadgk(
+        E -> E^k * only(mass_averaged_spectrum((E,), fragments; correct)), 0, Inf;
+        rtol = 1e-8,)[1]
+    E_mean = moment(1) / moment(0)
+    norm_bad = moment(0; correct = false)
+    E_mean_bad = moment(1; correct = false) / norm_bad
+    E_closed = sum(f.Y * ((f.E_f_L + f.E_f_H) / 2 + 4 * f.T_m / 3) for f in fragments) /
+               sum(f.Y for f in fragments)
+    isapprox(E_mean, E_closed; rtol = MEAN_TOLERANCE) ||
+        error("mean energy $E_mean MeV is off the closed form $E_closed MeV")
     @printf("mass-averaged ⟨E⟩ = %.4f MeV (equivalent Maxwellian temperature 2⟨E⟩/3 = %.4f MeV); ",
         E_mean, 2E_mean / 3)
     @printf("with the original prefactor %.4f MeV, %.2f %% higher\n\n", E_mean_bad,
@@ -200,7 +208,7 @@ function main()
         xticks = logticks(-1, 1), yticks = logticks(-4, 0),)
     l_g = lines!(ax1, E_GRID, good, color = PALETTE.blue)
     l_b = lines!(
-        ax1, E_GRID, bad ./ (sum(w .* bad)), color = PALETTE.red, linestyle = :dash,)
+        ax1, E_GRID, bad ./ norm_bad, color = PALETTE.red, linestyle = :dash,)
     ylims!(ax1, 1e-4, 1.2)
     text!(ax1, 0.03, 0.05;
         text = rich(

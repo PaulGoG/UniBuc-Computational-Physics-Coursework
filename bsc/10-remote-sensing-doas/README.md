@@ -34,17 +34,19 @@ requires, and the script asserts it. The SWING means do so from 18° upwards;
 its 12° mean is a third of the 18° one, with a retrieval error three times
 that of the other elevations, and none of its 6° spectra passes the cut, so
 SWING's two lowest elevations do not reproduce the MAX-DOAS series.
-The median retrieval errors are 3 × 10¹⁴ (MAX-DOAS) and 7 × 10¹⁴ molec cm⁻²
-(SWING), an order of magnitude below the spread over the day: the bars in the
-lower-right panel are the day's variability, not the fit.
+The median retrieval errors are 3 × 10¹⁴ molec cm⁻² for the MAX-DOAS and
+7 × 10¹⁴ for SWING at 18° to 60° (2.4 × 10¹⁵ at 12°), below the spread over the
+day by a factor of 10 to 17 for the MAX-DOAS and of 2 to 13 for SWING: the bars
+in the lower-right panel are mainly the day's variability, not the fit.
 
 Six SWING fits at 48° and 60° between 11:05 and 11:37 fail with RMS
 0.012–0.035 and columns 3 to 51 times the medians of their elevation angles;
 the largest SWING column of the day, 6.2 × 10¹⁶ molec cm⁻² at 60° at 11:20,
 is one of them and carries a retrieval error of 37 %. Without the cut they
 read as a tenfold NO₂ excess at high elevation lasting half an hour. The 18°
-and 24° columns of 1–2 × 10¹⁶ in the same window are three to four times
-their medians and pass the cut; that is the elevated NO₂ of the late morning.
+and 24° columns of the same window pass the cut and show no excess: at
+1.5–2.0 and 0.8–1.0 × 10¹⁶ they are 0.6 to 0.9 of their medians over the day,
+whose highest low-elevation columns come before 10:36.
 
 Corrections to `SWING_DOAS.jl` in `Julia-Workflow-FFUB/Remote_Sensing_L_4/` on
 the `legacy` branch:
@@ -59,11 +61,14 @@ the `legacy` branch:
   and documented as empirical
 - time was rebuilt from the fractional-hour column with a rounding that
   produced `hh:mm:60` on seven rows; it is now read from the files' own
-  hh:mm:ss column, asserted against the fractional hours to one second.
+  hh:mm:ss column, asserted against the fractional hours within 1.5 s.
   `savefig` used a Windows separator into a directory that does not exist,
   so on Linux the original wrote files literally named `Grafice\MaxDoas.png`
 
-The two data files are all that came with the laboratory. No air-mass factors
+The two data files are all that came with the laboratory. Each series is
+differential with respect to its instrument's own reference spectrum, which
+the files do not record, so the two are not on a common zero and a constant
+offset between them carries no information. No air-mass factors
 are applied, so the dSCD are not converted to vertical columns, and the
 MAX-DOAS 3°, 6° and 89° series are not compared for lack of an accepted SWING
 counterpart.

@@ -17,7 +17,10 @@ NIST Standard Reference Database 124, doi:10.18434/T4NC7P) gives
 617.4 MeV cm² g⁻¹, so the formula, without the shell and Barkas corrections,
 overestimates it by 2.4 % at β = 0.052. Integrating 1/(dE/dx) from 0.5 to 5 MeV
 gives a CSDA range of 21.6 µm against 22.0 µm from the ASTAR ranges at the two
-energies. Both comparisons are asserted within 5 %.
+energies. Both comparisons are asserted within 5 %. The uncorrected formula is
+not valid down to 0.5 MeV (ASTAR uses Bethe's formula for α particles above
+2 MeV only), so the range tests the integral, in which errors of opposite sign
+can compensate, and not the formula at each energy.
 
 The formula was transcribed correctly in `Bethe_Bloch.jl`. The target
 material is named nowhere in that file, A is written as 28 rather than 28.085,
@@ -45,7 +48,7 @@ value is −100 ± 1200 keV and it widens the slope error by 1.66×.
 **Abscissa.** The absorber setting is recorded as the original labelled it,
 "x (μm)", and the script is the only surviving record of the measurement.
 Read as micrometres the slope would be 375 keV µm⁻¹, about three times the
-electronic stopping power of Mylar between 4 and 5 MeV (115–135 keV µm⁻¹,
+electronic stopping power of Mylar between 4 and 5 MeV (114–133 keV µm⁻¹,
 ASTAR), and a 1.85 MeV residual after 8 µm is not compatible with the 28.8 µm
 CSDA range of a 5 MeV α in Mylar, so the setting is more likely a foil count
 than a thickness. The axis is labelled as the setting, without a unit.
@@ -62,7 +65,13 @@ latter; the abundances are asserted to sum to 100 % within 0.1.
 
 The conventional number for natural Cd is 2520 b at the 2200 m s⁻¹ thermal
 point (0.0253 eV, where σ(¹¹³Cd) = 20 600 b), and "2203 b" quoted without its
-energy would be read as that. The original never printed the result (a bare
+energy would be read as that. The difference between the two is not an effect
+of the energy: for a single level at 178.7 meV with a total width of 114 meV
+(Kopecky et al., Nucl. Instrum. Methods B **267**, 2345 (2009),
+doi:10.1016/j.nimb.2009.04.010) the capture cross-section of ¹¹³Cd at 0.25 eV
+is 1.02 times its thermal value, about 21 000 b, so the 18 000 b of the
+original, read from the atlas, is some 14 % low and the natural value at
+0.25 eV is close to 2570 b. The original never printed the result (a bare
 top-level expression, so running the file produced no output), and its arrays
 were positional, with nothing tying σ = 18 000 b to ¹¹³Cd.
 
@@ -85,7 +94,7 @@ doi:10.1088/1674-1137/abddae).
 
 ²⁸Al and ¹²⁸I agree with the evaluated values within 1.0σ and 1.7σ. The ²⁷Mg
 series is not Poisson-compatible with a single exponential (p = 4 × 10⁻¹⁰): its
-second count is 3.5σ below its neighbours; the error scaled by √(χ²/ν) is
+second count lies 5.7σ below the fitted line; the error scaled by √(χ²/ν) is
 2.8 min, and the central value nevertheless agrees with the evaluated one.
 
 `Neutron_reactions.jl` and `NaITl_activation_fit.jl` linearised the decay law as
@@ -98,8 +107,10 @@ alone, so the reference count, the most precise of the series, does not enter λ
 The script asserts this identity and prints the corresponding values
 (2.354 ± 0.076, 14.2 ± 2.6 and 21.8 ± 2.1 min) beside the all-point ones. The
 first ¹²⁸I count has no recorded time in the original, which lists 520, 780 and
-1040 s for the other three; it is placed one interval earlier, at 260 s, and
-the slope does not depend on that choice. With equal acquisition intervals the
+1040 s for the other three; it is placed one interval earlier, at 260 s. The
+shared-reference slope does not depend on that choice, but the all-point
+result does: 26.7 ± 1.6 min with the count placed at 130 s and 31.3 ± 2.0 min
+at 0 s. With equal acquisition intervals the
 factor (1 − e^{−λΔ}) relating counts to activity is common to every point and
 changes only the intercept.
 

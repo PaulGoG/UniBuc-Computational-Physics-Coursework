@@ -56,10 +56,11 @@ energy grows as (1 + Ω²Δt²)^N: 7.371 predicted over the 800 steps, 7.371
 measured, asserted to 10⁻¹². Each symplectic variant conserves a modified
 energy exactly (`E + ½ΔtΩ²xv` when the position is updated first,
 `E − ½ΔtΩ²xv` when the velocity is), so its orbit closes and its energy
-oscillates about E(0) by at most ½ΩΔt; both invariants hold to 2 × 10⁻¹⁵ along
-the orbit from (1, −1) and are asserted. The right-hand panel repeats the
+oscillates within ½ΩΔt of the invariant, and so within ΩΔt of E(0): from 0.951
+to 1 and from 1 to 1.051 on the orbit from (1, −1). Both invariants hold to
+2 × 10⁻¹⁵ along that orbit and are asserted. The right-hand panel repeats the
 step-count sweep of the 2018 exam problem: the energy error of every scheme at
-t = 10 falls as 1/N, the symplectic ones from a starting point ten times lower.
+t = 10 falls as 1/N, the symplectic ones about thirty-five times lower.
 
 ![Phase portraits and energy drift](figures/symplectic_vs_explicit_euler.png)
 

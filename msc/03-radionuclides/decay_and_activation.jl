@@ -8,24 +8,24 @@
 #   (b) ²⁷Al(n,γ)²⁸Al under a pulsed neutron flux: irradiation and decay
 #       alternating with period τ, solved analytically per cycle.
 #
-# Ported from Radionuclizi_4_1.jl and Radionuclizi_4_2.jl on the `legacy` branch
-# (Julia-Workflow-FFUB/Radionuclizi_M_1/).
+# Ported from Radionuclides_4_1.jl and Radionuclides_4_2.jl on the `legacy` branch
+# (Julia-Workflow-FFUB/Radionuclides_M_1/).
 #
 # Corrections:
 #
 #   1. The Bateman figure was degenerate. The time axis was built from
 #      `T_scalare = max(T½₁, T½₂)`, the ²³⁸U half-life of 4.468 × 10⁹ yr, giving
 #      a step of 4.5 × 10⁸ yr, while the ²³⁴Th transient peaks at about 2 years.
-#      The entire interesting region, the vertical marker and the printed
+#      The transient, the vertical marker and the printed
 #      `round(t_m/T_scalare, digits=2) = 0.0` all collapsed onto x = 0. A
 #      logarithmic time axis is used here, which shows both scales at once.
 #   2. The ²⁸Al half-life was wrong. It was given as `2.3*60` s; the evaluated
-#      value is 2.245 min = 134.7 s, a 2.4 % error carried straight into λ.
+#      value is 2.245 min = 134.7 s, a 2.4 % error that propagates to λ.
 #   3. `savefig` interpolated a `LaTeXString` into the filename, so the generated
 #      name would have contained `$^{238}\textrm{U}$`, and the save would have
 #      broken as soon as it was uncommented.
-#   4. The activation code recomputed its cycle sum Cₙ from scratch at every one
-#      of 100 time points per cycle, an O(n) inner sum for a quantity constant
+#   4. The activation code recomputed its cycle sum Cₙ at each of the 100 time
+#      points per cycle, an O(n) inner sum for a quantity constant
 #      within the cycle, and located a plotting value by float equality after
 #      `round` on a time vector rather than evaluating the closed form it had.
 
@@ -38,8 +38,8 @@ const FIGURES = joinpath(@__DIR__, "figures")
 
 "Julian year [s]."
 const YEAR = 3.15576e7
-"²³⁸U half-life [s], NUBASE2020 (doi:10.1088/1674-1137/abddae): 4.468 × 10⁹ yr."
-const T_U238 = 4.468e9 * YEAR
+"²³⁸U half-life [s], NUBASE2020 (doi:10.1088/1674-1137/abddae): 4.463 × 10⁹ yr."
+const T_U238 = 4.463e9 * YEAR
 "²³⁴Th half-life [s], NUBASE2020: 24.10 d."
 const T_TH234 = 24.10 * 86400
 "²⁸Al half-life [s], NUBASE2020: 2.245 min; the original used 2.3 min."
@@ -81,8 +81,8 @@ function main()
         λ₂ / λ₁, λ₂ / λ₁)
     @printf("daughter maximum at t = %.3f yr = %.1f d\n", t_m / YEAR, t_m / 86400)
     @printf("secular equilibrium ratio Λ₂/Λ₁ → %.6f\n\n", λ₂ / (λ₂ - λ₁))
-    # checks: the maximum is a maximum, and the ratio has reached its limit
-    # twenty daughter half-lives in
+    # checks: t_m is a local maximum, and the ratio has reached its limit after
+    # twenty daughter half-lives
     ε = 1e-3
     bateman(t_m, λ₁, λ₂) >
     max(bateman(t_m * (1 + ε), λ₁, λ₂), bateman(t_m * (1 - ε), λ₁, λ₂)) ||

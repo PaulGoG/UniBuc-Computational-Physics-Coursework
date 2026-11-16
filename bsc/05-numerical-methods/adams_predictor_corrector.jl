@@ -3,13 +3,13 @@
 #
 #   y′(x) = −y + 2 sin x,   y(0) = 0,   exact  y = sin x − cos x + e⁻ˣ
 #
-# with starting values from classical RK4, as in Adams_Predictor_Corector.m on
+# with starting values from classical RK4, as in Adams_Predictor_Corrector.m on
 # the `legacy` branch. The coefficients there are correct: h/24·(55, −59, 37, −9)
 # for the predictor and h/24·(9, 19, −5, 1) for the corrector.
 #
-# What the original did not use is the error estimate a predictor–corrector pair
-# gives for free. With y the exact solution through the back values, the two
-# formulae have local errors
+# The original did not use the error estimate that a predictor–corrector pair
+# provides without further function evaluations. With y the exact solution
+# through the back values, the two formulae have local errors
 #
 #   y(xₙ₊₁) − p = +251/720 h⁵ y⁽⁵⁾,     y(xₙ₊₁) − c = −19/720 h⁵ y⁽⁵⁾,
 #
@@ -37,8 +37,13 @@ exact(x) = sin(x) - cos(x) + exp(-x)
 const AB4 = (55, -59, 37, -9) ./ 24
 "Corrector coefficients, three-step Adams–Moulton, newest value first."
 const AM3 = (9, 19, -5, 1) ./ 24
+"Error constants of the predictor and of the corrector, in units of h⁵y⁽⁵⁾."
+const PREDICTOR_ERROR = 251 / 720
+const CORRECTOR_ERROR = 19 / 720
 "Milne's factor: corrector error constant 19/720 over the sum 251/720 + 19/720."
 const MILNE = 19 / 270
+"Relative tolerance on the ratio of the Milne estimate to the true one-step error."
+const RATIO_TOLERANCE = 0.01
 "Integration interval of the original."
 const XSPAN = (0.0, 6.0)
 "Step size of the original."
@@ -148,20 +153,27 @@ function main()
     @printf("order between the two finest steps: global %.2f, one-step %.2f\n",
         last(o_global.pairwise), last(o_local.pairwise))
 
-    # The corrector is evaluated at the predicted value, which adds
-    # h·(9/24)·∂f/∂y·(p − c) to its error: a relative correction of
-    # (9/24)(270/19) h |∂f/∂y| = 5.33 h for this equation, where ∂f/∂y = −1.
-    pece_correction = AM3[1] / MILNE
-    predicted_ratio = 1 / (1 + pece_correction * last(H_SWEEP))
-    @printf("Milne/true at h = %.5f: %.4f, predicted 1/(1 + %.2f h) = %.4f\n",
-        last(H_SWEEP), last(ratio), pece_correction, predicted_ratio)
+    # The corrector is evaluated at the predicted value and not at the exact
+    # one, which adds g(p − y) to it, g = h·(9/24)·∂f/∂y. With E = h⁵y⁽⁵⁾,
+    # a = 251/720 and b = 19/720: y − p = aE, so c − y = (b − ga)E and
+    # c − p = (a + b − ga)E, and the Milne estimate b/(a + b)·(c − p) is
+    # (1 − ga/(a + b))/(1 − ga/b) of the one-step error. Here ∂f/∂y = −1 and
+    # the ratio is (1 + 0.349h)/(1 + 4.954h), to first order in h.
+    a, b = PREDICTOR_ERROR, CORRECTOR_ERROR
+    predicted_ratio = map(H_SWEEP) do h
+        g = -AM3[1] * h
+        (1 - g * a / (a + b)) / (1 - g * a / b)
+    end
+    @printf("Milne/true, measured over predicted (1 + %.3f h)/(1 + %.3f h): %s\n",
+        AM3[1] * a / (a + b), AM3[1] * a / b,
+        join((@sprintf("%.4f/%.4f", m, p) for (m, p) in zip(ratio, predicted_ratio)), "  "))
 
     abs(last(o_global.pairwise) - 4) < 0.1 ||
         error("global error is not fourth order: $(last(o_global.pairwise))")
     abs(last(o_local.pairwise) - 5) < 0.1 ||
         error("one-step error is not fifth order: $(last(o_local.pairwise))")
-    isapprox(last(ratio), predicted_ratio; rtol = 0.01) ||
-        error("Milne estimate is off the one-step error: ratio $(last(ratio))")
+    all(isapprox.(ratio, predicted_ratio; rtol = RATIO_TOLERANCE)) ||
+        error("Milne estimate is off the one-step error: ratios $ratio against $predicted_ratio")
 
     # --- figure ---------------------------------------------------------------
     fig = Figure(size = (1500, 660))
@@ -187,7 +199,7 @@ function main()
     ylims!(ax2, 10.0^decade_floor(shown), 10.0^decade_ceil(shown))
     text!(ax2, 0.04, 0.04;
         text = rich("Milne / true = ", @sprintf("%.2f", ratio[findfirst(==(h), H_SWEEP)]),
-            " at ", it("h"), @sprintf(" = %.1f", h)),
+            " at ", it("h"), @sprintf(" = %.1f", h),),
         space = :relative, align = (:left, :bottom), fontsize = ANNOTATION_SIZE,
         color = PALETTE.green,)
 

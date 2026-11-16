@@ -37,12 +37,15 @@ from exact back values.
 | 0.0125 | 7.17 × 10⁻¹⁰ | 4.09 | 1.23 × 10⁻¹¹ | 5.08 | 0.946 |
 | 0.00625 | 4.34 × 10⁻¹¹ | 4.05 | 3.73 × 10⁻¹³ | 5.04 | 0.971 |
 
-The estimate falls short of the true one-step error by the factor
-1/(1 + 5.33 h) because the corrector is evaluated at the predicted value rather
-than iterated to convergence: the PECE form adds h·(9/24)·∂f/∂y·(p − c) to the
-corrector's error, and ∂f/∂y = −1 here. The script asserts the two orders
-(4 and 5, within 0.1) and the ratio at the finest step (0.9705 measured, 0.9678
-predicted, within 1 %).
+The estimate falls short of the true one-step error because the corrector is
+evaluated at the predicted value rather than iterated to convergence, which
+adds g(p − y) to it, with g = h·(9/24)·∂f/∂y. Writing E = h⁵y⁽⁵⁾, a = 251/720
+and b = 19/720, the one-step error becomes (b − ga)E and the difference c − p
+becomes (a + b − ga)E, so the ratio of the estimate to the error is
+(1 − ga/(a + b))/(1 − ga/b), which for ∂f/∂y = −1 is
+(1 + 0.349 h)/(1 + 4.954 h): 0.537, 0.692, 0.815, 0.898, 0.946 and 0.972 at
+the six steps of the table. The script asserts the two orders (4 and 5, within
+0.1) and this ratio at every step within 1 %.
 
 ## `pendulum_integrators.jl`
 
@@ -94,7 +97,7 @@ against time and never took a section.
 Δt = 10⁷ yr and 1000 points.
 
 The original sets `tau = 4.4e9; % timpul mediu de viata U238`. That value is
-within 1.5 % of the half-life of ²³⁸U, (4.4683 ± 0.0024) × 10⁹ yr (Jaffey et
+1.5 % below the half-life of ²³⁸U, (4.4683 ± 0.0024) × 10⁹ yr (Jaffey et
 al., Phys. Rev. C 4, 1889 (1971), doi:10.1103/PhysRevC.4.1889), and 32 % below
 the mean lifetime τ = T½/ln 2 = 6.446 × 10⁹ yr, so I take it to be the half-life
 entered where the mean lifetime belongs. Used as the mean lifetime it decays the
@@ -120,7 +123,7 @@ RK4 on the three-component linear system of the original, `y₁' = y₂`,
 in 100 steps. Components 1 and 2 form the driven oscillator `y₁'' + y₁ = 1 - 2eᵗ`
 with solution `C₁ cos t + C₂ sin t + 1 - eᵗ`; component 3 is a quadrature of it.
 The closed form is checked against the initial values and the RK4 solution
-against the closed form: largest errors 1.9 × 10⁻⁴, 6.2 × 10⁻⁴ and 6.4 × 10⁻⁴
+against the closed form: largest errors 1.95 × 10⁻⁴, 6.2 × 10⁻⁴ and 6.4 × 10⁻⁴
 where y₁ and y₂ reach −3000 and y₃ stays within ±8. A sweep from 25 to 800
 steps gives order 3.997 between the two finest, asserted within 0.05.
 

@@ -85,14 +85,17 @@ T_m = √(C·TXE/A₀) with C = 10 MeV as in that file, E_f per nucleon from
 momentum conservation, the light- and heavy-fragment spectra averaged and
 weighted by Y(A) over 41 masses. T_m spans 0.94–1.37 MeV and E_f 0.31–1.27 MeV.
 
-The closed form integrates to one over [0, ∞) for every E_f and T_m, which the
-script asserts for each fragment to 10⁻⁹. `Fission_4.jl` wrote the prefactor
+The closed form integrates to one over [0, ∞) for every E_f and T_m; the
+script finds 1.3 × 10⁻⁹ for the worst fragment and asserts 10⁻⁶. `Fission_4.jl`
+wrote the prefactor
 as `(1/3*sqrt(E_F*T_MAX))`, which Julia parses as (1/3)√(E_f T_m): its
 spectrum integrates to E_f T_m, between 0.31 and 1.33 across the fragments,
 so the error reweights the mass average rather than cancelling under the
-renormalisation applied afterwards. The mass-averaged mean energy is
-⟨E⟩ = 2.103 MeV (equivalent Maxwellian temperature 2⟨E⟩/3 = 1.402 MeV) against
-2.203 MeV with the original prefactor, 4.8 % higher.
+renormalisation applied afterwards. The mass-averaged mean energy over
+[0, ∞), by quadrature, is ⟨E⟩ = 2.093 MeV (equivalent Maxwellian temperature
+2⟨E⟩/3 = 1.396 MeV) against 2.194 MeV with the original prefactor, 4.8 %
+higher. The script asserts it against the closed form, the yield-weighted mean
+of E_f + 4T_m/3.
 
 Maxwellian fits to the four measured spectra, data and model both normalised
 to unit area over the measured window and χ² reduced by ν = N − 1:
@@ -104,9 +107,9 @@ to unit area over the measured window and χ² reduced by ν = N − 1:
 | Göök, centre of mass, light fragment | 0.05–6.95 | 99 % | 0.800 | 5.04 |
 | Göök, centre of mass, heavy fragment | 0.05–6.95 | 99 % | 0.841 | 1.88 |
 
-A Maxwellian normalised over all energies and compared with the Göök laboratory
-spectrum, which holds 84 % of it, offsets the whole ratio by a fifth and
-returns T_M = 1.322 MeV at χ²/ν = 55. The centre-of-mass sets, from which the
+A Maxwellian normalised over all energies would be offset by a fifth from the
+Göök laboratory spectrum, whose window holds 84 % of it, which is why data and
+model are normalised over the same window. The centre-of-mass sets, from which the
 fragment motion is removed, lie well below the laboratory ones and are
 counting-limited above about 6 MeV. `Fission_5.jl` divided χ² by N rather than
 ν, a convention, and bounded its optimiser at T_M = 0, where T_M^{−3/2} is
@@ -157,8 +160,8 @@ Against the measured sets, whose own yield-weighted per-fragment means give
 The deformation partition of the original reproduces the sawtooth better on
 three of the four sets, and it is what the figure draws; the level-density
 partition is drawn dashed. The model lies 3–6 % above the measured pair
-values: prompt γ emission competes for the same excitation energy and this
-balance does not account for it. The script asserts that β(Z) vanishes at the
+values, with the prompt γ energy already in the balance through p and q; none
+of the constants was adjusted. The script asserts that β(Z) vanishes at the
 closed shells Z = 28 and 50, that 0 < R < 1 for every split, and that
 ν_H + ν_L = ν_pair at every mass.
 

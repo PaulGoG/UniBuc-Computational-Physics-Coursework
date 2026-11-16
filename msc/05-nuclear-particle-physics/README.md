@@ -45,13 +45,15 @@ Ca K, Ca H, Hα, Hβ and Hδ lines with a reading uncertainty of 1.65 Å,
 combined as an inverse-variance mean, and distances from the apparent size of
 each galaxy relative to NGC 3627 at 10.73 Mpc.
 
-This gives H₀ = 70.6 ± 12.2 km s⁻¹ Mpc⁻¹, a Hubble time of 13.9 Gyr. Of the
-uncertainty, ±5.5 comes from the fit and ±10.8 from the 15 % uncertainty of
+This gives H₀ = 70.6 ± 5.9 km s⁻¹ Mpc⁻¹, a Hubble time of 13.9 Gyr. Of the
+uncertainty, ±5.5 comes from the fit and ±2.0 from the 15 % uncertainty of
 the reference galaxy's apparent size, which scales both other distances by the
-same factor and is therefore a scale error of H₀ rather than an independent
-error of each galaxy; the script propagates it by refitting with the
-reference size moved by ±σ and asserts that it equals H₀ σ_s/s to within the
-asymmetry of 1/s. The result is consistent with Planck 2018, 67.4 ± 0.5
+same factor and is therefore common to them rather than an independent error
+of each; the script propagates it by refitting with the reference size moved
+by ±σ. The reference galaxy itself stays at 10.73 Mpc, has no distance error
+and carries 82 % of the weight of the fit, so the common term is well below
+the scale error H₀ σ_s/s, which it equals, as the script asserts, only when the
+two other galaxies are fitted alone. The result is consistent with Planck 2018, 67.4 ± 0.5
 (doi:10.1051/0004-6361/201833910), and with SH0ES 2022, 73.04 ± 1.04
 (doi:10.3847/2041-8213/ac5c5b). The recession velocities, 745, 936 and
 2827 km s⁻¹, compare with the NED heliocentric values 727, 897 and

@@ -1,7 +1,7 @@
 # Two-dimensional Ising model on a square lattice, driven to its ground state by
 # Metropolis single-spin-flip dynamics under a geometrically cooled temperature.
 #
-# Ported from IsingFinal.cpp in Code_Archive/Old_2018/C_C++/ on the `legacy`
+# Ported from Ising_model.cpp in Code_Archive/Old_2018/C_C++/ on the `legacy`
 # branch. The original allocated n columns per row but
 # indexed n+2 of them, bordered its ghost cells once before the Monte Carlo loop
 # and never refreshed them, double-counted every bond in the Hamiltonian so that
@@ -9,7 +9,7 @@
 # attempted flip rather than per sweep so the temperature underflowed to zero
 # within a few thousand attempts, and seeded from the clock so no run could be
 # reproduced. Periodic boundaries are handled here by modular indexing, which
-# removes the ghost cells entirely.
+# needs no ghost cells.
 
 include(joinpath(@__DIR__, "..", "..", "activate.jl"))
 
@@ -148,6 +148,11 @@ end
 const T_CRITICAL = 2 / log1p(sqrt(2))
 
 function main()
+    # the Metropolis kernel, on random lattices, before it is used
+    check_flip_energy(StableRNG(SEED + 1), rand(StableRNG(SEED + 4), Int8[-1, 1], 16, 16), J, periodic)
+    check_flip_energy(StableRNG(SEED + 2), rand(StableRNG(SEED + 3), Int8[-1, 1], 16, 16), J, open)
+    println("flip energy agrees with the energy difference at 400 random sites, periodic and open")
+
     rng = StableRNG(SEED)
     shots = [4.0, T_CRITICAL, 0.3]
     s, temperatures, energies, magnetisations, snapshots = anneal(
@@ -157,9 +162,6 @@ function main()
         last(energies), -2.0 * J)
     @printf("final magnetisation    m   = %+.4f\n", last(magnetisations))
     @printf("Onsager T_c = %.4f J/k_B\n", T_CRITICAL)
-    check_flip_energy(StableRNG(SEED + 1), copy(s), J, periodic)
-    check_flip_energy(StableRNG(SEED + 2), rand(StableRNG(SEED + 3), Int8[-1, 1], 16, 16), J, open)
-    println("flip energy agrees with the energy difference at 400 random sites, periodic and open")
     abs(last(energies) + 2J) < ENERGY_TOLERANCE &&
     abs(abs(last(magnetisations)) - 1) < ENERGY_TOLERANCE ||
         error("the anneal did not end in the ground state: E/N = $(last(energies)), m = $(last(magnetisations))")
@@ -179,20 +181,24 @@ function main()
         ax, [T_CRITICAL], color = PALETTE.red, linestyle = :dot, linewidth = GUIDE_WIDTH,)
     ylims!(ax, -2.25, -0.15)
 
-    # where the ground state is first reached, held from there to the end
-    reached = findfirst(
-        i -> energies[i] <= -2.0 * J + 1e-9 &&
-             abs(magnetisations[i]) >= 1 - 1e-9,
-        eachindex(energies),)
+    # where the ground state is first reached, and from where it is held: a
+    # single flip costs 8J, so thermal excitations still leave it for a while
+    ground(i) = energies[i] <= -2.0 * J + ENERGY_TOLERANCE &&
+                abs(magnetisations[i]) >= 1 - ENERGY_TOLERANCE
+    reached = findfirst(ground, eachindex(energies))
     if reached !== nothing
-        T_reached = temperatures[reached]
-        @printf("ground state first reached at T = %.3f J/k_B, held to T = %.3f\n",
-            T_reached, last(temperatures))
-        vlines!(ax, [T_reached], color = PALETTE.black,
+        excited = findall(!ground, reached:lastindex(energies)) .+ (reached - 1)
+        held = isempty(excited) ? reached : last(excited) + 1
+        T_reached, T_held = temperatures[reached], temperatures[held]
+        @printf("ground state first reached at T = %.3f J/k_B; %d later sweeps end out of it; held from T = %.3f to T = %.3f\n",
+            T_reached, length(excited), T_held, last(temperatures))
+        all(ground, held:lastindex(energies)) ||
+            error("the ground state is not held from T = $T_held")
+        vlines!(ax, [T_held], color = PALETTE.black,
             linestyle = :dot, linewidth = GUIDE_WIDTH,)
         text!(ax, 0.97, 0.5;
             text = rich(it("E"), "/", it("N"), " = −2", it("J"), " and |", it("m"),
-                "| = 1 from ", it("T"), @sprintf(" = %.2f down", T_reached)),
+                "| = 1 from ", it("T"), @sprintf(" = %.2f down", T_held),),
             space = :relative, align = (:right, :center), fontsize = ANNOTATION_SIZE,
             color = PALETTE.black,)
     end
@@ -276,7 +282,7 @@ function animate_anneal(; every::Int = 20)
 
     # Against sweep number, not temperature: the cooling is monotonic, so this
     # reads left to right, and it avoids a reversed logarithmic axis whose
-    # limits fight the animation.
+    # limits interfere with the animation.
     axe = Axis(fig[2, 2], xlabel = "Sweep", ylabel = L"Energy per spin $E/N$ [$J$]")
     lines!(axe, trace_x, trace_E, color = PALETTE.blue)
     hlines!(
@@ -312,7 +318,7 @@ function animate_anneal(; every::Int = 20)
         caption[] = rich(it("T"), @sprintf(" = %.2f ", T), it("J"), "/", it("k"),
             subscript("B"), ", $phase ", it("T"), subscript("c"), "      ",
             it("E"), "/", it("N"), replace(@sprintf(" = %+.3f ", E), "-" => "−"), it("J"),
-            "      |", it("m"), @sprintf("| = %.3f", m))
+            "      |", it("m"), @sprintf("| = %.3f", m),)
     end
     return path
 end

@@ -61,7 +61,8 @@ has to assume that a spectroscope drum reads linearly in refractive index,
 whereas here the index is measured directly.
 
 The script asserts that δ_min = (α₂ − α₁)/2 to round-off, that the n column is
-reproduced from δ_min with the prism's apex angle of 59.9° to 3 × 10⁻⁶, and
+reproduced from δ_min with the prism's apex angle of 59.9° within 10⁻⁵ (the
+largest difference is 3 × 10⁻⁶), and
 that n falls with λ. The apex angle is the laboratory's value for its
 equilateral glass prism and is taken as such; the second check verifies the
 arithmetic of the column, not the prism.

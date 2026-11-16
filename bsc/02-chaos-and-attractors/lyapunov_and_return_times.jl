@@ -5,15 +5,19 @@
 #
 # Benettin: the perturbation is rescaled to d₀ after every interval τ and
 # λ₁ = ⟨ln(d/d₀)⟩/τ over the run. Successive increments are correlated, so the
-# standard error is the largest blocked estimate of Flyvbjerg and Petersen
-# (J. Chem. Phys. 91, 461 (1989), doi:10.1063/1.457480). Reference values from
+# standard error is the plateau of the blocked estimate of Flyvbjerg and
+# Petersen (J. Chem. Phys. 91, 461 (1989), doi:10.1063/1.457480). The
+# increments are anti-correlated over a turn of the attractor, so the estimate
+# first rises with the block length and then falls to the plateau; its largest
+# value, at blocks of 0.4 time units, overstates the error tenfold. Reference
+# values from
 # Sprott, Chaos and Time-Series Analysis, Oxford University Press (2003):
 # 0.9056 for the Lorenz attractor and 0.0714 for the Rössler attractor. The
 # measured values are asserted within three standard errors of them.
 #
-# Ported from Integratori.cpp, Atractori.cpp and helpers.cpp in
-# Code_Archive/Old_2018/C_C++/AtractorI/ on the `legacy` branch.
-# Integratori.cpp integrates the reference orbit and a copy displaced by 10⁻⁷ in
+# Ported from Integrators.cpp, Attractors.cpp and helpers.cpp in
+# Code_Archive/Old_2018/C_C++/Attractors/ on the `legacy` branch.
+# Integrators.cpp integrates the reference orbit and a copy displaced by 10⁻⁷ in
 # each coordinate; helpers.cpp drops 30 time units at each end of the
 # separation series, walks it accepting an extremum when it differs from the
 # last accepted one by more than ε = 10⁻⁴ in relative terms, and writes the
@@ -33,7 +37,7 @@ include(joinpath(@__DIR__, "attractors_core.jl"))
 
 const FIGURES = joinpath(@__DIR__, "figures")
 
-"Displacement of the perturbed orbit in each coordinate, as in Integratori.cpp."
+"Displacement of the perturbed orbit in each coordinate, as in Integrators.cpp."
 const D₀ = 1e-7
 "Integration step."
 const H = 0.002
@@ -47,6 +51,10 @@ const SKIP = 30.0
 const ε_EXTREMUM = 1e-4
 "Number of standard errors within which λ₁ must agree with the reference."
 const AGREEMENT = 3.0
+"Fewest blocks from which a blocked standard error is taken."
+const MIN_BLOCKS = 32
+"Standard deviations by which the last two blocking levels may differ at the plateau."
+const PLATEAU_TOLERANCE = 3.0
 
 """
     separation_history(f, u₀, p, h, T, d₀; transient)
@@ -104,17 +112,24 @@ end
     blocking_error(x)
 
 Standard error of the mean of the correlated series `x` by Flyvbjerg–Petersen
-blocking: successive pairs are averaged until fewer than eight blocks remain,
-and the largest standard error along the way is taken.
+blocking: successive pairs are averaged while at least `MIN_BLOCKS` blocks
+remain, and the estimate of the last level, where the blocks are longest, is
+returned with its own uncertainty σ/√(2(n − 1)) for `n` blocks. The last two
+levels must agree within `PLATEAU_TOLERANCE` of their uncertainties, which is
+the criterion for the plateau.
 """
 function blocking_error(x)
+    level(y) = (σ = std(y) / sqrt(length(y)); (σ, σ / sqrt(2 * (length(y) - 1))))
     y = copy(x)
-    worst = 0.0
-    while length(y) >= 8
-        worst = max(worst, std(y) / sqrt(length(y)))
+    previous = level(y)
+    while length(y) ÷ 2 >= MIN_BLOCKS
+        previous = level(y)
         y = [(y[2i - 1] + y[2i]) / 2 for i in 1:(length(y) ÷ 2)]
     end
-    return worst
+    σ, δσ = level(y)
+    abs(σ - previous[1]) <= PLATEAU_TOLERANCE * hypot(δσ, previous[2]) ||
+        error("the blocked standard error has not reached its plateau: $(previous[1]) then $σ")
+    return σ, δσ
 end
 
 """
@@ -166,19 +181,20 @@ function main()
         t, d = separation_history(f, u₀, p, H, T_sep, D₀; transient = TRANSIENT)
         push!(handles, lines!(ax1, t, d, color = colour))
         saturation = findfirst(>(1.0), d)
-        @printf("%-8s separation from %.0e reaches 1 at t = %.0f, %.1f × %.0f at the end\n",
+        @printf("%-8s separation from %.0e reaches 1 at t = %.0f and is %.1f at t = %.0f, the end of the run\n",
             name, D₀, saturation === nothing ? NaN : t[saturation], last(d), T_sep)
 
         increments = benettin_increments(f, u₀, p, H, T_ben, RENORM_STEPS, D₀;
             transient = TRANSIENT,)
-        λ, σλ = mean(increments), blocking_error(increments)
+        λ = mean(increments)
+        σλ, δσλ = blocking_error(increments)
         running = cumsum(increments) ./ (1:length(increments))
         τ = RENORM_STEPS * H
         lines!(ax2, τ .* (1:length(increments)), running, color = colour)
         hlines!(
             ax2, [reference], color = colour, linestyle = :dash, linewidth = GUIDE_WIDTH,)
-        @printf("%-8s λ₁ = %.4f ± %.4f over T = %.0f (blocked standard error); reference %.4f, %.1f σ away\n",
-            name, λ, σλ, T_ben, reference, abs(λ - reference) / σλ)
+        @printf("%-8s λ₁ = %.4f ± %.4f over T = %.0f (blocked standard error, itself ± %.5f); reference %.4f, %.1f σ away\n",
+            name, λ, σλ, T_ben, δσλ, reference, abs(λ - reference) / σλ)
         abs(λ - reference) <= AGREEMENT * σλ ||
             error("$name: λ₁ = $λ ± $σλ is more than $AGREEMENT σ from $reference")
         push!(results, (; name, colour, λ, σλ, reference))
@@ -208,7 +224,7 @@ function main()
         fontsize = ANNOTATION_SIZE,)
 
     ylims!(ax1, 1e-9, 1e3)
-    text!(ax1, 0.97, 0.04; text = "Saturation at the attractor diameter",
+    text!(ax1, 0.97, 0.04; text = "Lorenz saturates at the attractor diameter",
         space = :relative, align = (:right, :bottom), fontsize = ANNOTATION_SIZE,)
     for (k, r) in enumerate(results)
         text!(ax2, 0.97, 0.96 - 0.09(k - 1);

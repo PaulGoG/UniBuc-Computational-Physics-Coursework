@@ -6,7 +6,7 @@
 # Distances are obtained from the apparent size s of each galaxy relative to a
 # standard of known distance: d = d_std · s_std / s.
 #
-# Ported from Hubble.jl in Julia-Workflow-FFUB/FPECA_M_2/ on the `legacy`
+# Ported from Hubble.jl in Julia-Workflow-FFUB/Nuclear_Particle_Physics_M_2/ on the `legacy`
 # branch. The main correction is a one-character typo:
 #
 #     Suma_σ² =+ σ_z[i]^2
@@ -103,7 +103,7 @@ error from each galaxy's own size only; the reference galaxy sits at D_REF by
 definition and its own size cancels out of its distance.
 """
 function distances(s_ref)
-    d = [D_REF * s_ref / g[3] for g in GALAXIES]
+    d = [k == 1 ? D_REF : D_REF * s_ref / g[3] for (k, g) in enumerate(GALAXIES)]
     σd = [k == 1 ? 0.0 : d[k] * g[4] / g[3] for (k, g) in enumerate(GALAXIES)]
     return d, σd
 end
@@ -134,15 +134,28 @@ function main()
     H_velocity, σ_velocity = fit_hubble(d, v, zero(σd), σv)
     @printf("\nH₀ = %.1f ± %.1f km s⁻¹ Mpc⁻¹: fit %.1f, reference size ±%.0f %% common to two galaxies %.1f\n",
         H₀, σH₀, σ_fit, 100σs_ref / s_ref, σ_common)
+    weights = d .^ 2 ./ (σv .^ 2 .+ (H₀ .* σd) .^ 2)
+    @printf("share of the fit carried by each galaxy: %s\n",
+        join(
+        (@sprintf("%s %.0f %%", names[k], 100 * weights[k] / sum(weights))
+        for k in eachindex(names)),
+        ", ",))
     @printf("velocity errors alone would give %.1f ± %.1f\n", H_velocity, σ_velocity)
     @printf("Planck 2018: %.1f ± %.1f   SH0ES 2022: %.2f ± %.2f\n", H0_PLANCK...,
         H0_SHOES...)
     @printf("Hubble time 1/H₀ = %.1f Gyr\n", 977.8 / H₀)
-    # the two distant galaxies carry the fit, so the common-mode term is the
-    # scale error H₀ σ_s,ref/s_ref itself, to within the asymmetry of 1/s; the
-    # reference galaxy's velocity error is too large to anchor it
-    isapprox(σ_common, H₀ * σs_ref / s_ref; rtol = 0.05) ||
-        error("common-mode term $σ_common is not the scale error $(H₀ * σs_ref / s_ref)")
+    # The reference galaxy has no distance error and carries most of the fit,
+    # so the common-mode term is well below the scale error H₀ σ_s,ref/s_ref.
+    # It reaches that value, to within the asymmetry of 1/s, when the two other
+    # galaxies are fitted alone, which checks the propagation.
+    σ_common < H₀ * σs_ref / s_ref ||
+        error("common-mode term $σ_common exceeds the scale error $(H₀ * σs_ref / s_ref)")
+    others = 2:length(GALAXIES)
+    H_two, _ = fit_hubble(d[others], v[others], σd[others], σv[others])
+    H_two_up, _ = fit_hubble(d_up[others], v[others], σd_up[others], σv[others])
+    H_two_down, _ = fit_hubble(d_down[others], v[others], σd_down[others], σv[others])
+    isapprox(abs(H_two_up - H_two_down) / 2, H_two * σs_ref / s_ref; rtol = 0.05) ||
+        error("the reference size does not propagate as a scale error of the two other galaxies")
 
     fig = Figure(size = (1000, 660))
     ax = Axis(fig[2, 1], xlabel = "Distance [Mpc]", ylabel = L"Recession velocity [km s$^{-1}$]")

@@ -33,21 +33,28 @@ and `c` textually replace any identifier of those names in the translation unit.
 
 **Lyapunov exponents** by the Benettin algorithm: the perturbation is rescaled
 to d₀ = 10⁻⁷ every τ = 0.1 time units and λ₁ is the mean of ln(d/d₀)/τ. The
-increments are correlated, so the standard error is the largest blocked estimate
+increments are correlated, so the standard error is taken from blocked averages
 (Flyvbjerg and Petersen, J. Chem. Phys. **91**, 461 (1989),
-doi:10.1063/1.457480). The script asserts agreement within three standard
-errors with the values of Sprott, *Chaos and Time-Series Analysis*, Oxford
-University Press (2003).
+doi:10.1063/1.457480), at the plateau the estimate reaches for long blocks,
+here 48 blocks of 410 time units for Lorenz and 61 of 1640 for Rössler. The
+increments are anti-correlated over a turn of the attractor, so the blocked
+estimate first rises, to 0.014 for Lorenz at blocks of 0.4 time units, and
+then falls to the plateau; eight independent Lorenz runs of the same length
+scatter by 0.0006. The script asserts that the last two blocking levels agree,
+and agreement within three standard errors with the values of Sprott, *Chaos
+and Time-Series Analysis*, Oxford University Press (2003).
 
 | System | Run length | λ₁ | Reference |
 |---|---|---|---|
-| Lorenz | 2 × 10⁴ | 0.906 ± 0.014 | 0.9056 |
-| Rössler | 10⁵ | 0.0719 ± 0.0016 | 0.0714 |
+| Lorenz | 2 × 10⁴ | 0.9064 ± 0.0012 | 0.9056 |
+| Rössler | 10⁵ | 0.0719 ± 0.0005 | 0.0714 |
 
 **The un-renormalised separation**, which is what the 2018 program followed,
-grows from 10⁻⁷ until it saturates at the diameter of the attractor: after
-16 time units for Lorenz, after 219 for Rössler, whose exponent is thirteen
-times smaller. The left panel runs each system to just past its saturation.
+grows from 10⁻⁷ to order one in 16 time units for Lorenz and in 219 for
+Rössler, whose exponent is thirteen times smaller, and saturates at the size of
+the attractor. The left panel runs each system to just past the time its
+separation reaches one: Lorenz has saturated by then, Rössler is at 2.2 and
+still growing.
 
 **Extremum intervals.** `helpers.cpp` drops 30 time units at each end of the
 separation series, accepts an interior extremum when it differs from the last

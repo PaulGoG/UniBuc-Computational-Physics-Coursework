@@ -133,14 +133,14 @@ immediately. The 2021 file set `y[1] = 1`, contradicting its own comment.
 
 | | |
 |---|---|
-| Largest Lyapunov exponents, Benettin with blocked errors | Lorenz 0.906 ± 0.014 (literature 0.9056), Rössler 0.0719 ± 0.0016 (0.0714) |
+| Largest Lyapunov exponents, Benettin with blocked errors | Lorenz 0.9064 ± 0.0012 (literature 0.9056), Rössler 0.0719 ± 0.0005 (0.0714) |
 | Observed orders of Euler and RK4 | 1.000 ± 0.001 and 3.994 ± 0.010 |
 | Maximum binding energy per nucleon | 8.7946 MeV at ⁶²Ni, over ⁵⁶Fe at 8.7904 |
 | ⟨TKE⟩ in ²³⁵U(n_th,f) | 170.55 ± 0.05 MeV |
 | S_n(²³⁶U) | 6.546 MeV |
-| Prompt-neutron spectrum, Madland–Nix mass average | ⟨E⟩ = 2.103 MeV, Maxwellian-equivalent T = 1.402 MeV |
+| Prompt-neutron spectrum, Madland–Nix mass average | ⟨E⟩ = 2.093 MeV, Maxwellian-equivalent T = 1.396 MeV |
 | Prompt-neutron pair multiplicity, yield-weighted | 2.538 (measured 2.40–2.46 across four datasets) |
-| H₀ from three galaxies | 70.6 ± 12.2 km s⁻¹ Mpc⁻¹, the reference galaxy's size error being common to two of them |
+| H₀ from three galaxies | 70.6 ± 5.9 km s⁻¹ Mpc⁻¹, the reference galaxy's size error being common to two of them |
 | H₀ from H(z), flat ΛCDM | 73.3 ± 5.1 km s⁻¹ Mpc⁻¹, Ω_m = 0.267 ± 0.064 |
 | Tessar objective focal length | 50.79 mm |
 | Prism glass, two-term Cauchy | A = 1.5071 ± 0.0026, B = 0.00354 ± 0.00056 µm² |

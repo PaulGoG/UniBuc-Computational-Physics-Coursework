@@ -3,8 +3,8 @@
 #
 #   θ̈ = −(g/L) sin θ − q θ̇ + F_D sin(Ω_D t)
 #
-# Ported from Pendul_simplu.m, Pendul_dampat.m, Pendul_dampat_fortat.m and
-# Runge_Kutta_4_pendul_dampat_fortat.m on the `legacy` branch.
+# Ported from Simple_pendulum.m, Damped_pendulum.m, Damped_forced_pendulum.m and
+# RK4_damped_forced_pendulum.m on the `legacy` branch.
 #
 # The principal defect is in the RK4 file. For the coupled system θ̇ = ω,
 # ω̇ = F(θ, ω, t), the θ-stages must be fed the θ-slopes. The original wrote
@@ -17,7 +17,7 @@
 # dt·ω + dt²·F/2: the scheme is first order. Both couplings are integrated
 # below against a reference in 256-bit arithmetic and their orders measured.
 #
-# Two lesser points: Pendul_simplu.m is headed "pendulul matematic" but
+# Two lesser points: Simple_pendulum.m is headed "pendulul matematic" but
 # integrates −(g/L)θ, the small-angle approximation, not −(g/L) sin θ; and all
 # four files assign `length = 1` or `length = 9.8`, shadowing the Octave builtin.
 #
@@ -37,7 +37,7 @@ const FIGURES = joinpath(@__DIR__, "figures")
 const CHAOTIC = (g_over_L = 1.0, q = 0.5, F_D = 1.2, Ω_D = 2 / 3)
 "A weakly driven, non-chaotic set for the order study."
 const MILD = (g_over_L = 1.0, q = 0.5, F_D = 0.2, Ω_D = 2 / 3)
-"Undamped, undriven pendulum with the L = 1 m, g = 9.8 m s⁻² of Pendul_simplu.m."
+"Undamped, undriven pendulum with the L = 1 m, g = 9.8 m s⁻² of Simple_pendulum.m."
 const FREE = (g_over_L = 9.8, q = 0.0, F_D = 0.0, Ω_D = 0.0)
 "Initial angle of the free-pendulum comparison, in radians."
 const θ₀_FREE = 2.5
@@ -66,7 +66,7 @@ correct_step(t, u, h, p, a) = rk4_step((s, w) -> (w[2], a(w[1], w[2], s, p)), t,
 """
     original_step(t, u, h, p, a)
 
-The stage coupling as written in Runge_Kutta_4_pendul_dampat_fortat.m, kept so
+The stage coupling as written in RK4_damped_forced_pendulum.m, kept so
 that its order can be measured: `k1` is dω/dt but advances both components, and
 the θ-stages propagate ω as though dω/dt = ω.
 """
@@ -155,7 +155,7 @@ wrap(θ) = mod(θ + π, 2π) - π
     wrapped_trace(t, θ)
 
 `θ` wrapped to (−π, π] against `t`, with a `NaN` pair inserted at every wrap so
-that a line breaks there instead of striking across the panel. It serves the
+that a line breaks there instead of crossing the panel. It is used for the
 original coupling, which winds rather than oscillates.
 """
 function wrapped_trace(t, θ)
@@ -217,7 +217,8 @@ function main()
     periods = 3000
     Δt_c = 2π / CHAOTIC.Ω_D / stride
     _, θc, ωc = integrate(correct_step, (0.2, 0.0), Δt_c, stride * periods, CHAOTIC, accel)
-    keep = (300 * stride):stride:(stride * periods)   # discard the transient
+    # index m + 1 holds t = mΔt, so whole drive periods are at k·stride + 1
+    keep = (300 * stride + 1):stride:(stride * periods + 1)   # discard the transient
     @printf("Poincaré section: %d points, one per drive period after the first 300\n",
         length(keep))
 
@@ -324,7 +325,7 @@ function animate_pendulum()
     linesegments!(axp, rods, color = [PALETTE.blue, PALETTE.blue, PALETTE.red, PALETTE.red])
     scatter!(axp, bobs, color = [PALETTE.blue, PALETTE.red], markersize = 32)
     scatter!(axp, [Point2f(0, 0)], color = :black, markersize = MARKERSIZE.dense)
-    # the bob sits at (sin θ, −cos θ) and rises above y = 0 for |θ| > π/2
+    # the bob is at (sin θ, −cos θ) and rises above y = 0 for |θ| > π/2
     xlims!(axp, -1.35, 1.35)
     ylims!(axp, -1.35, 1.35)
 

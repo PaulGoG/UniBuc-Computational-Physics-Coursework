@@ -39,7 +39,8 @@ propagates the redshift uncertainty, and reads its flat-universe Ω_M off the
 Ω_M + Ω_Λ = 1 line of the two-dimensional confidence region. Agreement with the
 published intervals, which the script asserts, is a consistency check of the
 implementation rather than a reproduction. Scaled by √(χ²/dof) the errors
-become ± 0.115 and ± 0.091; the excess of Fit A is the two residual outliers.
+become ± 0.115 and ± 0.091; most of the excess of Fit A is the two residual
+outliers, 1997O and 1994H.
 Planck 2018 gives Ω_m = 0.315 ± 0.007 (Planck Collaboration VI, A&A **641**, A6
 (2020), doi:10.1051/0004-6361/201833910).
 
@@ -75,8 +76,8 @@ uncertainties of a twelve-point dataset.
 independent variable, `dt/da = 1/(aH)`, which is regular at a = 0 and so
 reaches the Big Bang instead of stepping through it, for Ω_m = 0.315, 1 and
 0.05 at the Planck H₀. The integrated t(a) is asserted against the closed form
-`(2 / 3√Ω_Λ) asinh(√(Ω_Λ/Ω_m) a^{3/2}) / H₀` to 4 × 10⁻¹⁰ of the Hubble time
-along the whole history, and the age at the Planck parameters, 13.796 Gyr,
+`(2 / 3√Ω_Λ) asinh(√(Ω_Λ/Ω_m) a^{3/2}) / H₀` within 10⁻⁸ of the Hubble time
+along the whole history (the largest deviation is 4 × 10⁻¹⁰), and the age at the Planck parameters, 13.796 Gyr,
 against the Planck value 13.797 ± 0.023 Gyr. The Einstein–de Sitter age is
 9.67 Gyr and the Ω_m = 0.05 one 21.6 Gyr.
 
@@ -116,7 +117,7 @@ no cosmological information.
 | File | Content | Source |
 |---|---|---|
 | `perlmutter1999_sn_ia.csv` | 60 SNe Ia: z, σ_z, effective m_B, σ, sample | Tables 1 and 2 of Perlmutter et al. (1999), doi:10.1086/307221, from the machine-readable tables; three designations that the tables had rendered as digits are written as printed in the paper (1997I, 1997O, 1993O), no value differs |
-| `hubble_parameter.csv` | 12 rows of z, H(z), σ_H | Eleven rows coincide in z and H with Table 2 of Stern et al., JCAP **02** (2010) 008, doi:10.1088/1475-7516/2010/02/008, except that the H values at z = 0.48 and 0.88 are interchanged and three uncertainties carry an extra decimal (17.4, 40.4, 18.2 where the table prints 17, 40, 18); the z = 0 row, 73 ± 8, is a local H₀ value. Assembled in 2019; the immediate source of the transcription is not recorded |
+| `hubble_parameter.csv` | 12 rows of z, H(z), σ_H | Eleven rows coincide in z and H with Table 2 of Stern et al., JCAP **02** (2010) 008, doi:10.1088/1475-7516/2010/02/008, except that the H values at z = 0.48 and 0.88 are interchanged and five uncertainties carry an extra decimal (17.4, 40.4 and 18.2 where the table prints 17, 40 and 18); the z = 0 row, 73 ± 8, is a local H₀ value. Assembled in 2019; the immediate source of the transcription is not recorded |
 | `sn_ia_distance_moduli.csv` | 2376 rows of m − M and z | Crăciun's reduction of the NED-D compilation of redshift-independent distances (Steer et al., AJ **153**, 37 (2017), doi:10.3847/1538-3881/153/1/37; https://ned.ipac.caltech.edu/Library/Distances/): rows with method SNIa, one per redshift, sorted; no uncertainties were kept, and the NED-D version downloaded in July 2019 is not recorded |
 | `supernova_magnitudes.csv` | 20 585 rows of SN name, host-galaxy magnitude, z | Extract of the SAI Supernova Catalogue, Sternberg Astronomical Institute (Tsvetkov, Pavlyuk and Bartunov, Astron. Lett. **30**, 729 (2004), doi:10.1134/1.1819491; http://stella.sai.msu.ru/sncat/), columns SN, host magnitude and redshift; the version downloaded in 2019 is not recorded. The catalogue also lists the supernova magnitude at maximum, which the 2019 extract did not take |
 
