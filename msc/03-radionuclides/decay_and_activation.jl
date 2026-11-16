@@ -14,7 +14,7 @@
 # Corrections:
 #
 #   1. The Bateman figure was degenerate. The time axis was built from
-#      `T_scalare = max(T½₁, T½₂)`, the ²³⁸U half-life of 4.468 × 10⁹ yr, giving
+#      `T_scalare = max(T½₁, T½₂)`, the ²³⁸U half-life, 4.468 × 10⁹ yr there, giving
 #      a step of 4.5 × 10⁸ yr, while the ²³⁴Th transient peaks at about 2 years.
 #      The transient, the vertical marker and the printed
 #      `round(t_m/T_scalare, digits=2) = 0.0` all collapsed onto x = 0. A

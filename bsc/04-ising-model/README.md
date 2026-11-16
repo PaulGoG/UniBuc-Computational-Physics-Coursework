@@ -11,7 +11,9 @@ dynamics under a temperature cooled geometrically from 5 to 0.05 J/k_B over
 exact ground state `E/N = -2J` at `|m| = 1` at T = 0.93 J/k_B. A single flip
 out of it costs 8J, with a Boltzmann factor of 2 × 10⁻⁴ at that temperature, so
 60 later sweeps still end with a spin flipped, the last at T = 0.57 J/k_B; from
-there the ground state is held to the end, which the script asserts. The
+there the ground state is held to the end. The script asserts the final state,
+and the 60 against the 51 ± 7 that the Boltzmann factor gives over the cooling
+schedule. The
 snapshots show the disordered, critical and ordered regimes against the exact
 Onsager temperature `T_c = 2/ln(1+√2) = 2.269 J/k_B`. Before the anneal the
 script checks the Metropolis kernel itself: the flip energy

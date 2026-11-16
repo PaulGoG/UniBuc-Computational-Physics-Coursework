@@ -5,11 +5,12 @@
 #
 # Benettin: the perturbation is rescaled to d₀ after every interval τ and
 # λ₁ = ⟨ln(d/d₀)⟩/τ over the run. Successive increments are correlated, so the
-# standard error is the plateau of the blocked estimate of Flyvbjerg and
-# Petersen (J. Chem. Phys. 91, 461 (1989), doi:10.1063/1.457480). The
+# standard error is the blocked estimate of Flyvbjerg and Petersen (J. Chem.
+# Phys. 91, 461 (1989), doi:10.1063/1.457480) at the longest blocks. The
 # increments are anti-correlated over a turn of the attractor, so the estimate
-# first rises with the block length and then falls to the plateau; its largest
-# value, at blocks of 0.4 time units, overstates the error tenfold. Reference
+# first rises with the block length and then falls towards its plateau; its
+# largest value, at blocks of 0.4 time units, overstates the error tenfold,
+# and the value at the longest blocks is still an upper estimate. Reference
 # values from
 # Sprott, Chaos and Time-Series Analysis, Oxford University Press (2003):
 # 0.9056 for the Lorenz attractor and 0.0714 for the Rössler attractor. The
@@ -53,8 +54,8 @@ const ε_EXTREMUM = 1e-4
 const AGREEMENT = 3.0
 "Fewest blocks from which a blocked standard error is taken."
 const MIN_BLOCKS = 32
-"Standard deviations by which the last two blocking levels may differ at the plateau."
-const PLATEAU_TOLERANCE = 3.0
+"Standard deviations by which the last blocking level may exceed the one before."
+const RISE_TOLERANCE = 3.0
 
 """
     separation_history(f, u₀, p, h, T, d₀; transient)
@@ -114,11 +115,17 @@ end
 Standard error of the mean of the correlated series `x` by Flyvbjerg–Petersen
 blocking: successive pairs are averaged while at least `MIN_BLOCKS` blocks
 remain, and the estimate of the last level, where the blocks are longest, is
-returned with its own uncertainty σ/√(2(n − 1)) for `n` blocks. The last two
-levels must agree within `PLATEAU_TOLERANCE` of their uncertainties, which is
-the criterion for the plateau.
+returned with its own uncertainty σ/√(2(n − 1)) for `n` blocks.
+
+Agreement of two levels does not prove a plateau. An estimate that falls with
+the block length, as for anti-correlated increments, approaches the plateau from
+above, and the value returned is then an upper estimate. One that still rises
+approaches it from below and would understate the error, so the last level may
+not exceed the one before by more than `RISE_TOLERANCE` of their uncertainties.
 """
 function blocking_error(x)
+    length(x) >= 2 * MIN_BLOCKS ||
+        throw(ArgumentError("blocking needs at least $(2 * MIN_BLOCKS) values, got $(length(x))"))
     level(y) = (σ = std(y) / sqrt(length(y)); (σ, σ / sqrt(2 * (length(y) - 1))))
     y = copy(x)
     previous = level(y)
@@ -127,8 +134,8 @@ function blocking_error(x)
         y = [(y[2i - 1] + y[2i]) / 2 for i in 1:(length(y) ÷ 2)]
     end
     σ, δσ = level(y)
-    abs(σ - previous[1]) <= PLATEAU_TOLERANCE * hypot(δσ, previous[2]) ||
-        error("the blocked standard error has not reached its plateau: $(previous[1]) then $σ")
+    σ - previous[1] <= RISE_TOLERANCE * hypot(δσ, previous[2]) ||
+        error("the blocked standard error is still rising: $(previous[1]) then $σ")
     return σ, δσ
 end
 
@@ -156,9 +163,9 @@ function extrema_intervals(t, d; skip, ε)
 end
 
 # (field, parameters, name, colour, reference λ₁, horizon of the separation
-# history, horizon of the Benettin run). The Rössler separation saturates only
-# after 200 time units, and its exponent needs a run five times longer for a
-# standard error of 2 in the third digit
+# history, horizon of the Benettin run). The Rössler separation reaches order
+# one only after 200 time units, and its exponent, thirteen times smaller, is
+# given a run five times longer
 const CASES = (
     (lorenz, LORENZ, "Lorenz", PALETTE.blue, 0.9056, 80.0, 20_000.0),
     (rossler, ROSSLER, "Rössler", PALETTE.green, 0.0714, 300.0, 100_000.0),

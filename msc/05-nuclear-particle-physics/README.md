@@ -52,8 +52,9 @@ same factor and is therefore common to them rather than an independent error
 of each; the script propagates it by refitting with the reference size moved
 by ±σ. The reference galaxy itself stays at 10.73 Mpc, has no distance error
 and carries 82 % of the weight of the fit, so the common term is well below
-the scale error H₀ σ_s/s, which it equals, as the script asserts, only when the
-two other galaxies are fitted alone. The result is consistent with Planck 2018, 67.4 ± 0.5
+the scale error H₀ σ_s/s = 10.6, which the script asserts. The uncertainty of
+the reference distance itself is not included. The result is consistent with
+Planck 2018, 67.4 ± 0.5
 (doi:10.1051/0004-6361/201833910), and with SH0ES 2022, 73.04 ± 1.04
 (doi:10.3847/2041-8213/ac5c5b). The recession velocities, 745, 936 and
 2827 km s⁻¹, compare with the NED heliocentric values 727, 897 and

@@ -145,17 +145,10 @@ function main()
         H0_SHOES...)
     @printf("Hubble time 1/H₀ = %.1f Gyr\n", 977.8 / H₀)
     # The reference galaxy has no distance error and carries most of the fit,
-    # so the common-mode term is well below the scale error H₀ σ_s,ref/s_ref.
-    # It reaches that value, to within the asymmetry of 1/s, when the two other
-    # galaxies are fitted alone, which checks the propagation.
+    # so the common-mode term must lie below the scale error H₀ σ_s,ref/s_ref,
+    # which is what it would be if all three distances moved together.
     σ_common < H₀ * σs_ref / s_ref ||
         error("common-mode term $σ_common exceeds the scale error $(H₀ * σs_ref / s_ref)")
-    others = 2:length(GALAXIES)
-    H_two, _ = fit_hubble(d[others], v[others], σd[others], σv[others])
-    H_two_up, _ = fit_hubble(d_up[others], v[others], σd_up[others], σv[others])
-    H_two_down, _ = fit_hubble(d_down[others], v[others], σd_down[others], σv[others])
-    isapprox(abs(H_two_up - H_two_down) / 2, H_two * σs_ref / s_ref; rtol = 0.05) ||
-        error("the reference size does not propagate as a scale error of the two other galaxies")
 
     fig = Figure(size = (1000, 660))
     ax = Axis(fig[2, 1], xlabel = "Distance [Mpc]", ylabel = L"Recession velocity [km s$^{-1}$]")

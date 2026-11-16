@@ -158,7 +158,9 @@ function main()
     # a = 251/720 and b = 19/720: y − p = aE, so c − y = (b − ga)E and
     # c − p = (a + b − ga)E, and the Milne estimate b/(a + b)·(c − p) is
     # (1 − ga/(a + b))/(1 − ga/b) of the one-step error. Here ∂f/∂y = −1 and
-    # the ratio is (1 + 0.349h)/(1 + 4.954h), to first order in h.
+    # the ratio is (1 + 0.349h)/(1 + 4.954h). It is taken at the point of
+    # largest one-step error, where y⁽⁶⁾ vanishes; elsewhere the h⁶y⁽⁶⁾ terms of
+    # the two local errors add a term in h·y⁽⁶⁾/y⁽⁵⁾ of the same order.
     a, b = PREDICTOR_ERROR, CORRECTOR_ERROR
     predicted_ratio = map(H_SWEEP) do h
         g = -AM3[1] * h

@@ -91,7 +91,7 @@ equal pause, the ²⁸Al activity ends the first irradiation at exactly 1 − 2�
 96.9 % of saturation, asserted, and settles at 97.0 %.
 
 `Radionuclides_4_1.jl` built its time axis from `max(T½₁, T½₂)`, the ²³⁸U
-half-life of 4.468 Gyr, giving a step of 4.5 × 10⁸ yr for a transient that
+half-life, 4.468 Gyr in that file, giving a step of 4.5 × 10⁸ yr for a transient that
 peaks at 2.4 yr: the whole interesting region, the vertical marker and the
 printed `t_m/T_scalare = 0.0` collapsed onto x = 0. A logarithmic time axis
 shows both scales. `Radionuclides_4_2.jl` gave ²⁸Al a half-life of `2.3*60` s

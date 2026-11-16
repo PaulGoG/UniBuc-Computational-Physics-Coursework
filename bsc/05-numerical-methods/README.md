@@ -44,8 +44,10 @@ and b = 19/720, the one-step error becomes (b − ga)E and the difference c − 
 becomes (a + b − ga)E, so the ratio of the estimate to the error is
 (1 − ga/(a + b))/(1 − ga/b), which for ∂f/∂y = −1 is
 (1 + 0.349 h)/(1 + 4.954 h): 0.537, 0.692, 0.815, 0.898, 0.946 and 0.972 at
-the six steps of the table. The script asserts the two orders (4 and 5, within
-0.1) and this ratio at every step within 1 %.
+the six steps of the table. The ratio is taken at the point of largest one-step
+error, where y⁽⁶⁾ vanishes; elsewhere the h⁶y⁽⁶⁾ terms of the two local errors
+add a term in h·y⁽⁶⁾/y⁽⁵⁾ of the same order. The script asserts the two orders
+(4 and 5, within 0.1) and this ratio at every step within 1 %.
 
 ## `pendulum_integrators.jl`
 

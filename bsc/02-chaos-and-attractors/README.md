@@ -35,12 +35,14 @@ and `c` textually replace any identifier of those names in the translation unit.
 to d₀ = 10⁻⁷ every τ = 0.1 time units and λ₁ is the mean of ln(d/d₀)/τ. The
 increments are correlated, so the standard error is taken from blocked averages
 (Flyvbjerg and Petersen, J. Chem. Phys. **91**, 461 (1989),
-doi:10.1063/1.457480), at the plateau the estimate reaches for long blocks,
-here 48 blocks of 410 time units for Lorenz and 61 of 1640 for Rössler. The
-increments are anti-correlated over a turn of the attractor, so the blocked
-estimate first rises, to 0.014 for Lorenz at blocks of 0.4 time units, and
-then falls to the plateau; eight independent Lorenz runs of the same length
-scatter by 0.0006. The script asserts that the last two blocking levels agree,
+doi:10.1063/1.457480), at the longest blocks that still leave 32 of them: 48
+blocks of 410 time units for Lorenz and 61 of 1640 for Rössler. The increments
+are anti-correlated over a turn of the attractor, so the blocked estimate first
+rises, to 0.014 for Lorenz at blocks of 0.4 time units, and then falls towards
+its plateau. For Lorenz it is still falling at the longest blocks (0.0014,
+0.0014 and 0.0012 at 102, 205 and 410 time units), so the quoted error is an
+upper estimate: eight independent runs of the same length scatter by 0.0006.
+The script asserts that the estimate is not still rising at the last level,
 and agreement within three standard errors with the values of Sprott, *Chaos
 and Time-Series Analysis*, Oxford University Press (2003).
 

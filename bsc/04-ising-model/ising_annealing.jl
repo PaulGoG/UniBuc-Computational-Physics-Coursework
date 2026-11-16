@@ -190,10 +190,16 @@ function main()
         excited = findall(!ground, reached:lastindex(energies)) .+ (reached - 1)
         held = isempty(excited) ? reached : last(excited) + 1
         T_reached, T_held = temperatures[reached], temperatures[held]
-        @printf("ground state first reached at T = %.3f J/k_B; %d later sweeps end out of it; held from T = %.3f to T = %.3f\n",
-            T_reached, length(excited), T_held, last(temperatures))
-        all(ground, held:lastindex(energies)) ||
-            error("the ground state is not held from T = $T_held")
+        # A flip out of the ground state is accepted with probability e^{−8J/T}
+        # and stays until its site is drawn again, about one sweep later, so
+        # the number of sweeps that end excited is close to the number of such
+        # flips, Σ L² e^{−8J/T} over the later sweeps, with Poisson scatter.
+        expected = sum(L^2 * exp(-8J / temperatures[i])
+        for i in reached:lastindex(energies))
+        @printf("ground state first reached at T = %.3f J/k_B; %d later sweeps end out of it (%.0f expected from the Boltzmann factor); held from T = %.3f to T = %.3f\n",
+            T_reached, length(excited), expected, T_held, last(temperatures))
+        abs(length(excited) - expected) <= 3 * sqrt(expected) ||
+            error("$(length(excited)) sweeps end out of the ground state against $expected expected")
         vlines!(ax, [T_held], color = PALETTE.black,
             linestyle = :dot, linewidth = GUIDE_WIDTH,)
         text!(ax, 0.97, 0.5;
